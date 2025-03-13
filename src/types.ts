@@ -49,14 +49,11 @@ export interface WebhookResponse {
 }
 
 export interface Company {
-  id: string;
-  name: string;
-  taxId: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  razon: string;
+  id_empresa: string;
+  razon_social: string;
+  nombre_comercial: string;
+  direccion: string;
+  tipo_persona:string;
 }
 
 export interface Employee {

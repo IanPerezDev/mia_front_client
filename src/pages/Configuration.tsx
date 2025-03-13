@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Company, Employee, Assignment, FormMode, Tag, Policy } from '../types';
 import { CompanyForm } from '../components/CompanyForm';
 import { EmployeeForm } from '../components/EmployeeForm';
@@ -16,6 +16,9 @@ import {
   Tags,
   BookOpen,
 } from 'lucide-react';
+import { getCompaniesAgent } from '../hooks/useDatabase';
+import { supabase } from '../services/supabaseClient';
+
 
 export const Configuration = () => {
   const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications'>('companies');
@@ -29,6 +32,28 @@ export const Configuration = () => {
   const [formMode, setFormMode] = useState<FormMode>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
+  useEffect(() => {
+    if (activeTab === "companies") {
+      fetchCompaniesAgent();
+    }
+  }, [activeTab])
+
+
+  const fetchCompaniesAgent = async () => {
+    try {
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        throw userError;
+      }
+      if (!user) {
+        throw new Error("No hay usuario autenticado");
+      }
+      const companiesData = await getCompaniesAgent(user.user.id);
+      setCompanies(companiesData.data || [] );
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
   // List of departments (could be moved to a separate configuration)
   const departments = [
     'Ingenieria',
@@ -165,7 +190,7 @@ export const Configuration = () => {
             onSubmit={(data) => handleSubmit('tag', data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
-            employees = {employees}
+            employees={employees}
           />
         );
       case 'policies':
@@ -217,8 +242,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('companies')}
                 className={`${activeTab === 'companies'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Building2 className="mr-2 h-5 w-5" />
@@ -227,12 +252,12 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('employees')}
                 className={`${activeTab === 'employees'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Users className="mr-2 h-5 w-5" />
-                Empleados
+                Viajeros
               </button>
               {/* <button
                 onClick={() => setActiveTab('assignments')}
@@ -248,8 +273,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Tags className="mr-2 h-5 w-5" />
@@ -258,8 +283,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('policies')}
                 className={`${activeTab === 'policies'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <BookOpen className="mr-2 h-5 w-5" />
@@ -268,8 +293,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('notifications')}
                 className={`${activeTab === 'notifications'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <BookOpen className="mr-2 h-5 w-5" />
@@ -317,10 +342,10 @@ export const Configuration = () => {
                               Nombre de la empresa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              RFC
+                              Dirección
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Contacto
+                              Tipo de persona
                             </th>
                           </>
                         )}
@@ -396,7 +421,7 @@ export const Configuration = () => {
                                 {company.logo ? (
                                   <img
                                     src={company.logo}
-                                    alt={company.name}
+                                    alt={company.nombre_comercial}
                                     className="h-10 w-10 rounded-full mr-3"
                                   />
                                 ) : (
@@ -405,15 +430,15 @@ export const Configuration = () => {
                                   </div>
                                 )}
                                 <div className="text-sm font-medium text-gray-900">
-                                  {company.name}
+                                  {company.nombre_comercial}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.taxId}
+                              {company.direccion}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.email}
+                              {company.tipo_persona}
                               <br />
                               {company.phone}
                             </td>
@@ -539,10 +564,10 @@ export const Configuration = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.role === 'admin'
-                                    ? 'bg-red-100 text-red-800'
-                                    : assignment.role === 'manager'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-green-100 text-green-800'
+                                  ? 'bg-red-100 text-red-800'
+                                  : assignment.role === 'manager'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-green-100 text-green-800'
                                   }`}>
                                   {assignment.role.charAt(0).toUpperCase() + assignment.role.slice(1)}
                                 </span>
@@ -626,24 +651,24 @@ export const Configuration = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.type === 'budget'
-                                  ? 'bg-green-100 text-green-800'
-                                  : policy.type === 'schedule'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : policy.type === 'benefits'
-                                      ? 'bg-purple-100 text-purple-800'
-                                      : 'bg-gray-100 text-gray-800'
+                                ? 'bg-green-100 text-green-800'
+                                : policy.type === 'schedule'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : policy.type === 'benefits'
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : 'bg-gray-100 text-gray-800'
                                 }`}>
                                 {policy.type.charAt(0).toUpperCase() + policy.type.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.status === 'active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : policy.status === 'inactive'
-                                    ? 'bg-gray-100 text-gray-800'
-                                    : policy.status === 'draft'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800'
+                                : policy.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-800'
+                                  : policy.status === 'draft'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
                                 }`}>
                                 {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
                               </span>

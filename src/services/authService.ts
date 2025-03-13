@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import type { RegistrationFormData, QuestionnaireData } from '../types';
-import { createAgente } from "../hooks/useDatabase";
+import { createAgente, createEmpresa, createViajero } from "../hooks/useDatabase";
 import { formatDate } from '../helpers/helpers';
 
 const validateEmail = (email: string): boolean => {
@@ -215,13 +215,29 @@ export const newRegisterUser = async (
     if (!authData.user) {
       throw new Error('No se pudo crear el usuario');
     }
+
     // 3. Create agent profile
+    const id = String(Math.random() * 10000);
     const response = await createAgente(formData, authData.user.id);
     if (!response.success) {
       throw new Error("No se pudo registrar al usuario");
     }
 
-    // 4. Sign in the user immediately
+    // 4. Create company profile
+    const responseCompany = await createEmpresa(formData, authData.user.id);
+    if(!responseCompany.success) {
+      throw new Error("No se pudo registrar al usuario");
+    }
+    console.log(responseCompany);
+    
+    // 5. Create viajero profile
+    const responseViajero = await createViajero(formData, responseCompany.empresa_id);
+    if(!responseViajero.success){
+      throw new Error("No se pudo registrar al usuario");
+    }
+    console.log(responseViajero);
+
+    // 6. Sign in the user immediately
     const { data: session } = await supabase.auth.getSession();
 
     if (!session?.session) {

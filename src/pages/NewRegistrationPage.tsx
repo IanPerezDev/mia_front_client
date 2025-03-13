@@ -11,6 +11,7 @@ interface RegistrationFormData {
     phone: string;
     password: string;
     confirmPassword: string;
+    gender: string;
 }
 
 interface RegistrationPageProps {
@@ -27,7 +28,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
         email: '',
         phone: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        gender: '',
     });
 
     const [passwordError, setPasswordError] = useState('');
