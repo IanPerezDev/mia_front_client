@@ -17,7 +17,7 @@ const AUTH = {
 };
 
 export const createAgente = async (data: any, id: string) => {
-  console.log(data.nombre);
+  console.log(data.primer_nombre);
   try {
     const response = await fetch(`http://localhost:3001/v1/mia/agentes`, {
       method: "POST",
@@ -26,12 +26,12 @@ export const createAgente = async (data: any, id: string) => {
         ...AUTH,
       },
       body: JSON.stringify({
-        name: data.name,
-        secondName: data.secondName,
-        lastname1: data.lastname1,
-        lastname2: data.lastname2,
-        email: data.email,
-        phone: data.phone,
+        name: data.primer_nombre,
+        secondName: data.segundo_nombre,
+        lastname1: data.apellido_paterno,
+        lastname2: data.apellido_materno,
+        email: data.correo,
+        phone: data.telefono,
         password: data.password,
         gender: data.genero,
         id: id
@@ -55,8 +55,8 @@ export const createAgente = async (data: any, id: string) => {
 }
 
 export const createEmpresa = async (data: any, id: string) => {
-  const nombreEmpresa = data.name + " " + data.secondName + " " + data.lastname1 + " " + data.lastname2;
-  try{
+  const nombreEmpresa = data.primer_nombre + " " + data.segundo_nombre + " " + data.apellido_paterno + " " + data.apellido_materno;
+  try {
     const response = await fetch(`http://localhost:3001/v1/mia/empresas`, {
       method: "POST",
       headers: {
@@ -71,7 +71,7 @@ export const createEmpresa = async (data: any, id: string) => {
         direccion: " ",
       }),
     });
-  
+
     const json = await response.json();
     if (json.message === "Agente creado correctamente") {
       return ({
@@ -85,13 +85,13 @@ export const createEmpresa = async (data: any, id: string) => {
       })
     }
   }
-  catch(error){
+  catch (error) {
     throw error;
   }
 }
 
 export const createNewEmpresa = async (data: any, id: string) => {
-  try{
+  try {
     const response = await fetch(`http://localhost:3001/v1/mia/empresas`, {
       method: "POST",
       headers: {
@@ -106,7 +106,7 @@ export const createNewEmpresa = async (data: any, id: string) => {
         direccion: data.direccion,
       }),
     });
-  
+
     const json = await response.json();
     if (json.message === "Agente creado correctamente") {
       return ({
@@ -120,13 +120,55 @@ export const createNewEmpresa = async (data: any, id: string) => {
       })
     }
   }
-  catch(error){
+  catch (error) {
     throw error;
   }
 }
 
-export const createViajero = async (data: any, id_empresa: string) => {
-  try{
+// export const createViajero = async (data: any, id_empresa: string) => {
+//   try {
+//     const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         ...AUTH,
+//       },
+//       body: JSON.stringify({
+//         id_empresa: id_empresa,
+//         primer_nombre: data.primer_nombre,
+//         segundo_nombre: data.segundo_nombre,
+//         apellido_paterno: data.apellido_paterno,
+//         apellido_materno: data.apellido_materno,
+//         correo: data.correo,
+//         telefono: data.telefono,
+//         genero: "masculino",
+//         fecha_nacimiento: "2001-09-25 00:00:00",
+//       }),
+//     });
+
+//     const json = await response.json();
+//     console.log(json);
+//     if (json.message === "Viajero creado correctamente") {
+//       return ({
+//         success: true
+//       })
+//     }
+//     else {
+//       return ({
+//         success: false
+//       })
+//     }
+//   }
+//   catch (error) {
+//     throw error;
+//   }
+// }
+
+export const createNewViajero = async (data: any, id_empresa: string) => {
+  const fechaNacimiento = new Date(data.fecha_nacimiento);
+  const fechaFormateada = fechaNacimiento.toISOString().split("T")[0] + " 00:00:00";
+  try {
+    console.log(data);
     const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
       method: "POST",
       headers: {
@@ -135,17 +177,17 @@ export const createViajero = async (data: any, id_empresa: string) => {
       },
       body: JSON.stringify({
         id_empresa: id_empresa,
-        primer_nombre: data.name,
-        segundo_nombre: data.secondName,
-        apellido_paterno: data.lastname1,
-        apellido_materno: data.lastname2,
-        correo: data.email,
-        telefono: data.phone,
-        genero: "masculino",
-        fecha_nacimiento: "2001-09-25 00:00:00",
+        primer_nombre: data.primer_nombre,
+        segundo_nombre: data.segundo_nombre || " ",
+        apellido_paterno: data.apellido_paterno,
+        apellido_materno: data.apellido_materno || " ",
+        correo: data.correo,
+        telefono: data.telefono,
+        genero: data.genero,
+        fecha_nacimiento: fechaFormateada,
       }),
     });
-  
+
     const json = await response.json();
     console.log(json);
     if (json.message === "Viajero creado correctamente") {
@@ -159,13 +201,13 @@ export const createViajero = async (data: any, id_empresa: string) => {
       })
     }
   }
-  catch(error){
+  catch (error) {
     throw error;
   }
 }
 
 export const getCompaniesAgent = async (agent_id: string) => {
-  try{
+  try {
     console.log("En proceso de obtener empresas")
     const response = await fetch(`http://localhost:3001/v1/mia/agentes/empresas-con-agentes?id_agente=${encodeURIComponent(agent_id)}`, {
       method: "GET",
@@ -174,17 +216,17 @@ export const getCompaniesAgent = async (agent_id: string) => {
         ...AUTH,
       },
     });
-  
+
     const json = await response.json();
     return json;
   }
-  catch(error){
+  catch (error) {
     throw error;
   }
 }
 
-export const getCompaniesAgentViajeros = async(agent_id: string) => {
-  try{
+export const getCompaniesAgentViajeros = async (agent_id: string) => {
+  try {
     console.log("En proceso de obtener viajeros")
     const response = await fetch(`http://localhost:3001/v1/mia/agentes/viajeros-con-empresas?id_agente=${encodeURIComponent(agent_id)}`, {
       method: "GET",
@@ -193,12 +235,12 @@ export const getCompaniesAgentViajeros = async(agent_id: string) => {
         ...AUTH,
       },
     });
-  
+
     const json = await response.json();
     console.log(json);
     return json;
   }
-  catch(error){
+  catch (error) {
     throw error;
   }
 }

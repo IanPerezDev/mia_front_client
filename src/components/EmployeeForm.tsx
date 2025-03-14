@@ -1,54 +1,61 @@
-import React from 'react';
-import { Employee, Tag } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Company, Employee } from '../types';
 import { X } from 'lucide-react';
+import { fetchCompaniesAgent } from '../hooks/useFetch';
 
 interface EmployeeFormProps {
   onSubmit: (data: Partial<Employee>) => void;
   onCancel: () => void;
-  tags: Tag[];
-  departments: string[];
+  // tags: Tag[];
+  // departments: string[];
   initialData?: Employee;
 }
 
 export function EmployeeForm({
   onSubmit,
   onCancel,
-  tags,
-  departments,
+  // tags,
+  // departments,
   initialData,
-  empresas,
 }: EmployeeFormProps) {
+
+  const [empresas, setEmpresas] = useState<Company[]>([]);
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
     const data: Partial<Employee> = {
-      fullName: formData.get('fullName') as string,
-      documentId: formData.get('documentId') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      position: formData.get('position') as string,
-      startDate: formData.get('startDate') as string,
-      photo: formData.get('photo') as string,
-      department: formData.get('department') as string,
-      tagIds: Array.from(formData.getAll('tagIds') as string[]),
-      nombre: formData.get('nombre') as string,
-      segundNombre: formData.get('segundNombre') as string,
-      apellidoMaterno: formData.get('apellidoM') as string,
-      apellidoPaterno: formData.get('apellidoP') as string,
-      empresa: formData.get('empresa') as string,
+      correo: formData.get('email') as string,
+      telefono: formData.get('phone') as string,
+      //tagIds: Array.from(formData.getAll('tagIds') as string[]),
+      primer_nombre: formData.get('nombre') as string,
+      segundo_nombre: formData.get('segundNombre') as string,
+      apellido_materno: formData.get('apellidoM') as string,
+      apellido_paterno: formData.get('apellidoP') as string,
+      id_empresa: formData.get('empresa') as string,
+      fecha_nacimiento: formData.get('fecha_nacimiento') as string,
       genero: formData.get('genero') as string,
     };
 
     onSubmit(data);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchCompaniesAgent();
+      setEmpresas(data);
+    };
+    fetchData();
+  }, [])
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? 'Editar Empleado' : 'Añadir Nuevo Empleado'}
+          {initialData ? 'Editar Viajero' : 'Añadir Nuevo Viajero'}
         </h2>
         <button
           type="button"
@@ -67,7 +74,7 @@ export function EmployeeForm({
           <input
             type="text"
             name="nombre"
-            defaultValue={initialData?.nombre}
+            defaultValue={initialData?.primer_nombre}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -80,7 +87,7 @@ export function EmployeeForm({
           <input
             type="text"
             name="segundNombre"
-            defaultValue={initialData?.segundNombre}
+            defaultValue={initialData?.segundo_nombre}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -92,7 +99,7 @@ export function EmployeeForm({
           <input
             type="text"
             name="apellidoP"
-            defaultValue={initialData?.apellidoPaterno}
+            defaultValue={initialData?.apellido_paterno}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -105,33 +112,19 @@ export function EmployeeForm({
           <input
             type="text"
             name="apellidoM"
-            defaultValue={initialData?.apellidoMaterno}
+            defaultValue={initialData?.apellido_materno}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Numero de pasaporte
-          </label>
-          <input
-            type="text"
-            name="documentId"
-            defaultValue={initialData?.documentId}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
+        <div className='md:col-span-2'>
           <label className="block text-sm font-medium text-gray-700">
             Correo electronico
           </label>
           <input
             type="email"
             name="email"
-            defaultValue={initialData?.email}
+            defaultValue={initialData?.correo}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -144,60 +137,10 @@ export function EmployeeForm({
           <input
             type="tel"
             name="phone"
-            defaultValue={initialData?.phone}
+            defaultValue={initialData?.telefono}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Posición
-          </label>
-          <input
-            type="text"
-            name="position"
-            defaultValue={initialData?.position}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Empresa
-          </label>
-          <select
-            name="empresa"
-            defaultValue={initialData?.empresa}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Selecciona una empresa</option>
-            {empresas.map((empresa) => (
-              <option key={empresa.id} value={empresa.name}>
-                {empresa.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Departamento
-          </label>
-          <select
-            name="department"
-            defaultValue={initialData?.department}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Selecciona un departamento</option>
-            {departments.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
         </div>
 
         <div>
@@ -206,11 +149,42 @@ export function EmployeeForm({
           </label>
           <input
             type="date"
-            name="startDate"
-            defaultValue={initialData?.startDate}
+            name="fecha_nacimiento"
+            defaultValue={initialData?.fecha_nacimiento}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+        </div>
+
+        <div className="">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Empresas
+          </label>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {empresas.map((empresa) => (
+              <label
+                key={empresa.id_empresa}
+                className="relative flex items-start"
+              >
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    name="empresa"
+                    value={empresa.id_empresa}
+                    defaultChecked={initialData?.id_empresa?.includes(empresa.id_empresa)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <span
+                    className="font-medium text-gray-700"
+                  >
+                    {empresa.razon_social}
+                  </span>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -226,17 +200,6 @@ export function EmployeeForm({
             <option value="masculino">Masculino</option>
             <option value="femenino">Femenino</option>
           </select>
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            URL de foto de perfil (opcional)
-          </label>
-          <input
-            type="url"
-            name="photo"
-            defaultValue={initialData?.photo}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
         </div>
 
         {/* <div className="md:col-span-2">
@@ -284,7 +247,7 @@ export function EmployeeForm({
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Actualizar Empleado' : 'Añadir Empleado'}
+          {initialData ? 'Actualizar Viajero' : 'Añadir Viajero'}
         </button>
       </div>
     </form>

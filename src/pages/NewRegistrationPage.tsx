@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
-import { Building2, Phone, Mail, User, Briefcase, MapPin, Lock, CheckCircle2, ArrowRight, Hotel, Calendar, MapPinOff, ArrowLeft } from 'lucide-react';
+import { Phone, Mail, User, Lock, CheckCircle2, Calendar, PersonStanding } from 'lucide-react';
 import { newRegisterUser } from '../services/authService';
 
 interface RegistrationFormData {
-    name: string;
-    secondName: string;
-    lastname1: string;
-    lastname2: string;
-    email: string;
-    phone: string;
+    primer_nombre: string;
+    segundo_nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string;
+    correo: string;
+    telefono: string;
     password: string;
     confirmPassword: string;
-    gender: string;
+    genero: string;
+    fecha_nacimiento: string;
 }
 
 interface RegistrationPageProps {
     onComplete: () => void;
 }
 
-export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete}) => {
+export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }) => {
     const [step, setStep] = useState<'personal' | 'completed'>('personal');
     const [formData, setFormData] = useState<RegistrationFormData>({
-        name: '',
-        secondName: '',
-        lastname1: '',
-        lastname2: '',
-        email: '',
-        phone: '',
+        primer_nombre: '',
+        segundo_nombre: '',
+        apellido_paterno: '',
+        apellido_materno: '',
+        correo: '',
+        telefono: '',
         password: '',
         confirmPassword: '',
-        gender: '',
+        genero: '',
+        fecha_nacimiento: '',
     });
 
     const [passwordError, setPasswordError] = useState('');
@@ -73,6 +75,10 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
             setPasswordError('Las contraseñas no coinciden');
             return;
         }
+        if (!formData.password || !formData.confirmPassword || !formData.primer_nombre || !formData.apellido_paterno || !formData.fecha_nacimiento || !formData.correo || !formData.telefono || !formData.genero) {
+            setPasswordError('No se pueden dejar vacios los campos obligatorios');
+            return;
+        }
 
         handleRegistrationComplete()
         setPasswordError('');
@@ -94,8 +100,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         <input
                             type="text"
                             required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={formData.primer_nombre}
+                            onChange={(e) => setFormData({ ...formData, primer_nombre: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -111,9 +117,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         </div>
                         <input
                             type="text"
-                            required
-                            value={formData.secondName}
-                            onChange={(e) => setFormData({ ...formData, secondName: e.target.value })}
+                            value={formData.segundo_nombre}
+                            onChange={(e) => setFormData({ ...formData, segundo_nombre: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -130,8 +135,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         <input
                             type="text"
                             required
-                            value={formData.lastname1}
-                            onChange={(e) => setFormData({ ...formData, lastname1: e.target.value })}
+                            value={formData.apellido_paterno}
+                            onChange={(e) => setFormData({ ...formData, apellido_paterno: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -147,9 +152,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         </div>
                         <input
                             type="text"
-                            required
-                            value={formData.lastname2}
-                            onChange={(e) => setFormData({ ...formData, lastname2: e.target.value })}
+                            value={formData.apellido_materno}
+                            onChange={(e) => setFormData({ ...formData, apellido_materno: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -167,8 +171,8 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         <input
                             type="email"
                             required
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            value={formData.correo}
+                            onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -186,8 +190,49 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         <input
                             type="tel"
                             required
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            value={formData.telefono}
+                            onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                            className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                    </div>
+                </div>
+
+                {/* Genero */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Sexo (Género) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <PersonStanding className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <select
+                            name="genero"
+                            required
+                            className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
+                        >
+                            <option value="">Selecciona genero</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="femenino">Femenino</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Fecha de nacimiento */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Fecha de nacimiento  <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Calendar className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="date"
+                            required
+                            value={formData.fecha_nacimiento}
+                            onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
                             className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                     </div>
@@ -285,7 +330,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({onComplete
                         <div className='flex flex-col justify-center items-center'>
                             <h1>Registro realizado correctamente</h1>
                             <p>Verifica tu direccion de correo electronico</p>
-                            <CheckCircle2/>
+                            <CheckCircle2 />
                         </div>
                     </>
                 )

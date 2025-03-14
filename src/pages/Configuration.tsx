@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Company, Employee, Assignment, FormMode, Tag, Policy } from '../types';
+import { Company, Employee, Assignment, FormMode, Tag, Policy, TaxInfo } from '../types';
 import { CompanyForm } from '../components/CompanyForm';
 import { EmployeeForm } from '../components/EmployeeForm';
 import { AssignmentForm } from '../components/AssignmentForm';
 import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
-import { createNewEmpresa } from '../hooks/useDatabase';
+import { createNewEmpresa, createNewViajero } from '../hooks/useDatabase';
+import { fetchCompaniesAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import {
   Building2,
   Users,
@@ -16,16 +17,18 @@ import {
   Trash2,
   Tags,
   BookOpen,
+  BookOpenText,
+  Bell,
 } from 'lucide-react';
-import { getCompaniesAgent, getCompaniesAgentViajeros } from '../hooks/useDatabase';
 import { supabase } from '../services/supabaseClient';
 
 
 export const Configuration = () => {
-  const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications'>('companies');
+  const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications' | 'taxInfo'>('companies');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [datosFiscales, setDatosFiscales] = useState<TaxInfo[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,51 +37,18 @@ export const Configuration = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
   useEffect(() => {
-    if (activeTab === "companies") {
-      fetchCompaniesAgent();
-    }
+    const fetchData = async () => {
+      if (activeTab === "companies") {
+        const data = await fetchCompaniesAgent();
+        setCompanies(data);
+      } else if (activeTab === "employees") {
+        const data = await fetchViajerosCompanies();
+        setEmployees(data);
+      }
+    };
+    fetchData();
   }, [activeTab])
 
-  useEffect(() => {
-    if (activeTab === "employees") {
-      fetchViajerosCompanies();
-    }
-  }, [activeTab])
-
-
-  const fetchCompaniesAgent = async () => {
-    try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        throw userError;
-      }
-      if (!user) {
-        throw new Error("No hay usuario autenticado");
-      }
-      const companiesData = await getCompaniesAgent(user.user.id);
-      setCompanies(companiesData.data || []);
-      console.log(companies);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  }
-
-  const fetchViajerosCompanies = async () => {
-    try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        throw userError;
-      }
-      if (!user) {
-        throw new Error("No hay usuario autenticado");
-      }
-      const employeesData = await getCompaniesAgentViajeros(user.user.id);
-      setEmployees(employeesData.data || []);
-      console.log(employeesData.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  }
   // List of departments (could be moved to a separate configuration)
   const departments = [
     'Ingenieria',
@@ -105,11 +75,11 @@ export const Configuration = () => {
 
     switch (type) {
       case 'company':
-        setCompanies(companies.filter((c) => c.id !== id));
+        setCompanies(companies.filter((c) => c.id_empresa !== id));
         setAssignments(assignments.filter((a) => a.companyId !== id));
         break;
       case 'employee':
-        setEmployees(employees.filter((e) => e.id !== id));
+        setEmployees(employees.filter((e) => e.id_viajero !== id));
         /*setAssignments(assignments.filter((a) => a.employeeId !== id));
         setPolicies(policies.map(p => ({
           ...p,
@@ -161,9 +131,25 @@ export const Configuration = () => {
         break;
       case 'employee':
         if (formMode === 'create') {
-          setEmployees([...employees, newData]);
+          console.log(data);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewViajero(data, data.id_empresa);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar al viajero");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando al nuevo viajero", error);
+          }
         } else {
-          setEmployees(employees.map((e) => (e.id === id ? newData : e)));
+          setEmployees(employees.map((e) => (e.id_viajero === id ? newData : e)));
         }
         break;
       case 'assignment':
@@ -208,10 +194,9 @@ export const Configuration = () => {
           <EmployeeForm
             onSubmit={(data) => handleSubmit('employee', data)}
             onCancel={() => setShowForm(false)}
-            tags={tags}
-            departments={departments}
+            // tags={tags}
+            // departments={departments}
             initialData={selectedItem}
-            empresas={companies}
           />
         );
       case 'assignments':
@@ -311,6 +296,16 @@ export const Configuration = () => {
                 Assignments
               </button> */}
               <button
+                onClick={() => setActiveTab('taxInfo')}
+                className={`${activeTab === 'taxInfo'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                <BookOpenText className="mr-2 h-5 w-5" />
+                Datos fiscales
+              </button>
+              <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
                   ? 'border-blue-500 text-blue-600'
@@ -337,7 +332,7 @@ export const Configuration = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
-                <BookOpen className="mr-2 h-5 w-5" />
+                <Bell className="mr-2 h-5 w-5" />
                 Notificaciones
               </button>
             </nav>
@@ -630,6 +625,49 @@ export const Configuration = () => {
                             </tr>
                           );
                         })*/}
+                      {activeTab === 'taxInfo' &&
+                        handleSearch(tags).map((tag) => {
+                          const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));
+                          return (
+                            <tr key={tag.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div
+                                    className="h-6 w-6 rounded mr-2"
+                                    style={{ backgroundColor: tag.color }}
+                                  />
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {tag.name}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {tag.description || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {taggedEmployees.length} employees
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => {
+                                    setFormMode('edit');
+                                    setSelectedItem(tag);
+                                    setShowForm(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-900 mr-4"
+                                >
+                                  <Pencil className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete('tag', tag.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       {activeTab === 'tags' &&
                         handleSearch(tags).map((tag) => {
                           const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));

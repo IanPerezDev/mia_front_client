@@ -56,17 +56,24 @@ export interface Company {
   tipo_persona:string;
 }
 
+export interface TaxInfo {
+  id_datos_fiscales: string;
+  id_empresa: string;
+  rfc: string;
+  direccion_fiscal: string;
+  codigo_postal_fiscal: string;
+  regimen_fiscal: string;
+}
+
 export interface Employee {
   id_viajero: string;
+  id_empresa: string;
   primer_nombre: string;
   apellido_paterno: string;
   apellido_materno: string;
   correo: string;
   telefono: string;
-  segundNombre: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string;
-  sexo: string;
+  segundo_nombre: string;
   razon_social: string;
   genero: string;
   fecha_nacimiento: string;

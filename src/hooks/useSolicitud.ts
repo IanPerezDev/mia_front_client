@@ -38,7 +38,7 @@ async function getSolicitud(callback: (json: PostBodyParams) => void) {
     console.log(error);
   }
 }
-async function postSolicitud(solicitud) {
+async function postSolicitud(solicitud:any, id_viajero:string) {
   if (solicitud.user_id) {
     solicitud.id_viajero = solicitud.user_id.slice(0, 4);
   }
