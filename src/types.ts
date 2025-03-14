@@ -57,24 +57,19 @@ export interface Company {
 }
 
 export interface Employee {
-  id: string;
-  fullName: string;
-  documentId: string;
-  email: string;
-  phone: string;
-  position: string;
-  startDate: string;
-  photo?: string;
-  tagIds: string[];
-  policyIds: string[];
-  department: string;
-  nombre: string;
+  id_viajero: string;
+  primer_nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  correo: string;
+  telefono: string;
   segundNombre: string;
   apellidoPaterno: string;
   apellidoMaterno: string;
   sexo: string;
-  empresa: string;
+  razon_social: string;
   genero: string;
+  fecha_nacimiento: string;
 }
 
 export interface Assignment {

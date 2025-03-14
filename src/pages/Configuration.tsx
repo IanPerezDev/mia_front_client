@@ -5,6 +5,7 @@ import { EmployeeForm } from '../components/EmployeeForm';
 import { AssignmentForm } from '../components/AssignmentForm';
 import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
+import { createNewEmpresa } from '../hooks/useDatabase';
 import {
   Building2,
   Users,
@@ -16,7 +17,7 @@ import {
   Tags,
   BookOpen,
 } from 'lucide-react';
-import { getCompaniesAgent } from '../hooks/useDatabase';
+import { getCompaniesAgent, getCompaniesAgentViajeros } from '../hooks/useDatabase';
 import { supabase } from '../services/supabaseClient';
 
 
@@ -38,6 +39,12 @@ export const Configuration = () => {
     }
   }, [activeTab])
 
+  useEffect(() => {
+    if (activeTab === "employees") {
+      fetchViajerosCompanies();
+    }
+  }, [activeTab])
+
 
   const fetchCompaniesAgent = async () => {
     try {
@@ -49,7 +56,25 @@ export const Configuration = () => {
         throw new Error("No hay usuario autenticado");
       }
       const companiesData = await getCompaniesAgent(user.user.id);
-      setCompanies(companiesData.data || [] );
+      setCompanies(companiesData.data || []);
+      console.log(companies);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
+
+  const fetchViajerosCompanies = async () => {
+    try {
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        throw userError;
+      }
+      if (!user) {
+        throw new Error("No hay usuario autenticado");
+      }
+      const employeesData = await getCompaniesAgentViajeros(user.user.id);
+      setEmployees(employeesData.data || []);
+      console.log(employeesData.data);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -85,11 +110,11 @@ export const Configuration = () => {
         break;
       case 'employee':
         setEmployees(employees.filter((e) => e.id !== id));
-        setAssignments(assignments.filter((a) => a.employeeId !== id));
+        /*setAssignments(assignments.filter((a) => a.employeeId !== id));
         setPolicies(policies.map(p => ({
           ...p,
           employeeIds: p.employeeIds.filter(eId => eId !== id)
-        })));
+        })));*/
         break;
       case 'assignment':
         setAssignments(assignments.filter((a) => a.id !== id));
@@ -107,16 +132,31 @@ export const Configuration = () => {
     }
   };
 
-  const handleSubmit = (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy', data: any) => {
+  const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy', data: any) => {
     const id = formMode === 'create' ? crypto.randomUUID() : selectedItem.id;
     const newData = { ...data, id };
 
     switch (type) {
       case 'company':
         if (formMode === 'create') {
-          setCompanies([...companies, newData]);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewEmpresa(data, user.user.id);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar a la empresa");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando nueva empresa", error);
+          }
         } else {
-          setCompanies(companies.map((c) => (c.id === id ? newData : c)));
+          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
         }
         break;
       case 'employee':
@@ -352,13 +392,13 @@ export const Configuration = () => {
                         {activeTab === 'employees' && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Empleado
+                              Viajero
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Posición
+                              Empresa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Etiquetas
+                              Fecha de nacimiento
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Contacto
@@ -415,7 +455,7 @@ export const Configuration = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {activeTab === 'companies' &&
                         handleSearch(companies).map((company) => (
-                          <tr key={company.id}>
+                          <tr key={company.id_empresa}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {company.logo ? (
@@ -464,13 +504,13 @@ export const Configuration = () => {
                         ))}
                       {activeTab === 'employees' &&
                         handleSearch(employees).map((employee) => (
-                          <tr key={employee.id}>
+                          <tr key={employee.id_viajero}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {employee.photo ? (
                                   <img
                                     src={employee.photo}
-                                    alt={employee.fullName}
+                                    alt={employee.primer_nombre}
                                     className="h-10 w-10 rounded-full mr-3"
                                   />
                                 ) : (
@@ -480,25 +520,22 @@ export const Configuration = () => {
                                 )}
                                 <div>
                                   <div className="text-sm font-medium text-gray-900">
-                                    {employee.fullName}
+                                    {employee.primer_nombre} {employee.segundo_nombre} {employee.apellido_paterno} {employee.apellido_materno}
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    {employee.documentId}
-                                  </div>
+
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{employee.position}</div>
-                              <div className="text-sm text-gray-500">{employee.department}</div>
+                              <div className="text-sm text-gray-900">{employee.razon_social}</div>
                             </td>
                             <td className="px-6 py-4">
-                              {renderTags(employee.tagIds || [])}
+                              {employee.fecha_nacimiento}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {employee.email}
+                              {employee.correo}
                               <br />
-                              {employee.phone}
+                              {employee.telefono}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
@@ -520,7 +557,7 @@ export const Configuration = () => {
                             </td>
                           </tr>
                         ))}
-                      {activeTab === 'assignments' &&
+                      {/*activeTab === 'assignments' &&
                         handleSearch(assignments).map((assignment) => {
                           const company = companies.find((c) => c.id === assignment.companyId);
                           const employee = employees.find((e) => e.id === assignment.employeeId);
@@ -592,7 +629,7 @@ export const Configuration = () => {
                               </td>
                             </tr>
                           );
-                        })}
+                        })*/}
                       {activeTab === 'tags' &&
                         handleSearch(tags).map((tag) => {
                           const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));

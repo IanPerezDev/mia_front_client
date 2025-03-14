@@ -217,7 +217,6 @@ export const newRegisterUser = async (
     }
 
     // 3. Create agent profile
-    const id = String(Math.random() * 10000);
     const response = await createAgente(formData, authData.user.id);
     if (!response.success) {
       throw new Error("No se pudo registrar al usuario");
