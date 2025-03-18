@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, Mail, User, Lock, CheckCircle2, Calendar, PersonStanding } from 'lucide-react';
-import { newRegisterUser } from '../services/authService';
+import { newRegisterUser, registerUserAfterVerification } from '../services/authService';
 
 interface RegistrationFormData {
     primer_nombre: string;
@@ -37,8 +37,10 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
     const [passwordError, setPasswordError] = useState('');
     const [registrationError, setRegistrationError] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
+    const [emailVerificationPage, setEmailVerificationPage] = useState(false);
+    const [verificationCode, setVerificationCode] = useState('');
 
-    const handleRegistrationComplete = async () => {
+    const handleEmailVerification = async () => {
         try {
             if (isRegistering) return;
             setIsRegistering(true);
@@ -49,8 +51,40 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 //Aqui se deberia verificar el correo pero por mientras se queda que se logea y ya
                 // console.log("revisa correo");
                 // setStep('completed');
-                onComplete();
+                //onComplete();
 
+            }
+        } catch (error: any) {
+            console.error('Error during registration:', error);
+            setRegistrationError(
+                error.message || 'Error al registrar. Por favor intenta de nuevo.'
+            );
+        } finally {
+            setIsRegistering(false);
+            setEmailVerificationPage(true);
+        }
+    };
+
+    const handleRegistrationComplete = async () => {
+        if (verificationCode.length < 1) {
+            setRegistrationError('Ingresa el codigo de verificación');
+            return;
+        }
+        try {
+            if (isRegistering) return;
+            setIsRegistering(true);
+            setRegistrationError('');
+
+            const result = await registerUserAfterVerification(formData, verificationCode);
+            console.log(result);
+            if (result.success) {
+                console.log('successssss')
+                setRegistrationError("");
+                onComplete();
+                
+            }
+            else {
+                throw new Error('Codigo incorrecto');
             }
         } catch (error: any) {
             console.error('Error during registration:', error);
@@ -80,10 +114,60 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
             return;
         }
 
-        handleRegistrationComplete()
+        handleEmailVerification()
         setPasswordError('');
     };
 
+    const renderCodeVerification = () => (
+        <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                {/* Codigo de verificacion */}
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Codigo
+                    </label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            required
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div className="flex space-x-4 w-full">
+                <button
+                    onClick={handleRegistrationComplete}
+                    disabled={isRegistering}
+                    className={`flex items-center space-x-2 w-full justify-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors ${isRegistering ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                >
+                    {isRegistering ? (
+                        <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Verificando</span>
+                        </>
+                    ) : (
+                        <>
+                            <span>Verificar</span>
+                            <CheckCircle2 className="w-5 h-5" />
+                        </>
+                    )}
+                </button>
+            </div>
+            {registrationError && (
+                <div className="mt-4 text-red-300 bg-red-900/50 p-4 rounded-lg">
+                    {registrationError}
+                </div>
+            )}
+        </div>
+
+    )
 
     const renderPersonalForm = () => (
         <form onSubmit={handlePersonalSubmit} className="space-y-6">
@@ -317,11 +401,22 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
             case 'personal':
                 return (
                     <>
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-gray-900">Información Personal</h2>
-                            <p className="mt-2 text-gray-600">Datos de acceso a tu cuenta</p>
-                        </div>
-                        {renderPersonalForm()}
+                        {emailVerificationPage == true ?
+                            <>
+                                <div className="text-center mb-8">
+                                    <h2 className="text-3xl font-bold text-gray-900">Verifica tu correo electronico</h2>
+                                    <p className="mt-2 text-gray-600">Ingresa el codigo de verificacion enviado a {formData.correo}</p>
+                                </div>
+                                {renderCodeVerification()}
+                            </>
+                            : <>
+                                <div className="text-center mb-8">
+                                    <h2 className="text-3xl font-bold text-gray-900">Información Personal</h2>
+                                    <p className="mt-2 text-gray-600">Datos de acceso a tu cuenta</p>
+                                </div>
+                                {renderPersonalForm()}
+                            </>
+                        }
                     </>
                 );
             case 'completed':

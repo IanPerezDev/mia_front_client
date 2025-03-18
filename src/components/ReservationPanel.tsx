@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { BookingData } from '../types';
-import { Calendar, Users, CreditCard, Building2, ArrowRight, Check, Clock, Download, Receipt, CreditCard as PaymentIcon, BanknoteIcon, ArrowLeft } from 'lucide-react';
+import { Calendar, Users, CreditCard, Building2, ArrowRight, Check, Clock, Download, Receipt, CreditCard as PaymentIcon, BanknoteIcon, ArrowLeft, CheckCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../services/supabaseClient';
 import { CallToBackend } from '../components/CallToBackend';
@@ -137,8 +137,8 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }: any) => {
       </form>
       {message
         &&
-        <div className='h-auto p-4 bg-red-300 border-4 border-red-500'>
-          <p className='text-lg'>{message}</p>
+        <div className='h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl'>
+          <p className='text-base text-center'>{message}</p>
         </div>}
     </div>
   );
@@ -296,8 +296,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
               {cardPayment ?
                 <>
                   {successPayment ?
-                    <div className='w-full h-32 bg-green-400 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col'>
-                      <p className='text-xl text-green-700'>¡Se realizo el pago correctamente!</p>
+                    <div className='w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2'>
+                      <p className='text-xl text-green-800 font-bold'>¡Se realizo el pago correctamente!</p>
+                      <CheckCircle className='w-10 h-10 text-green-800'/>
                     </div>
 
                     : <Elements stripe={stripePromise}>
