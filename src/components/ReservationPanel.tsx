@@ -7,6 +7,7 @@ import { CallToBackend } from '../components/CallToBackend';
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
+import { createLogPayment } from '../hooks/useDatabase';
 
 const cardStyle = {
   style: {
@@ -97,21 +98,25 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }: any) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!stripe || !elements) return;
+    const { data } = await supabase.auth.getUser();
+    const id_viajero = data.user?.id;
     const response = await fetch("http://localhost:3001/v1/stripe/create-payment-intent-card", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...AUTH,
       },
-      body: JSON.stringify({ amount: paymentData.line_items[0].price_data.unit_amount, currency: paymentData.line_items[0].price_data.currency }),
+      body: JSON.stringify({ amount: paymentData.line_items[0].price_data.unit_amount, currency: paymentData.line_items[0].price_data.currency, id_viajero: id_viajero }),
     });
     const { clientSecret } = await response.json();
-
-    //guardar payment intent en base
 
     const result = await stripe.confirmCardPayment(clientSecret, {
       payment_method: { card: elements.getElement(CardElement)! },
     });
+
+    const responseLogPayment = await createLogPayment(paymentData.line_items[0].price_data.unit_amount,id_viajero,result);
+    if(!responseLogPayment.success) setMessage("No se pudo hacer log del pago");
+    
 
     if (result.error) setMessage(result.error.message);
     else if (result.paymentIntent.status === "succeeded") {
@@ -298,7 +303,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   {successPayment ?
                     <div className='w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2'>
                       <p className='text-xl text-green-800 font-bold'>¡Se realizo el pago correctamente!</p>
-                      <CheckCircle className='w-10 h-10 text-green-800'/>
+                      <CheckCircle className='w-10 h-10 text-green-800' />
                     </div>
 
                     : <Elements stripe={stripePromise}>

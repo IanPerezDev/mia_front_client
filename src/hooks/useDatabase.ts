@@ -125,6 +125,38 @@ export const createNewEmpresa = async (data: any, id: string) => {
   }
 }
 
+export const createLogPayment = async (amount: number, id: string, response_payment:any) => {
+  try {
+    const response = await fetch(`http://localhost:3001/v1/stripe/payment-log-storage`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_viajero: id,
+        amount: amount,
+        response_payment: response_payment,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.success) {
+      return ({
+        success: true
+      })
+    }
+    else {
+      return ({
+        success: false
+      })
+    }
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
 // export const createViajero = async (data: any, id_empresa: string) => {
 //   try {
 //     const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
