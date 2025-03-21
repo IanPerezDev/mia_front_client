@@ -10,14 +10,11 @@ import {
   AlertTriangle,
   Search,
   Download,
-  ArrowDownToLine,
   MessageSquare,
   Trash2,
   X,
   Filter,
   ArrowRight,
-  DollarSign,
-  MapPin,
   Receipt,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
@@ -30,7 +27,7 @@ import { useSolicitud } from "../hooks/useSolicitud";
 
 const DOMAIN = "http://localhost:5173";
 const payment_metadata = {};
-const getPaymentData = (booking) => {
+const getPaymentData = (booking: any) => {
   const payment_metadata = {
     booking_id: booking.id,
     confirmation_code: booking.confirmation_code,

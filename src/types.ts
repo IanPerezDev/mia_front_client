@@ -49,35 +49,37 @@ export interface WebhookResponse {
 }
 
 export interface Company {
-  id: string;
-  name: string;
-  taxId: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  razon: string;
+  id_empresa: string;
+  razon_social: string;
+  nombre_comercial: string;
+  direccion: string;
+  tipo_persona:string;
+}
+
+export interface TaxInfo {
+  id_datos_fiscales: string;
+  id_empresa: string;
+  rfc: string;
+  calle: string;
+  municipio: string;
+  estado: string;
+  colonia:string;
+  codigo_postal_fiscal: string;
+  regimen_fiscal: string;
 }
 
 export interface Employee {
-  id: string;
-  fullName: string;
-  documentId: string;
-  email: string;
-  phone: string;
-  position: string;
-  startDate: string;
-  photo?: string;
-  tagIds: string[];
-  policyIds: string[];
-  department: string;
-  nombre: string;
-  segundNombre: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string;
-  sexo: string;
-  empresa: string;
+  id_viajero: string;
+  id_empresa: string;
+  primer_nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  correo: string;
+  telefono: string;
+  segundo_nombre: string;
+  razon_social: string;
   genero: string;
+  fecha_nacimiento: string;
 }
 
 export interface Assignment {

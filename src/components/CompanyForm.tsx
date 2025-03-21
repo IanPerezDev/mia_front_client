@@ -13,17 +13,14 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    
+
     const data: Partial<Company> = {
-      name: formData.get('name') as string,
-      taxId: formData.get('taxId') as string,
-      address: formData.get('address') as string,
-      phone: formData.get('phone') as string,
-      email: formData.get('email') as string,
-      logo: formData.get('logo') as string,
-      razon: formData.get('razon') as string,
+      nombre_comercial: formData.get('nombre_comercial') as string,
+      razon_social: formData.get('razon_social') as string,
+      tipo_persona: formData.get('tipo_persona') as string,
+      direccion: formData.get('address') as string,
     };
-    
+
     onSubmit(data);
   };
 
@@ -49,8 +46,8 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           </label>
           <input
             type="text"
-            name="name"
-            defaultValue={initialData?.name}
+            name="nombre_comercial"
+            defaultValue={initialData?.nombre_comercial}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -58,12 +55,12 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            RFC
+            Direccion
           </label>
           <input
             type="text"
-            name="taxId"
-            defaultValue={initialData?.taxId}
+            name="address"
+            defaultValue={initialData?.direccion}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -74,62 +71,27 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           </label>
           <input
             type="text"
-            name="razon"
-            defaultValue={initialData?.razon}
+            name="razon_social"
+            defaultValue={initialData?.razon_social}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700">
-            Dirección
+            Tipo de persona
           </label>
-          <input
-            type="text"
-            name="address"
-            defaultValue={initialData?.address}
+          <select
+            name="tipo_persona"
+            defaultValue={initialData?.tipo_persona || "fisica"}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+          >
+            <option value="fisica">Física</option>
+            <option value="moral">Moral</option>
+          </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Telefono
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            defaultValue={initialData?.phone}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Correo electronico corporativo
-          </label>
-          <input
-            type="email"
-            name="email"
-            defaultValue={initialData?.email}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Logo URL (opcional)
-          </label>
-          <input
-            type="url"
-            name="logo"
-            defaultValue={initialData?.logo}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
       </div>
 
       <div className="flex justify-end space-x-4">

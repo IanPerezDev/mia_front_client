@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import type { BookingData } from '../types';
-import { Calendar, Users, CreditCard, Building2, ArrowRight, Check, Clock, Download, Receipt, CreditCard as PaymentIcon, BanknoteIcon, ArrowLeft } from 'lucide-react';
+import { Calendar, Users, CreditCard, Building2, ArrowRight, Check, Clock, Download, Receipt, CreditCard as PaymentIcon, BanknoteIcon, ArrowLeft, CheckCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../services/supabaseClient';
 import { CallToBackend } from '../components/CallToBackend';
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import { useSolicitud } from "../hooks/useSolicitud";
+import { createLogPayment, createNewPago } from '../hooks/useDatabase';
+
+const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
 
 const cardStyle = {
   style: {
@@ -47,11 +51,10 @@ const getPaymentData = (bookingData: BookingData) => {
           currency: "mxn",
           product_data: {
             name: bookingData.hotel.name,
-            description: `Reservación en ${bookingData.hotel.name} - ${
-              bookingData.room?.type === "single"
-                ? "Habitación Sencilla"
-                : "Habitación Doble"
-            }`,
+            description: `Reservación en ${bookingData.hotel.name} - ${bookingData.room?.type === "single"
+              ? "Habitación Sencilla"
+              : "Habitación Doble"
+              }`,
             images: [imageToUse],
           },
           unit_amount: Math.round((bookingData.room?.totalPrice || 0) * 100),
@@ -85,7 +88,7 @@ const formatDate = (dateStr: string | null) => {
 
 
 
-const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }) => {
+const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
@@ -97,28 +100,45 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!stripe || !elements) return;
+    const { data } = await supabase.auth.getUser();
+    const id_viajero = data.user?.id;
     const response = await fetch("http://localhost:3001/v1/stripe/create-payment-intent-card", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...AUTH,
       },
-      body: JSON.stringify({ amount: paymentData.line_items[0].price_data.unit_amount, currency: paymentData.line_items[0].price_data.currency }),
+      body: JSON.stringify({ amount: paymentData.line_items[0].price_data.unit_amount, currency: paymentData.line_items[0].price_data.currency, id_viajero: id_viajero }),
     });
     const { clientSecret } = await response.json();
-    
-    //guardar payment intent en base
 
     const result = await stripe.confirmCardPayment(clientSecret, {
       payment_method: { card: elements.getElement(CardElement)! },
     });
 
+    const responseLogPayment = await createLogPayment(paymentData.line_items[0].price_data.unit_amount, id_viajero, result);
+    if (!responseLogPayment.success) setMessage("No se pudo hacer log del pago");
+
+
     if (result.error) setMessage(result.error.message);
     else if (result.paymentIntent.status === "succeeded") {
-      //Registrar que se realizo el pago correctamente en la base
-      setSuccess(true);
-      setMessage("¡Pago exitoso!");
-    };
+      console.log(idServicio)
+      const responseNewPago = await createNewPago(
+        idServicio, // Reemplaza con el ID del servicio correspondiente
+        paymentData.line_items[0].price_data.unit_amount,
+        id_viajero,
+        result
+      );
+
+      if (responseNewPago.success) {
+        setSuccess(true);
+        setMessage("¡Pago exitoso!");
+      } else {
+        setMessage("Error al registrar el pago en la base de datos");
+      }
+    } else if (result.error) {
+      setMessage(result.error.message);
+    }
   };
 
   return (
@@ -135,7 +155,11 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }) => {
           <span className="font-medium">Cambiar forma de pago</span>
         </button>
       </form>
-      {message && <p>{message}</p>}
+      {message
+        &&
+        <div className='h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl'>
+          <p className='text-base text-center'>{message}</p>
+        </div>}
     </div>
   );
 };
@@ -161,6 +185,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   const [isBookingSaved, setIsBookingSaved] = useState(false);
   const [cardPayment, setCardPayment] = useState(false);
   const [successPayment, setSuccessPayment] = useState(false);
+  const [idServicio, setIdServicio] = useState("");
 
   useEffect(() => {
     // Auto-save booking when confirmation code is generated
@@ -175,9 +200,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
     const opt = {
       margin: 1,
-      filename: `reservacion-${
-        bookingData?.confirmationCode || "borrador"
-      }.pdf`,
+      filename: `reservacion-${bookingData?.confirmationCode || "borrador"
+        }.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
@@ -205,6 +229,21 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       const imageUrl = bookingData.hotel.additionalImages?.[0] ||
         bookingData.hotel.image ||
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
+
+      const responseSolicitud = await crearSolicitud({
+        confirmation_code: bookingData.confirmationCode,
+        hotel_name: bookingData.hotel.name,
+        dates: {
+          checkIn: bookingData.dates.checkIn,
+          checkOut: bookingData.dates.checkOut,
+        },
+        room: {
+          type: bookingData.room.type,
+          totalPrice: bookingData.room.totalPrice,
+        },
+      }, user.id);
+
+      setIdServicio(responseSolicitud.data.id_servicio)
 
       // Save booking to database
       const { data: booking, error: bookingError } = await supabase
@@ -292,9 +331,16 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
               {cardPayment ?
                 <>
-                  <Elements stripe={stripePromise}>
-                    <CheckOutForm setCardPayment={setCardPayment} paymentData={getPaymentData(bookingData)} setSuccess={setSuccessPayment} />
-                  </Elements>
+                  {successPayment ?
+                    <div className='w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2'>
+                      <p className='text-xl text-green-800 font-bold'>¡Se realizo el pago correctamente!</p>
+                      <CheckCircle className='w-10 h-10 text-green-800' />
+                    </div>
+
+                    : <Elements stripe={stripePromise}>
+                      <CheckOutForm setCardPayment={setCardPayment} paymentData={getPaymentData(bookingData)} setSuccess={setSuccessPayment} idServicio={idServicio} />
+                    </Elements>
+                  }
                 </>
                 : <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button

@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import type { RegistrationFormData, QuestionnaireData } from '../types';
-import { createAgente } from "../hooks/useDatabase";
+import { createAgente, createEmpresa, createNewViajero } from "../hooks/useDatabase";
+import { sendAndCreateOTP, verifyOTP } from '../hooks/useEmailVerification';
 import { formatDate } from '../helpers/helpers';
 
 const validateEmail = (email: string): boolean => {
@@ -172,28 +173,61 @@ export const newRegisterUser = async (
 ) => {
   try {
     // Validate email format
-    if (!validateEmail(formData.email)) {
+    if (!validateEmail(formData.correo)) {
       throw new Error('El formato del correo electrónico no es válido');
     }
 
     // 1. Check if user exists first to avoid rate limit
     const { data: existingUser, error: signInError } = await supabase.auth.signInWithPassword({
-      email: formData.email,
+      email: formData.correo,
       password: formData.password
     });
     console.log(existingUser);
     if (existingUser?.user) {
       throw new Error('Este correo electrónico ya está registrado');
     }
-    console.log(formData.email);
+    const response = await sendAndCreateOTP(formData.correo);
+    if (!response.success) {
+      throw new Error('No se pudo registrar al usuario');
+    }
+    return {
+      success: true
+    };
+
+  } catch (error: any) {
+    console.error('Registration error:', error);
+
+    // Handle specific error cases
+    if (error?.message?.includes('duplicate key value')) {
+      throw new Error('Este correo electrónico ya está registrado');
+    }
+
+    if (error?.message?.includes('Password should be at least 6 characters')) {
+      throw new Error('La contraseña debe tener al menos 6 caracteres');
+    }
+
+    // Return a user-friendly error message
+    throw new Error(error.message || 'Error al registrar. Por favor intenta de nuevo.');
+  }
+};
+
+
+export const registerUserAfterVerification = async (formData: any, code: string) => {
+  try {
+    //1. Verificar que el codigo ingresado es correcto
+    const responseVerification = await verifyOTP(formData.correo, code)
+    console.log(responseVerification);
+    if (!responseVerification.success) {
+      throw new Error ('Codigo de verificacion incorrecto');
+    }
     // // 2. Register user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
+      email: formData.correo,
       password: formData.password,
       options: {
         data: {
-          full_name: formData.name,
-          phone: formData.phone
+          full_name: formData.primer_nombre + ' ' + formData.segundo_nombre + ' ' + formData.apellido_paterno + ' ' + formData.apellido_materno,
+          phone: formData.telefono
         },
         emailRedirectTo: undefined // Disable email confirmation
       }
@@ -215,13 +249,28 @@ export const newRegisterUser = async (
     if (!authData.user) {
       throw new Error('No se pudo crear el usuario');
     }
+
     // 3. Create agent profile
     const response = await createAgente(formData, authData.user.id);
     if (!response.success) {
       throw new Error("No se pudo registrar al usuario");
     }
 
-    // 4. Sign in the user immediately
+    // 4. Create company profile
+    const responseCompany = await createEmpresa(formData, authData.user.id);
+    if (!responseCompany.success) {
+      throw new Error("No se pudo registrar al usuario");
+    }
+    console.log(responseCompany);
+
+    // 5. Create viajero profile
+    const responseViajero = await createNewViajero(formData, responseCompany.empresa_id);
+    if (!responseViajero.success) {
+      throw new Error("No se pudo registrar al usuario");
+    }
+    console.log(responseViajero);
+
+    // 6. Sign in the user immediately
     const { data: session } = await supabase.auth.getSession();
 
     if (!session?.session) {
@@ -239,8 +288,7 @@ export const newRegisterUser = async (
     return {
       success: true
     };
-
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
 
     // Handle specific error cases
@@ -255,4 +303,5 @@ export const newRegisterUser = async (
     // Return a user-friendly error message
     throw new Error(error.message || 'Error al registrar. Por favor intenta de nuevo.');
   }
-};
+
+}

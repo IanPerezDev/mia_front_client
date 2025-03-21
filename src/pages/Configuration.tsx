@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Company, Employee, Assignment, FormMode, Tag, Policy } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Company, Employee, Assignment, FormMode, Tag, Policy, TaxInfo } from '../types';
 import { CompanyForm } from '../components/CompanyForm';
 import { EmployeeForm } from '../components/EmployeeForm';
 import { AssignmentForm } from '../components/AssignmentForm';
 import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
+import { DatosFiscalesForm } from '../components/DatosFiscalesForm';
+import { createNewEmpresa, createNewViajero, createNewDatosFiscales } from '../hooks/useDatabase';
+import { fetchCompaniesAgent, fetchViajerosCompanies, fetchEmpresasDatosFiscales } from '../hooks/useFetch';
 import {
   Building2,
   Users,
@@ -15,19 +18,40 @@ import {
   Trash2,
   Tags,
   BookOpen,
+  BookOpenText,
+  Bell,
 } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
+
 
 export const Configuration = () => {
-  const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications'>('companies');
+  const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications' | 'taxInfo'>('companies');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [datosFiscales, setDatosFiscales] = useState<TaxInfo[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (activeTab === "companies") {
+        const data = await fetchCompaniesAgent();
+        setCompanies(data);
+      } else if (activeTab === "employees") {
+        const data = await fetchViajerosCompanies();
+        setEmployees(data);
+      } else if (activeTab === "taxInfo") {
+        const data = await fetchEmpresasDatosFiscales();
+        setDatosFiscales(data);
+      }
+    };
+    fetchData();
+  }, [activeTab])
 
   // List of departments (could be moved to a separate configuration)
   const departments = [
@@ -55,16 +79,16 @@ export const Configuration = () => {
 
     switch (type) {
       case 'company':
-        setCompanies(companies.filter((c) => c.id !== id));
+        setCompanies(companies.filter((c) => c.id_empresa !== id));
         setAssignments(assignments.filter((a) => a.companyId !== id));
         break;
       case 'employee':
-        setEmployees(employees.filter((e) => e.id !== id));
-        setAssignments(assignments.filter((a) => a.employeeId !== id));
+        setEmployees(employees.filter((e) => e.id_viajero !== id));
+        /*setAssignments(assignments.filter((a) => a.employeeId !== id));
         setPolicies(policies.map(p => ({
           ...p,
           employeeIds: p.employeeIds.filter(eId => eId !== id)
-        })));
+        })));*/
         break;
       case 'assignment':
         setAssignments(assignments.filter((a) => a.id !== id));
@@ -82,23 +106,78 @@ export const Configuration = () => {
     }
   };
 
-  const handleSubmit = (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy', data: any) => {
+  const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy' | 'taxInfo', data: any) => {
     const id = formMode === 'create' ? crypto.randomUUID() : selectedItem.id;
     const newData = { ...data, id };
 
     switch (type) {
       case 'company':
         if (formMode === 'create') {
-          setCompanies([...companies, newData]);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewEmpresa(data, user.user.id);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar a la empresa");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando nueva empresa", error);
+          }
         } else {
-          setCompanies(companies.map((c) => (c.id === id ? newData : c)));
+          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
         }
         break;
       case 'employee':
         if (formMode === 'create') {
-          setEmployees([...employees, newData]);
+          console.log(data);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewViajero(data, data.id_empresa);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar al viajero");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando al nuevo viajero", error);
+          }
         } else {
-          setEmployees(employees.map((e) => (e.id === id ? newData : e)));
+          setEmployees(employees.map((e) => (e.id_viajero === id ? newData : e)));
+        }
+        break;
+
+      case 'taxInfo':
+        if (formMode === 'create') {
+          console.log(data);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewDatosFiscales(data);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar los datos fiscales");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando nuevis datos fiscales", error);
+          }
+        } else {
+          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
         }
         break;
       case 'assignment':
@@ -143,10 +222,9 @@ export const Configuration = () => {
           <EmployeeForm
             onSubmit={(data) => handleSubmit('employee', data)}
             onCancel={() => setShowForm(false)}
-            tags={tags}
-            departments={departments}
+            // tags={tags}
+            // departments={departments}
             initialData={selectedItem}
-            empresas={companies}
           />
         );
       case 'assignments':
@@ -159,13 +237,21 @@ export const Configuration = () => {
             initialData={selectedItem}
           />
         );
+      case "taxInfo":
+        return (
+          <DatosFiscalesForm
+            onSubmit={(data) => handleSubmit('taxInfo', data)}
+            onCancel={() => setShowForm(false)}
+            initialData={selectedItem}
+          />
+        )
       case 'tags':
         return (
           <TagForm
             onSubmit={(data) => handleSubmit('tag', data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
-            employees = {employees}
+            employees={employees}
           />
         );
       case 'policies':
@@ -217,8 +303,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('companies')}
                 className={`${activeTab === 'companies'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Building2 className="mr-2 h-5 w-5" />
@@ -227,12 +313,12 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('employees')}
                 className={`${activeTab === 'employees'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Users className="mr-2 h-5 w-5" />
-                Empleados
+                Viajeros
               </button>
               {/* <button
                 onClick={() => setActiveTab('assignments')}
@@ -246,10 +332,20 @@ export const Configuration = () => {
                 Assignments
               </button> */}
               <button
+                onClick={() => setActiveTab('taxInfo')}
+                className={`${activeTab === 'taxInfo'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                <BookOpenText className="mr-2 h-5 w-5" />
+                Datos fiscales
+              </button>
+              <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Tags className="mr-2 h-5 w-5" />
@@ -258,8 +354,8 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('policies')}
                 className={`${activeTab === 'policies'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <BookOpen className="mr-2 h-5 w-5" />
@@ -268,11 +364,11 @@ export const Configuration = () => {
               <button
                 onClick={() => setActiveTab('notifications')}
                 className={`${activeTab === 'notifications'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
-                <BookOpen className="mr-2 h-5 w-5" />
+                <Bell className="mr-2 h-5 w-5" />
                 Notificaciones
               </button>
             </nav>
@@ -317,29 +413,52 @@ export const Configuration = () => {
                               Nombre de la empresa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              RFC
+                              Dirección
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Contacto
+                              Tipo de persona
                             </th>
                           </>
                         )}
                         {activeTab === 'employees' && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Empleado
+                              Viajero
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Posición
+                              Empresa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Etiquetas
+                              Fecha de nacimiento
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Contacto
                             </th>
                           </>
                         )}
+                        {activeTab === 'taxInfo' && (
+                          <>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Empresa
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              RFC
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Dirección
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Estado/Municipio
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Código Postal
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Régimen Fiscal
+                            </th>
+                          </>
+                        )}
+
                         {activeTab === 'assignments' && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -390,13 +509,13 @@ export const Configuration = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {activeTab === 'companies' &&
                         handleSearch(companies).map((company) => (
-                          <tr key={company.id}>
+                          <tr key={company.id_empresa}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {company.logo ? (
                                   <img
                                     src={company.logo}
-                                    alt={company.name}
+                                    alt={company.nombre_comercial}
                                     className="h-10 w-10 rounded-full mr-3"
                                   />
                                 ) : (
@@ -405,15 +524,15 @@ export const Configuration = () => {
                                   </div>
                                 )}
                                 <div className="text-sm font-medium text-gray-900">
-                                  {company.name}
+                                  {company.nombre_comercial}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.taxId}
+                              {company.direccion}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.email}
+                              {company.tipo_persona}
                               <br />
                               {company.phone}
                             </td>
@@ -439,13 +558,13 @@ export const Configuration = () => {
                         ))}
                       {activeTab === 'employees' &&
                         handleSearch(employees).map((employee) => (
-                          <tr key={employee.id}>
+                          <tr key={employee.id_viajero}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {employee.photo ? (
                                   <img
                                     src={employee.photo}
-                                    alt={employee.fullName}
+                                    alt={employee.primer_nombre}
                                     className="h-10 w-10 rounded-full mr-3"
                                   />
                                 ) : (
@@ -455,25 +574,22 @@ export const Configuration = () => {
                                 )}
                                 <div>
                                   <div className="text-sm font-medium text-gray-900">
-                                    {employee.fullName}
+                                    {employee.primer_nombre} {employee.segundo_nombre} {employee.apellido_paterno} {employee.apellido_materno}
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    {employee.documentId}
-                                  </div>
+
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{employee.position}</div>
-                              <div className="text-sm text-gray-500">{employee.department}</div>
+                              <div className="text-sm text-gray-900">{employee.razon_social}</div>
                             </td>
                             <td className="px-6 py-4">
-                              {renderTags(employee.tagIds || [])}
+                              {employee.fecha_nacimiento}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {employee.email}
+                              {employee.correo}
                               <br />
-                              {employee.phone}
+                              {employee.telefono}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
@@ -495,7 +611,7 @@ export const Configuration = () => {
                             </td>
                           </tr>
                         ))}
-                      {activeTab === 'assignments' &&
+                      {/*activeTab === 'assignments' &&
                         handleSearch(assignments).map((assignment) => {
                           const company = companies.find((c) => c.id === assignment.companyId);
                           const employee = employees.find((e) => e.id === assignment.employeeId);
@@ -539,10 +655,10 @@ export const Configuration = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.role === 'admin'
-                                    ? 'bg-red-100 text-red-800'
-                                    : assignment.role === 'manager'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-green-100 text-green-800'
+                                  ? 'bg-red-100 text-red-800'
+                                  : assignment.role === 'manager'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-green-100 text-green-800'
                                   }`}>
                                   {assignment.role.charAt(0).toUpperCase() + assignment.role.slice(1)}
                                 </span>
@@ -567,7 +683,58 @@ export const Configuration = () => {
                               </td>
                             </tr>
                           );
-                        })}
+                        })*/}
+                      {activeTab === 'taxInfo' &&
+                        datosFiscales.map((datosFiscal) => {
+                          const empresa = companies.find((c) => c.id_empresa === datosFiscal.id_empresa); // Suponiendo que 'companies' contiene las empresas relacionadas
+                          return (
+                            <tr key={datosFiscal.id_datos_fiscales}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  {/* Aquí puedes mostrar algo relacionado con la empresa o el ID */}
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {empresa ? empresa.razon_social : 'Empresa no encontrada'}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.rfc || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.calle || '-'}, {datosFiscal.colonia || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.estado || '-'}, {datosFiscal.municipio || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.codigo_postal_fiscal || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.regimen_fiscal || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => {
+                                    setFormMode('edit');
+                                    setSelectedItem(datosFiscal);
+                                    setShowForm(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-900 mr-4"
+                                >
+                                  <Pencil className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete('datosFiscal', datosFiscal.id_datos_fiscales)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      }
+
                       {activeTab === 'tags' &&
                         handleSearch(tags).map((tag) => {
                           const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));
@@ -626,24 +793,24 @@ export const Configuration = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.type === 'budget'
-                                  ? 'bg-green-100 text-green-800'
-                                  : policy.type === 'schedule'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : policy.type === 'benefits'
-                                      ? 'bg-purple-100 text-purple-800'
-                                      : 'bg-gray-100 text-gray-800'
+                                ? 'bg-green-100 text-green-800'
+                                : policy.type === 'schedule'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : policy.type === 'benefits'
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : 'bg-gray-100 text-gray-800'
                                 }`}>
                                 {policy.type.charAt(0).toUpperCase() + policy.type.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.status === 'active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : policy.status === 'inactive'
-                                    ? 'bg-gray-100 text-gray-800'
-                                    : policy.status === 'draft'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800'
+                                : policy.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-800'
+                                  : policy.status === 'draft'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
                                 }`}>
                                 {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
                               </span>
