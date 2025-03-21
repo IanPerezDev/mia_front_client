@@ -5,8 +5,9 @@ import { EmployeeForm } from '../components/EmployeeForm';
 import { AssignmentForm } from '../components/AssignmentForm';
 import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
-import { createNewEmpresa, createNewViajero } from '../hooks/useDatabase';
-import { fetchCompaniesAgent, fetchViajerosCompanies } from '../hooks/useFetch';
+import { DatosFiscalesForm } from '../components/DatosFiscalesForm';
+import { createNewEmpresa, createNewViajero, createNewDatosFiscales } from '../hooks/useDatabase';
+import { fetchCompaniesAgent, fetchViajerosCompanies, fetchEmpresasDatosFiscales } from '../hooks/useFetch';
 import {
   Building2,
   Users,
@@ -44,6 +45,9 @@ export const Configuration = () => {
       } else if (activeTab === "employees") {
         const data = await fetchViajerosCompanies();
         setEmployees(data);
+      } else if (activeTab === "taxInfo") {
+        const data = await fetchEmpresasDatosFiscales();
+        setDatosFiscales(data);
       }
     };
     fetchData();
@@ -102,7 +106,7 @@ export const Configuration = () => {
     }
   };
 
-  const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy', data: any) => {
+  const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy' | 'taxInfo', data: any) => {
     const id = formMode === 'create' ? crypto.randomUUID() : selectedItem.id;
     const newData = { ...data, id };
 
@@ -150,6 +154,30 @@ export const Configuration = () => {
           }
         } else {
           setEmployees(employees.map((e) => (e.id_viajero === id ? newData : e)));
+        }
+        break;
+
+      case 'taxInfo':
+        if (formMode === 'create') {
+          console.log(data);
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await createNewDatosFiscales(data);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo registrar los datos fiscales");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error creando nuevis datos fiscales", error);
+          }
+        } else {
+          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
         }
         break;
       case 'assignment':
@@ -209,6 +237,14 @@ export const Configuration = () => {
             initialData={selectedItem}
           />
         );
+      case "taxInfo":
+        return (
+          <DatosFiscalesForm
+            onSubmit={(data) => handleSubmit('taxInfo', data)}
+            onCancel={() => setShowForm(false)}
+            initialData={selectedItem}
+          />
+        )
       case 'tags':
         return (
           <TagForm
@@ -400,6 +436,29 @@ export const Configuration = () => {
                             </th>
                           </>
                         )}
+                        {activeTab === 'taxInfo' && (
+                          <>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Empresa
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              RFC
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Dirección
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Estado/Municipio
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Código Postal
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Régimen Fiscal
+                            </th>
+                          </>
+                        )}
+
                         {activeTab === 'assignments' && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -626,32 +685,38 @@ export const Configuration = () => {
                           );
                         })*/}
                       {activeTab === 'taxInfo' &&
-                        handleSearch(tags).map((tag) => {
-                          const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));
+                        datosFiscales.map((datosFiscal) => {
+                          const empresa = companies.find((c) => c.id_empresa === datosFiscal.id_empresa); // Suponiendo que 'companies' contiene las empresas relacionadas
                           return (
-                            <tr key={tag.id}>
+                            <tr key={datosFiscal.id_datos_fiscales}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
-                                  <div
-                                    className="h-6 w-6 rounded mr-2"
-                                    style={{ backgroundColor: tag.color }}
-                                  />
+                                  {/* Aquí puedes mostrar algo relacionado con la empresa o el ID */}
                                   <div className="text-sm font-medium text-gray-900">
-                                    {tag.name}
+                                    {empresa ? empresa.razon_social : 'Empresa no encontrada'}
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {tag.description || '-'}
+                                {datosFiscal.rfc || '-'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {taggedEmployees.length} employees
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.calle || '-'}, {datosFiscal.colonia || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.estado || '-'}, {datosFiscal.municipio || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.codigo_postal_fiscal || '-'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">
+                                {datosFiscal.regimen_fiscal || '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   onClick={() => {
                                     setFormMode('edit');
-                                    setSelectedItem(tag);
+                                    setSelectedItem(datosFiscal);
                                     setShowForm(true);
                                   }}
                                   className="text-blue-600 hover:text-blue-900 mr-4"
@@ -659,7 +724,7 @@ export const Configuration = () => {
                                   <Pencil className="h-5 w-5" />
                                 </button>
                                 <button
-                                  onClick={() => handleDelete('tag', tag.id)}
+                                  onClick={() => handleDelete('datosFiscal', datosFiscal.id_datos_fiscales)}
                                   className="text-red-600 hover:text-red-900"
                                 >
                                   <Trash2 className="h-5 w-5" />
@@ -667,7 +732,9 @@ export const Configuration = () => {
                               </td>
                             </tr>
                           );
-                        })}
+                        })
+                      }
+
                       {activeTab === 'tags' &&
                         handleSearch(tags).map((tag) => {
                           const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));

@@ -7,7 +7,9 @@ import { CallToBackend } from '../components/CallToBackend';
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
-import { createLogPayment } from '../hooks/useDatabase';
+import { createLogPayment, createNewPago } from '../hooks/useDatabase';
+
+const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
 
 const cardStyle = {
   style: {
@@ -86,7 +88,7 @@ const formatDate = (dateStr: string | null) => {
 
 
 
-const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }: any) => {
+const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
@@ -114,16 +116,29 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess }: any) => {
       payment_method: { card: elements.getElement(CardElement)! },
     });
 
-    const responseLogPayment = await createLogPayment(paymentData.line_items[0].price_data.unit_amount,id_viajero,result);
-    if(!responseLogPayment.success) setMessage("No se pudo hacer log del pago");
-    
+    const responseLogPayment = await createLogPayment(paymentData.line_items[0].price_data.unit_amount, id_viajero, result);
+    if (!responseLogPayment.success) setMessage("No se pudo hacer log del pago");
+
 
     if (result.error) setMessage(result.error.message);
     else if (result.paymentIntent.status === "succeeded") {
-      //Registrar que se realizo el pago correctamente en la base
-      setSuccess(true);
-      setMessage("¡Pago exitoso!");
-    };
+      console.log(idServicio)
+      const responseNewPago = await createNewPago(
+        idServicio, // Reemplaza con el ID del servicio correspondiente
+        paymentData.line_items[0].price_data.unit_amount,
+        id_viajero,
+        result
+      );
+
+      if (responseNewPago.success) {
+        setSuccess(true);
+        setMessage("¡Pago exitoso!");
+      } else {
+        setMessage("Error al registrar el pago en la base de datos");
+      }
+    } else if (result.error) {
+      setMessage(result.error.message);
+    }
   };
 
   return (
@@ -170,6 +185,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   const [isBookingSaved, setIsBookingSaved] = useState(false);
   const [cardPayment, setCardPayment] = useState(false);
   const [successPayment, setSuccessPayment] = useState(false);
+  const [idServicio, setIdServicio] = useState("");
 
   useEffect(() => {
     // Auto-save booking when confirmation code is generated
@@ -213,6 +229,21 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       const imageUrl = bookingData.hotel.additionalImages?.[0] ||
         bookingData.hotel.image ||
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
+
+      const responseSolicitud = await crearSolicitud({
+        confirmation_code: bookingData.confirmationCode,
+        hotel_name: bookingData.hotel.name,
+        dates: {
+          checkIn: bookingData.dates.checkIn,
+          checkOut: bookingData.dates.checkOut,
+        },
+        room: {
+          type: bookingData.room.type,
+          totalPrice: bookingData.room.totalPrice,
+        },
+      }, user.id);
+
+      setIdServicio(responseSolicitud.data.id_servicio)
 
       // Save booking to database
       const { data: booking, error: bookingError } = await supabase
@@ -307,7 +338,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     </div>
 
                     : <Elements stripe={stripePromise}>
-                      <CheckOutForm setCardPayment={setCardPayment} paymentData={getPaymentData(bookingData)} setSuccess={setSuccessPayment} />
+                      <CheckOutForm setCardPayment={setCardPayment} paymentData={getPaymentData(bookingData)} setSuccess={setSuccessPayment} idServicio={idServicio} />
                     </Elements>
                   }
                 </>

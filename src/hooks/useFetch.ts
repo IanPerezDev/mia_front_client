@@ -1,5 +1,5 @@
 import { supabase } from "../services/supabaseClient";
-import { getCompaniesAgent, getCompaniesAgentViajeros } from "./useDatabase";
+import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales } from "./useDatabase";
 
 export const fetchCompaniesAgent = async () => {
   try {
@@ -22,6 +22,20 @@ export const fetchViajerosCompanies = async () => {
     if (!user) throw new Error("No hay usuario autenticado");
 
     const employeesData = await getCompaniesAgentViajeros(user.user.id);
+    return employeesData.data || [];
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    return [];
+  }
+};
+
+export const fetchEmpresasDatosFiscales = async () => {
+  try {
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error("No hay usuario autenticado");
+
+    const employeesData = await getEmpresasDatosFiscales(user.user.id);
     return employeesData.data || [];
   } catch (error) {
     console.error("Error fetching employees:", error);

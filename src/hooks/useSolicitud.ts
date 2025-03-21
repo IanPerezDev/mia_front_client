@@ -1,8 +1,8 @@
 import { URL, HEADERS_API } from "../constants/apiConstant";
 
 export const useSolicitud = () => {
-  const crearSolicitud = async (solicitud: any) =>
-    await postSolicitud(solicitud);
+  const crearSolicitud = async (solicitud: any, id_usuario: any) =>
+    await postSolicitud(solicitud, id_usuario);
 
   const obtenerSolicitudes = async (callback: (json: PostBodyParams) => any) =>
     getSolicitud(callback);
@@ -38,42 +38,43 @@ async function getSolicitud(callback: (json: PostBodyParams) => void) {
     console.log(error);
   }
 }
-async function postSolicitud(solicitud:any, id_viajero:string) {
-  if (solicitud.user_id) {
-    solicitud.id_viajero = solicitud.user_id.slice(0, 4);
+
+async function postSolicitud(solicitud: any, id_usuario: string) {
+  // Si ya existe un `user_id`, asignamos `id_viajero` desde el `id_usuario`
+  solicitud.id_viajero = id_usuario;
+
+  // Generamos un `confirmation_code` si no existe
+  if (!solicitud.confirmation_code) {
+    solicitud.confirmation_code = Math.round(Math.random() * 999999999).toString();
   }
-  if (solicitud.confirmationCode) {
-    solicitud.confirmation_code = solicitud.confirmationCode;
-    solicitud.id_viajero = Math.round(Math.random() * 999999999);
-    solicitud.hotel_name = solicitud.hotel.name;
-    solicitud.check_in = solicitud.dates.checkIn;
-    solicitud.check_out = solicitud.dates.checkOut;
-    solicitud.room_type = solicitud.room.type;
-    solicitud.total_price = solicitud.room.totalPrice;
-    solicitud.status = "pending";
-  }
-  if (solicitud.checkIn) {
-    solicitud.confirmation_code = Math.round(Math.random() * 999999999);
-    solicitud.id_viajero = Math.round(Math.random() * 999999999);
-    solicitud.hotel_name = "No hay nombre";
-    solicitud.check_in = solicitud.checkIn;
-    solicitud.check_out = solicitud.checkOut;
-    solicitud.room_type = solicitud.roomType;
-    solicitud.total_price = solicitud.totalPrice;
-    solicitud.status = "pending";
-  }
+
+  // Aseguramos que los datos necesarios estén presentes
+  const datosSolicitud = {
+    solicitudes: [{confirmation_code: solicitud.confirmation_code,
+    id_viajero: solicitud.id_viajero, // Usamos el `id_usuario` como `id_viajero`
+    hotel: solicitud.hotel_name || "Sin nombre", // Si no se encuentra el nombre del hotel, usamos un valor por defecto
+    check_in: solicitud.dates.checkIn,
+    check_out: solicitud.dates.checkOut,
+    room: solicitud.room.type,
+    total: solicitud.room.totalPrice,
+    status: "pending",}] // Establecemos el estado por defecto como "pending"
+  };
+
+  // Enviamos los datos a la API
   try {
     const res = await fetch(`${URL}/v1/mia/solicitud`, {
       method: "POST",
       headers: HEADERS_API,
-      body: JSON.stringify(solicitud),
+      body: JSON.stringify(datosSolicitud),
     });
     const json = await res.json();
     console.log(json);
+    return json // Muestra la respuesta del servidor
   } catch (error) {
-    console.log(error);
+    console.log(error); // Manejo de errores
   }
 }
+
 
 type PostBodyParams = {
   confirmation_code: string;

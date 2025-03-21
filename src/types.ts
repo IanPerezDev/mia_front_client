@@ -60,7 +60,10 @@ export interface TaxInfo {
   id_datos_fiscales: string;
   id_empresa: string;
   rfc: string;
-  direccion_fiscal: string;
+  calle: string;
+  municipio: string;
+  estado: string;
+  colonia:string;
   codigo_postal_fiscal: string;
   regimen_fiscal: string;
 }
