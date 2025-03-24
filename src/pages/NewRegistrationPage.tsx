@@ -52,6 +52,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 // console.log("revisa correo");
                 // setStep('completed');
                 //onComplete();
+                setEmailVerificationPage(true);
 
             }
         } catch (error: any) {
@@ -61,7 +62,6 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
             );
         } finally {
             setIsRegistering(false);
-            setEmailVerificationPage(true);
         }
     };
 
@@ -81,7 +81,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 console.log('successssss')
                 setRegistrationError("");
                 onComplete();
-                
+
             }
             else {
                 throw new Error('Codigo incorrecto');
@@ -109,7 +109,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
             setPasswordError('Las contraseñas no coinciden');
             return;
         }
-        if (!formData.password || !formData.confirmPassword || !formData.primer_nombre || !formData.apellido_paterno || !formData.fecha_nacimiento || !formData.correo || !formData.telefono || !formData.genero) {
+        if (!formData.password || !formData.confirmPassword || !formData.primer_nombre || !formData.apellido_paterno || !formData.correo) {
             setPasswordError('No se pueden dejar vacios los campos obligatorios');
             return;
         }
@@ -265,7 +265,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 {/* Teléfono */}
                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Teléfono <span className="text-red-500">*</span>
+                        Teléfono
                     </label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -284,7 +284,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 {/* Genero */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">
-                        Sexo (Género) <span className="text-red-500">*</span>
+                        Sexo (Género)
                     </label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -306,7 +306,7 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                 {/* Fecha de nacimiento */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">
-                        Fecha de nacimiento  <span className="text-red-500">*</span>
+                        Fecha de nacimiento
                     </label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

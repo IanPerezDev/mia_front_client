@@ -161,7 +161,7 @@ export const createNewDatosFiscales = async (data: any) => {
   }
 };
 
-export const createLogPayment = async (amount: number, id: string, response_payment:any) => {
+export const createLogPayment = async (amount: number, id: string, response_payment: any) => {
   try {
     const response = await fetch(`http://localhost:3001/v1/stripe/payment-log-storage`, {
       method: "POST",
@@ -202,7 +202,7 @@ export const createNewPago = async (
   try {
     // Datos para crear el pago
     const datosPago = {
-      id_servicio:id_servicio, // ID del servicio relacionado
+      id_servicio: id_servicio, // ID del servicio relacionado
       monto_a_credito: 0.0, // Ajusta según tu lógica
       responsable_pago_empresa: null, // Ajusta según tu lógica
       responsable_pago_agente: null, // Ajusta según tu lógica
@@ -278,8 +278,12 @@ export const createNewPago = async (
 // }
 
 export const createNewViajero = async (data: any, id_empresa: string) => {
-  const fechaNacimiento = new Date(data.fecha_nacimiento);
-  const fechaFormateada = fechaNacimiento.toISOString().split("T")[0] + " 00:00:00";
+  let fechaFormateada = "";
+  if (data.fecha_nacimiento) {
+    const fechaNacimiento = new Date(data.fecha_nacimiento);
+    fechaFormateada = fechaNacimiento.toISOString().split("T")[0] + " 00:00:00";
+  }
+
   try {
     console.log(data);
     const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
@@ -289,29 +293,29 @@ export const createNewViajero = async (data: any, id_empresa: string) => {
         ...AUTH,
       },
       body: JSON.stringify({
-        id_empresa: id_empresa,
+        id_empresas: [id_empresa],
         primer_nombre: data.primer_nombre,
-        segundo_nombre: data.segundo_nombre || " ",
+        segundo_nombre: data.segundo_nombre,
         apellido_paterno: data.apellido_paterno,
-        apellido_materno: data.apellido_materno || " ",
+        apellido_materno: data.apellido_materno,
         correo: data.correo,
         telefono: data.telefono,
         genero: data.genero,
-        fecha_nacimiento: fechaFormateada,
+        fecha_nacimiento: fechaFormateada ? fechaFormateada : null,
       }),
     });
 
     const json = await response.json();
     console.log(json);
     if (json.message === "Viajero creado correctamente") {
-      return ({
+      return {
         success: true
-      })
+      }
     }
     else {
-      return ({
+      return {
         success: false
-      })
+      }
     }
   }
   catch (error) {
