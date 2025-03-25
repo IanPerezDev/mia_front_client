@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import {
   Menu,
   X,
-  HelpCircle,
   MessageSquare,
   FileText,
   User2,
-  Sparkles,
+  ChevronDown,
+  Settings,
   LifeBuoy,
-  Cog,
+  LogOut,
+  Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import type { User } from "../types";
 
@@ -34,65 +36,85 @@ export const Navigation: React.FC<NavigationProps> = ({
   onChatClick,
   onBookingsClick,
   onFAQClick,
-  onAdminClick,
   onConfigurationClick,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const renderAuthenticatedLinks = () => (
     <>
-      <button
-        onClick={onChatClick}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <MessageSquare className="w-4 h-4" />
-        <span>Habla con Mía</span>
-      </button>
-      <button
-        onClick={onBookingsClick}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <FileText className="w-4 h-4" />
-        <span>Reporte de Reservas</span>
-      </button>
-      {/*<button
-        onClick={onAdminClick}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <FileText className="w-4 h-4" />
-        <span>Panel de Administración</span>
-      </button>*/}
-      <button
-        onClick={onConfigurationClick}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <Cog className="w-4 h-4" />
-        <span>Configuracion de cuenta</span>
-      </button>
-      <button
-        onClick={onProfileClick}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <User2 className="w-4 h-4" />
-        <span>Mi Perfil</span>
-      </button>
-      <a
-        href="#"
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-      >
-        <Sparkles className="w-4 h-4" />
-        <span>Mejora tu Viaje</span>
-      </a>
-      <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2">
-        <LifeBuoy className="w-4 h-4" />
-        <span>Contactar a Soporte</span>
-      </button>
-      <button
-        onClick={onLogout}
-        className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
-      >
-        Cerrar Sesión
-      </button>
+      {/* Main Navigation Items */}
+      <div className="hidden md:flex items-center space-x-4">
+        <button
+          onClick={onChatClick}
+          className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Habla con Mía</span>
+        </button>
+        <button
+          onClick={onBookingsClick}
+          className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+        >
+          <FileText className="w-4 h-4" />
+          <span>Reporte de Reservas</span>
+        </button>
+
+        <a
+          href="#"
+          className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Mejora tu Viaje</span>
+        </a>
+
+        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2">
+          <LifeBuoy className="w-4 h-4" />
+          <span>Contactar a Soporte</span>
+        </button>
+
+        {/* User Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center space-x-2 text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <User2 className="w-4 h-4 text-blue-600" />
+            </div>
+            <span>{user?.name || 'Usuario'}</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
+              <button
+                onClick={onProfileClick}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+              >
+                <User2 className="w-4 h-4" />
+                <span>Mi Perfil</span>
+              </button>
+              <button
+                onClick={onConfigurationClick}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Configuración</span>
+              </button>
+              <div className="border-t border-gray-100 my-1"></div>
+              <button
+                onClick={onLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 
@@ -191,11 +213,93 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
 
       {/* Mobile menu */}
-      <div className={`md:hidden ${isMenuOpen ? "block" : "hidden"}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-white/80 backdrop-blur-sm">
-          {user ? renderAuthenticatedLinks() : renderUnauthenticatedLinks()}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {user ? (
+              <>
+                <button
+                  onClick={onChatClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Habla con Mía</span>
+                </button>
+                <button
+                  onClick={onBookingsClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Reporte de Reservas</span>
+                </button>
+                <a
+                  href="#"
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Mejora tu Viaje</span>
+                </a>
+                <button
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <LifeBuoy className="w-4 h-4" />
+                  <span>Contactar a Soporte</span>
+                </button>
+                <button
+                  onClick={onProfileClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <User2 className="w-4 h-4" />
+                  <span>Mi Perfil</span>
+                </button>
+                <button
+                  onClick={onConfigurationClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Configuración</span>
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md flex items-center space-x-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onChatClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Habla con Mía</span>
+                </button>
+                <button
+                  onClick={onFAQClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>FAQ</span>
+                </button>
+                <button
+                  onClick={onLogin}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+                >
+                  Iniciar Sesión
+                </button>
+                <button
+                  onClick={onRegister}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                >
+                  Regístrate
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 };

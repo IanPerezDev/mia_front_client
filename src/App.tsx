@@ -33,7 +33,17 @@ import { Configuration } from "./pages/Configuration";
 
 const ResponsiveChat = () => {
   const [currentPage, setCurrentPage] = useState<
-    "chat" | "profile" | "registration" | "payment" | "bookings" | "faq" | "hotels" | "manual-reservation" | "admin" | "admin-empresa" | "configuration"
+    | "chat"
+    | "profile"
+    | "registration"
+    | "payment"
+    | "bookings"
+    | "faq"
+    | "hotels"
+    | "manual-reservation"
+    | "admin"
+    | "admin-empresa"
+    | "configuration"
   >("chat");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -257,7 +267,7 @@ const ResponsiveChat = () => {
 
   const handleAdminClick = () => {
     setCurrentPage("admin-empresa");
-  }
+  };
 
   const handleFAQClick = () => {
     setCurrentPage("faq");
@@ -386,9 +396,11 @@ const ResponsiveChat = () => {
         <div className="flex min-h-screen pt-16">
           {/* Chat Panel - Left Side */}
           <div
-            className={`${showWelcomeMessage ? "w-full" : "w-1/2"
-              } transition-all duration-500 ${!showWelcomeMessage && "fixed left-0 h-[calc(100vh-4rem)]"
-              }`}
+            className={`${
+              showWelcomeMessage ? "w-full" : "w-1/2"
+            } transition-all duration-500 ${
+              !showWelcomeMessage && "fixed left-0 h-[calc(100vh-4rem)]"
+            }`}
           >
             {showWelcomeMessage ? (
               <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
@@ -406,7 +418,11 @@ const ResponsiveChat = () => {
                       </h2>
                       <div className="fixed bottom-10 right-10 flex flex-row items-center gap-x-3 text-lg">
                         Mia Ahora en WhatsApp!
-                        <a href="https://wa.me/525520951970?text=Hola,%20necesito%20que%20me%20ayudes%20a%20realizar%20una%20reserva" target="_blank" className="bg-green-600 p-2 w-12 h-12 justify-center items-center flex rounded-full">
+                        <a
+                          href="https://wa.me/525520951970?text=Hola,%20necesito%20que%20me%20ayudes%20a%20realizar%20una%20reserva"
+                          target="_blank"
+                          className="bg-green-600 p-2 w-12 h-12 justify-center items-center flex rounded-full"
+                        >
                           <Phone />
                         </a>
                       </div>
@@ -578,9 +594,10 @@ const ResponsiveChat = () => {
                         onClick={handleSendMessage}
                         disabled={promptLimitReached || !inputMessage.trim()}
                         className={`px-8 py-4 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2
-                          ${promptLimitReached || !inputMessage.trim()
-                            ? "bg-white/10 text-white/50 cursor-not-allowed"
-                            : "bg-white text-blue-600 hover:bg-blue-50 transform hover:-translate-y-0.5 hover:shadow-lg"
+                          ${
+                            promptLimitReached || !inputMessage.trim()
+                              ? "bg-white/10 text-white/50 cursor-not-allowed"
+                              : "bg-white text-blue-600 hover:bg-blue-50 transform hover:-translate-y-0.5 hover:shadow-lg"
                           }`}
                       >
                         <span>Enviar</span>

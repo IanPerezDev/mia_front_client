@@ -14,11 +14,12 @@ export const useSolicitud = () => {
 
 async function getSolicitud(callback: (json: PostBodyParams) => void) {
   try {
-    const res = await fetch(`${URL}/v1/mia/solicitud`, {
+    const res = await fetch(`${URL}/v1/mia/solicitud/client`, {
       method: "GET",
       headers: HEADERS_API,
     });
     const json = await res.json();
+    console.log(json);
     const data = json.map((reservaDB) => {
       return {
         id: Math.round(Math.random() * 12345678),
@@ -45,19 +46,25 @@ async function postSolicitud(solicitud: any, id_usuario: string) {
 
   // Generamos un `confirmation_code` si no existe
   if (!solicitud.confirmation_code) {
-    solicitud.confirmation_code = Math.round(Math.random() * 999999999).toString();
+    solicitud.confirmation_code = Math.round(
+      Math.random() * 999999999
+    ).toString();
   }
 
   // Aseguramos que los datos necesarios estén presentes
   const datosSolicitud = {
-    solicitudes: [{confirmation_code: solicitud.confirmation_code,
-    id_viajero: solicitud.id_viajero, // Usamos el `id_usuario` como `id_viajero`
-    hotel: solicitud.hotel_name || "Sin nombre", // Si no se encuentra el nombre del hotel, usamos un valor por defecto
-    check_in: solicitud.dates.checkIn,
-    check_out: solicitud.dates.checkOut,
-    room: solicitud.room.type,
-    total: solicitud.room.totalPrice,
-    status: "pending",}] // Establecemos el estado por defecto como "pending"
+    solicitudes: [
+      {
+        confirmation_code: solicitud.confirmation_code,
+        id_viajero: solicitud.id_viajero, // Usamos el `id_usuario` como `id_viajero`
+        hotel: solicitud.hotel_name || "Sin nombre", // Si no se encuentra el nombre del hotel, usamos un valor por defecto
+        check_in: solicitud.dates.checkIn,
+        check_out: solicitud.dates.checkOut,
+        room: solicitud.room.type,
+        total: solicitud.room.totalPrice,
+        status: "pending",
+      },
+    ], // Establecemos el estado por defecto como "pending"
   };
 
   // Enviamos los datos a la API
@@ -69,12 +76,11 @@ async function postSolicitud(solicitud: any, id_usuario: string) {
     });
     const json = await res.json();
     console.log(json);
-    return json // Muestra la respuesta del servidor
+    return json; // Muestra la respuesta del servidor
   } catch (error) {
     console.log(error); // Manejo de errores
   }
 }
-
 
 type PostBodyParams = {
   confirmation_code: string;

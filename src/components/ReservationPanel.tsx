@@ -1,13 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import type { BookingData } from '../types';
-import { Calendar, Users, CreditCard, Building2, ArrowRight, Check, Clock, Download, Receipt, CreditCard as PaymentIcon, BanknoteIcon, ArrowLeft, CheckCircle } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
-import { supabase } from '../services/supabaseClient';
-import { CallToBackend } from '../components/CallToBackend';
+import React, { useState, useEffect } from "react";
+import type { BookingData } from "../types";
+import {
+  Calendar,
+  Users,
+  CreditCard,
+  Building2,
+  ArrowRight,
+  Check,
+  Clock,
+  Download,
+  Receipt,
+  CreditCard as PaymentIcon,
+  BanknoteIcon,
+  ArrowLeft,
+  CheckCircle,
+} from "lucide-react";
+import html2pdf from "html2pdf.js";
+import { supabase } from "../services/supabaseClient";
+import { CallToBackend } from "../components/CallToBackend";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  useStripe,
+  useElements,
+  CardElement,
+} from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
-import { createLogPayment, createNewPago } from '../hooks/useDatabase';
+import { createLogPayment, createNewPago } from "../hooks/useDatabase";
 
 const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
 
@@ -31,14 +50,17 @@ const cardStyle = {
   },
 };
 
-const stripePromise = loadStripe("pk_test_51R1WOrQttaqZirA7uXoQzqBjIsogB3hbIMWzIimqVnmMR0ZdSGhtl9icQpUkqHhIrWDjvRj2vjV71FEHTcbZjMre005S8gHlDD");
+const stripePromise = loadStripe(
+  "pk_test_51R1WOrQttaqZirA7uXoQzqBjIsogB3hbIMWzIimqVnmMR0ZdSGhtl9icQpUkqHhIrWDjvRj2vjV71FEHTcbZjMre005S8gHlDD"
+);
 const DOMAIN = "http://localhost:5173";
 const getPaymentData = (bookingData: BookingData) => {
   const payment_metadata = {
     confirmation_code: bookingData.confirmationCode,
   };
 
-  const imageToUse = bookingData.hotel.additionalImages?.[0] ||
+  const imageToUse =
+    bookingData.hotel.additionalImages?.[0] ||
     bookingData.hotel.image ||
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
 
@@ -51,10 +73,11 @@ const getPaymentData = (bookingData: BookingData) => {
           currency: "mxn",
           product_data: {
             name: bookingData.hotel.name,
-            description: `Reservación en ${bookingData.hotel.name} - ${bookingData.room?.type === "single"
-              ? "Habitación Sencilla"
-              : "Habitación Doble"
-              }`,
+            description: `Reservación en ${bookingData.hotel.name} - ${
+              bookingData.room?.type === "single"
+                ? "Habitación Sencilla"
+                : "Habitación Doble"
+            }`,
             images: [imageToUse],
           },
           unit_amount: Math.round((bookingData.room?.totalPrice || 0) * 100),
@@ -86,9 +109,12 @@ const formatDate = (dateStr: string | null) => {
   };
 };
 
-
-
-const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: any) => {
+const CheckOutForm = ({
+  setCardPayment,
+  paymentData,
+  setSuccess,
+  idServicio,
+}: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
@@ -116,13 +142,17 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: a
       payment_method: { card: elements.getElement(CardElement)! },
     });
 
-    const responseLogPayment = await createLogPayment(paymentData.line_items[0].price_data.unit_amount, id_viajero, result);
-    if (!responseLogPayment.success) setMessage("No se pudo hacer log del pago");
-
+    const responseLogPayment = await createLogPayment(
+      paymentData.line_items[0].price_data.unit_amount,
+      id_viajero,
+      result
+    );
+    if (!responseLogPayment.success)
+      setMessage("No se pudo hacer log del pago");
 
     if (result.error) setMessage(result.error.message);
     else if (result.paymentIntent.status === "succeeded") {
-      console.log(idServicio)
+      console.log(idServicio);
       const responseNewPago = await createNewPago(
         idServicio, // Reemplaza con el ID del servicio correspondiente
         paymentData.line_items[0].price_data.unit_amount,
@@ -142,24 +172,35 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: a
   };
 
   return (
-    <div className='flex flex-col w-full px-4'>
-      <h2 className='font-semibold text-lg text-[#10244c] mb-5'>Ingresa los detalles de tu tarjeta de credito</h2>
+    <div className="flex flex-col w-full px-4">
+      <h2 className="font-semibold text-lg text-[#10244c] mb-5">
+        Ingresa los detalles de tu tarjeta de credito
+      </h2>
       <form onSubmit={handleSubmit}>
         <CardElement options={cardStyle} />
-        <button type="submit" disabled={!stripe} className='flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5'>
+        <button
+          type="submit"
+          disabled={!stripe}
+          className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+        >
           <PaymentIcon className="w-4 h-4" />
           <span className="font-medium">Pagar</span>
         </button>
-        <button type="submit" disabled={!stripe} className='flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5' onClick={() => setCardPayment(false)}>
+        <button
+          type="submit"
+          disabled={!stripe}
+          className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+          onClick={() => setCardPayment(false)}
+        >
           <ArrowLeft className="w-4 h-4" />
           <span className="font-medium">Cambiar forma de pago</span>
         </button>
       </form>
-      {message
-        &&
-        <div className='h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl'>
-          <p className='text-base text-center'>{message}</p>
-        </div>}
+      {message && (
+        <div className="h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl">
+          <p className="text-base text-center">{message}</p>
+        </div>
+      )}
     </div>
   );
 };
@@ -176,10 +217,7 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: a
 
 export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   bookingData,
-  onProceedToPayment
 }) => {
-
-  const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isBookingSaved, setIsBookingSaved] = useState(false);
@@ -200,8 +238,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
     const opt = {
       margin: 1,
-      filename: `reservacion-${bookingData?.confirmationCode || "borrador"
-        }.pdf`,
+      filename: `reservacion-${
+        bookingData?.confirmationCode || "borrador"
+      }.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
@@ -226,24 +265,28 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       }
 
       // Get the first image URL from additionalImages
-      const imageUrl = bookingData.hotel.additionalImages?.[0] ||
+      const imageUrl =
+        bookingData.hotel.additionalImages?.[0] ||
         bookingData.hotel.image ||
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
 
-      const responseSolicitud = await crearSolicitud({
-        confirmation_code: bookingData.confirmationCode,
-        hotel_name: bookingData.hotel.name,
-        dates: {
-          checkIn: bookingData.dates.checkIn,
-          checkOut: bookingData.dates.checkOut,
+      const responseSolicitud = await crearSolicitud(
+        {
+          confirmation_code: bookingData.confirmationCode,
+          hotel_name: bookingData.hotel.name,
+          dates: {
+            checkIn: bookingData.dates.checkIn,
+            checkOut: bookingData.dates.checkOut,
+          },
+          room: {
+            type: bookingData.room.type,
+            totalPrice: bookingData.room.totalPrice,
+          },
         },
-        room: {
-          type: bookingData.room.type,
-          totalPrice: bookingData.room.totalPrice,
-        },
-      }, user.id);
+        user.id
+      );
 
-      setIdServicio(responseSolicitud.data.id_servicio)
+      setIdServicio(responseSolicitud.data.id_servicio);
 
       // Save booking to database
       const { data: booking, error: bookingError } = await supabase
@@ -269,8 +312,6 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
       console.log("guardado");
       setIsBookingSaved(true);
-
-
     } catch (error: any) {
       console.error("Error saving booking:", error);
       setSaveError(error.message || "Error al guardar la reservación");
@@ -292,7 +333,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     );
   }
 
-  const hasAnyData = bookingData.hotel?.name ||
+  const hasAnyData =
+    bookingData.hotel?.name ||
     bookingData.dates?.checkIn ||
     bookingData.room?.type ||
     bookingData.confirmationCode;
@@ -323,26 +365,38 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                 <div className="flex items-center space-x-3">
                   <Check className="w-6 h-6 text-green-500" />
                   <div>
-                    <h2 className="text-lg font-semibold text-[#10244c]">¡Reservación En Proceso!</h2>
-                    <p className="text-[#10244c]/80">Código: {bookingData.confirmationCode}</p>
+                    <h2 className="text-lg font-semibold text-[#10244c]">
+                      ¡Reservación En Proceso!
+                    </h2>
+                    <p className="text-[#10244c]/80">
+                      Código: {bookingData.confirmationCode}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {cardPayment ?
+              {cardPayment ? (
                 <>
-                  {successPayment ?
-                    <div className='w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2'>
-                      <p className='text-xl text-green-800 font-bold'>¡Se realizo el pago correctamente!</p>
-                      <CheckCircle className='w-10 h-10 text-green-800' />
+                  {successPayment ? (
+                    <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
+                      <p className="text-xl text-green-800 font-bold">
+                        ¡Se realizo el pago correctamente!
+                      </p>
+                      <CheckCircle className="w-10 h-10 text-green-800" />
                     </div>
-
-                    : <Elements stripe={stripePromise}>
-                      <CheckOutForm setCardPayment={setCardPayment} paymentData={getPaymentData(bookingData)} setSuccess={setSuccessPayment} idServicio={idServicio} />
+                  ) : (
+                    <Elements stripe={stripePromise}>
+                      <CheckOutForm
+                        setCardPayment={setCardPayment}
+                        paymentData={getPaymentData(bookingData)}
+                        setSuccess={setSuccessPayment}
+                        idServicio={idServicio}
+                      />
                     </Elements>
-                  }
+                  )}
                 </>
-                : <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button
                     className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     onClick={() => setCardPayment(true)}
@@ -365,7 +419,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     <Download className="w-4 h-4" />
                     <span className="font-medium">Descargar</span>
                   </button>
-                </div>}
+                </div>
+              )}
 
               {saveError && (
                 <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">

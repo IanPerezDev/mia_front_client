@@ -197,7 +197,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "completed":
+      case "Completada":
         return <CheckCircle className="w-4 h-4" />;
       case "pending":
         return <Clock className="w-4 h-4" />;
@@ -231,7 +231,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
               >
                 {getStatusIcon(booking.status)}
                 <span className="text-sm font-medium capitalize">
-                  {booking.status === "completed"
+                  {booking.status === "Completada"
                     ? "Completada"
                     : booking.status === "pending"
                     ? "Pendiente"
