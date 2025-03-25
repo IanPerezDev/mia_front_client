@@ -35,7 +35,7 @@ export function EmployeeForm({
       segundo_nombre: formData.get('segundNombre') as string,
       apellido_materno: formData.get('apellidoM') as string,
       apellido_paterno: formData.get('apellidoP') as string,
-      id_empresa: formData.get('empresa') as string,
+      id_empresas: formData.getAll('empresa') as string[],
       fecha_nacimiento: formData.get('fecha_nacimiento') as string,
       genero: formData.get('genero') as string,
     };
@@ -88,7 +88,6 @@ export function EmployeeForm({
             type="text"
             name="segundNombre"
             defaultValue={initialData?.segundo_nombre}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -113,7 +112,6 @@ export function EmployeeForm({
             type="text"
             name="apellidoM"
             defaultValue={initialData?.apellido_materno}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -138,7 +136,6 @@ export function EmployeeForm({
             type="tel"
             name="phone"
             defaultValue={initialData?.telefono}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -151,7 +148,6 @@ export function EmployeeForm({
             type="date"
             name="fecha_nacimiento"
             defaultValue={initialData?.fecha_nacimiento}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -170,8 +166,9 @@ export function EmployeeForm({
                   <input
                     type="checkbox"
                     name="empresa"
+                    required
                     value={empresa.id_empresa}
-                    defaultChecked={initialData?.id_empresa?.includes(empresa.id_empresa)}
+                    defaultChecked={initialData?.id_empresas?.includes(empresa.id_empresa)}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </div>
@@ -193,7 +190,6 @@ export function EmployeeForm({
           <select
             name="genero"
             defaultValue={initialData?.genero}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="">Selecciona genero</option>

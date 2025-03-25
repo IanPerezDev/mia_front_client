@@ -144,7 +144,7 @@ export const Configuration = () => {
             if (!user) {
               throw new Error("No hay usuario autenticado");
             }
-            const responseCompany = await createNewViajero(data, data.id_empresa);
+            const responseCompany = await createNewViajero(data, data.id_empresas);
             if (!responseCompany.success) {
               throw new Error("No se pudo registrar al viajero");
             }
@@ -418,6 +418,9 @@ export const Configuration = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Tipo de persona
                             </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Datos Fiscales
+                            </th>
                           </>
                         )}
                         {activeTab === 'employees' && (
@@ -536,6 +539,11 @@ export const Configuration = () => {
                               <br />
                               {company.phone}
                             </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Datos fiscales
+                              </button>
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
@@ -554,6 +562,7 @@ export const Configuration = () => {
                                 <Trash2 className="h-5 w-5" />
                               </button>
                             </td>
+                            
                           </tr>
                         ))}
                       {activeTab === 'employees' &&

@@ -70,7 +70,7 @@ export interface TaxInfo {
 
 export interface Employee {
   id_viajero: string;
-  id_empresa: string;
+  id_empresas: string[];
   primer_nombre: string;
   apellido_paterno: string;
   apellido_materno: string;

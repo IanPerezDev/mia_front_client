@@ -264,7 +264,7 @@ export const registerUserAfterVerification = async (formData: any, code: string)
     console.log(responseCompany);
 
     // 5. Create viajero profile
-    const responseViajero = await createNewViajero(formData, responseCompany.empresa_id);
+    const responseViajero = await createNewViajero(formData, [responseCompany.empresa_id]);
     if (!responseViajero.success) {
       throw new Error("No se pudo registrar al usuario");
     }

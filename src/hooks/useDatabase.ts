@@ -277,7 +277,7 @@ export const createNewPago = async (
 //   }
 // }
 
-export const createNewViajero = async (data: any, id_empresa: string) => {
+export const createNewViajero = async (data: any, id_empresa: string[]) => {
   let fechaFormateada = "";
   if (data.fecha_nacimiento) {
     const fechaNacimiento = new Date(data.fecha_nacimiento);
@@ -293,14 +293,14 @@ export const createNewViajero = async (data: any, id_empresa: string) => {
         ...AUTH,
       },
       body: JSON.stringify({
-        id_empresas: [id_empresa],
+        id_empresas: id_empresa,
         primer_nombre: data.primer_nombre,
-        segundo_nombre: data.segundo_nombre,
+        segundo_nombre: data.segundo_nombre ? data.segundo_nombre : null,
         apellido_paterno: data.apellido_paterno,
-        apellido_materno: data.apellido_materno,
+        apellido_materno: data.apellido_materno ? data.apellido_materno : null,
         correo: data.correo,
-        telefono: data.telefono,
-        genero: data.genero,
+        telefono: data.telefono ? data.telefono : null,
+        genero: data.genero ? data.genero : null,
         fecha_nacimiento: fechaFormateada ? fechaFormateada : null,
       }),
     });
