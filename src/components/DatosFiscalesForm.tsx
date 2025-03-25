@@ -63,7 +63,7 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
-      fetch(`http://localhost:3001/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
+      fetch(`https://mianoktos.vercel.app/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

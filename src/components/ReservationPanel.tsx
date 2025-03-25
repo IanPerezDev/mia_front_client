@@ -102,7 +102,7 @@ const CheckOutForm = ({ setCardPayment, paymentData, setSuccess, idServicio }: a
     if (!stripe || !elements) return;
     const { data } = await supabase.auth.getUser();
     const id_viajero = data.user?.id;
-    const response = await fetch("http://localhost:3001/v1/stripe/create-payment-intent-card", {
+    const response = await fetch("https://mianoktos.vercel.app/v1/stripe/create-payment-intent-card", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
