@@ -41,7 +41,7 @@ export const CallToBackend: React.FC<CallToBackendProps> = ({
 
 /* LLAMADAS A LA API*/
 const URL1 = "https://mianoktos.vercel.app";
-const URL = "http://localhost:3000";
+// const URL = "http://localhost:3000";
 const ROUTES = {
   stripe: "/v1/stripe",
   solicitud: "/v1/solicitud",
