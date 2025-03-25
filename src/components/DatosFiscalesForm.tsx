@@ -67,11 +67,14 @@ export function DatosFiscalesForm({
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
-      fetch(`https://mianoktos.vercel.app/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH, // Asegúrate de que AUTH esté definido
+      fetch(
+        `https://mianoktos.vercel.app/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...AUTH, // Asegúrate de que AUTH esté definido
+          },
         }
       )
         .then((res) => res.json())
