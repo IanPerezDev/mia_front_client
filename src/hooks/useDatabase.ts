@@ -1,7 +1,7 @@
 /* LLAMADAS A LA API*/
 // const URL1 = "https://mianoktos.vercel.app";
 // const URL = "http://localhost:3000";
-// const URL2 = "https://mianoktos.vercel.app";
+// const URL2 = "http://localhost:3001";
 // const ROUTES = {
 //   stripe: "/v1/stripe",
 //   solicitud: "/v1/solicitud",
@@ -19,27 +19,24 @@ const AUTH = {
 export const createAgente = async (data: any, id: string) => {
   console.log(data.primer_nombre);
   try {
-    const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/agentes`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          name: data.primer_nombre,
-          secondName: data.segundo_nombre,
-          lastname1: data.apellido_paterno,
-          lastname2: data.apellido_materno,
-          email: data.correo,
-          phone: data.telefono,
-          password: data.password,
-          gender: data.genero,
-          id: id,
-        }),
-      }
-    );
+    const response = await fetch(`http://localhost:3001/v1/mia/agentes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        name: data.primer_nombre,
+        secondName: data.segundo_nombre,
+        lastname1: data.apellido_paterno,
+        lastname2: data.apellido_materno,
+        email: data.correo,
+        phone: data.telefono,
+        password: data.password,
+        gender: data.genero,
+        id: id,
+      }),
+    });
     const json = await response.json();
     console.log(json);
     if (json.message === "Agente creado correctamente") {
@@ -66,23 +63,20 @@ export const createEmpresa = async (data: any, id: string) => {
     " " +
     data.apellido_materno;
   try {
-    const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/empresas`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          agente_id: id,
-          razon_social: nombreEmpresa,
-          nombre_comercial: nombreEmpresa,
-          tipo_persona: "fisica",
-          direccion: " ",
-        }),
-      }
-    );
+    const response = await fetch(`http://localhost:3001/v1/mia/empresas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        agente_id: id,
+        razon_social: nombreEmpresa,
+        nombre_comercial: nombreEmpresa,
+        tipo_persona: "fisica",
+        direccion: " ",
+      }),
+    });
 
     const json = await response.json();
     if (json.message === "Agente creado correctamente") {
@@ -102,23 +96,20 @@ export const createEmpresa = async (data: any, id: string) => {
 
 export const createNewEmpresa = async (data: any, id: string) => {
   try {
-    const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/empresas`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          agente_id: id,
-          razon_social: data.razon_social,
-          nombre_comercial: data.nombre_comercial,
-          tipo_persona: data.tipo_persona,
-          direccion: data.direccion,
-        }),
-      }
-    );
+    const response = await fetch(`http://localhost:3001/v1/mia/empresas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        agente_id: id,
+        razon_social: data.razon_social,
+        nombre_comercial: data.nombre_comercial,
+        tipo_persona: data.tipo_persona,
+        direccion: data.direccion,
+      }),
+    });
 
     const json = await response.json();
     if (json.message === "Agente creado correctamente") {
@@ -138,26 +129,23 @@ export const createNewEmpresa = async (data: any, id: string) => {
 
 export const createNewDatosFiscales = async (data: any) => {
   try {
-    const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/datosFiscales`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          id_empresa: data.id_empresa,
-          rfc: data.rfc,
-          calle: data.calle,
-          colonia: data.colonia,
-          estado: data.estado,
-          municipio: data.municipio,
-          codigo_postal_fiscal: data.codigo_postal_fiscal,
-          regimen_fiscal: data.regimen_fiscal,
-        }),
-      }
-    );
+    const response = await fetch(`http://localhost:3001/v1/mia/datosFiscales`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_empresa: data.id_empresa,
+        rfc: data.rfc,
+        calle: data.calle,
+        colonia: data.colonia,
+        estado: data.estado,
+        municipio: data.municipio,
+        codigo_postal_fiscal: data.codigo_postal_fiscal,
+        regimen_fiscal: data.regimen_fiscal,
+      }),
+    });
 
     const json = await response.json();
     if (json.message === "Datos fiscales creados correctamente") {
@@ -182,7 +170,7 @@ export const createLogPayment = async (
 ) => {
   try {
     const response = await fetch(
-      `https://mianoktos.vercel.app/v1/stripe/payment-log-storage`,
+      `http://localhost:3001/v1/stripe/payment-log-storage`,
       {
         method: "POST",
         headers: {
@@ -234,7 +222,7 @@ export const createNewPago = async (
     };
 
     // Hacer la solicitud HTTP al backend para crear el pago
-    const response = await fetch(`https://mianoktos.vercel.app/v1/mia/pagos`, {
+    const response = await fetch(`http://localhost:3001/v1/mia/pagos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -259,7 +247,7 @@ export const createNewPago = async (
 
 // export const createViajero = async (data: any, id_empresa: string) => {
 //   try {
-//     const response = await fetch(`https://mianoktos.vercel.app/v1/mia/viajeros`, {
+//     const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
 //       method: "POST",
 //       headers: {
 //         "Content-Type": "application/json",
@@ -302,27 +290,24 @@ export const createNewViajero = async (data: any, id_empresa: string) => {
     fechaNacimiento.toISOString().split("T")[0] + " 00:00:00";
   try {
     console.log(data);
-    const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/viajeros`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          id_empresa: id_empresa,
-          primer_nombre: data.primer_nombre,
-          segundo_nombre: data.segundo_nombre || " ",
-          apellido_paterno: data.apellido_paterno,
-          apellido_materno: data.apellido_materno || " ",
-          correo: data.correo,
-          telefono: data.telefono,
-          genero: data.genero,
-          fecha_nacimiento: fechaFormateada,
-        }),
-      }
-    );
+    const response = await fetch(`http://localhost:3001/v1/mia/viajeros`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_empresa: id_empresa,
+        primer_nombre: data.primer_nombre,
+        segundo_nombre: data.segundo_nombre || " ",
+        apellido_paterno: data.apellido_paterno,
+        apellido_materno: data.apellido_materno || " ",
+        correo: data.correo,
+        telefono: data.telefono,
+        genero: data.genero,
+        fecha_nacimiento: fechaFormateada,
+      }),
+    });
 
     const json = await response.json();
     console.log(json);
@@ -344,7 +329,7 @@ export const getCompaniesAgent = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener empresas");
     const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/agentes/empresas-con-agentes?id_agente=${encodeURIComponent(
+      `http://localhost:3001/v1/mia/agentes/empresas-con-agentes?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {
@@ -367,7 +352,7 @@ export const getCompaniesAgentViajeros = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener viajeros");
     const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/agentes/viajeros-con-empresas?id_agente=${encodeURIComponent(
+      `http://localhost:3001/v1/mia/agentes/viajeros-con-empresas?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {
@@ -391,7 +376,7 @@ export const getEmpresasDatosFiscales = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener viajeros");
     const response = await fetch(
-      `https://mianoktos.vercel.app/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(
+      `http://localhost:3001/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {
