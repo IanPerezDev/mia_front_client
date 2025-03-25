@@ -84,7 +84,7 @@ const crearSessionCheckout = async (payment_data: any, bookingData: any) => {
   console.log(bookingData);
   // const json = await response.json();
   try {
-    const response = await fetch(`http://localhost:3000/v1/solicitud/create`, {
+    const response = await fetch(`https://mianoktos.vercel.app/v1/solicitud/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,7 +113,7 @@ const crearSessionCheckout = async (payment_data: any, bookingData: any) => {
   console.log(payment_data);
   // // const json = await response.json();
   // try{
-  //   const response = await fetch(`http://localhost:3000/v1/solicitud/create`, {
+  //   const response = await fetch(`https://mianoktos.vercel.app /v1/solicitud/create`, {
   //     method: "POST",
   //     headers: {
   //       "Content-Type":  "application/json",

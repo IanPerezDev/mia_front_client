@@ -218,7 +218,7 @@ export const registerUserAfterVerification = async (formData: any, code: string)
     const responseVerification = await verifyOTP(formData.correo, code)
     console.log(responseVerification);
     if (!responseVerification.success) {
-      throw new Error ('Codigo de verificacion incorrecto');
+      throw new Error('Codigo de verificacion incorrecto');
     }
     // // 2. Register user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -264,24 +264,26 @@ export const registerUserAfterVerification = async (formData: any, code: string)
     console.log(responseCompany);
 
     // 5. Create viajero profile
-    const responseViajero = await createNewViajero(formData, responseCompany.empresa_id);
+    const responseViajero = await createNewViajero(formData, [responseCompany.empresa_id]);
     if (!responseViajero.success) {
       throw new Error("No se pudo registrar al usuario");
     }
     console.log(responseViajero);
 
-    // 6. Sign in the user immediately
-    const { data: session } = await supabase.auth.getSession();
+    // 6. Sign in the user only if no previous error occurred
+    if (responseViajero.success) {
+      const { data: session } = await supabase.auth.getSession();
 
-    if (!session?.session) {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      });
+      if (!session?.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.correo, // aquí corregí formData.email a formData.correo
+          password: formData.password
+        });
 
-      if (signInError) {
-        console.error('Sign in error:', signInError);
-        throw new Error('Error al iniciar sesión automáticamente');
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw new Error('Error al iniciar sesión automáticamente');
+        }
       }
     }
 
