@@ -52,7 +52,7 @@ export const createAgente = async (data: any, id: string) => {
   } catch (error) {
     throw error;
   }
-}
+};
 
 export const createEmpresa = async (data: any, id: string) => {
   const nombreEmpresa = data.primer_nombre + " " + data.segundo_nombre + " " + data.apellido_paterno + " " + data.apellido_materno;
@@ -72,23 +72,18 @@ export const createEmpresa = async (data: any, id: string) => {
       }),
     });
 
-    const json = await response.json();
-    if (json.message === "Agente creado correctamente") {
-      return ({
-        success: true,
-        empresa_id: json.data.id_empresa
-      })
-    }
-    else {
-      return ({
-        success: false
-      })
-    }
+  const json = await response.json();
+  if (json.message === "Agente creado correctamente") {
+    return {
+      success: true,
+      empresa_id: json.data.id_empresa,
+    };
+  } else {
+    return {
+      success: false,
+    };
   }
-  catch (error) {
-    throw error;
-  }
-}
+};
 
 export const createNewEmpresa = async (data: any, id: string) => {
   try {
@@ -109,21 +104,19 @@ export const createNewEmpresa = async (data: any, id: string) => {
 
     const json = await response.json();
     if (json.message === "Agente creado correctamente") {
-      return ({
+      return {
         success: true,
-        empresa_id: json.data.id_empresa
-      })
+        empresa_id: json.data.id_empresa,
+      };
+    } else {
+      return {
+        success: false,
+      };
     }
-    else {
-      return ({
-        success: false
-      })
-    }
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 export const createNewDatosFiscales = async (data: any) => {
   try {
@@ -149,11 +142,11 @@ export const createNewDatosFiscales = async (data: any) => {
     if (json.message === "Datos fiscales creados correctamente") {
       return {
         success: true,
-        id_datos_fiscales: json.data.id_datos_fiscales
+        id_datos_fiscales: json.data.id_datos_fiscales,
       };
     } else {
       return {
-        success: false
+        success: false,
       };
     }
   } catch (error) {
@@ -161,7 +154,11 @@ export const createNewDatosFiscales = async (data: any) => {
   }
 };
 
-export const createLogPayment = async (amount: number, id: string, response_payment: any) => {
+export const createLogPayment = async (
+  amount: number,
+  id: string,
+  response_payment: any
+) => {
   try {
     const response = await fetch(`${URL}/v1/stripe/payment-log-storage`, {
       method: "POST",
@@ -178,20 +175,18 @@ export const createLogPayment = async (amount: number, id: string, response_paym
 
     const json = await response.json();
     if (json.success) {
-      return ({
-        success: true
-      })
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
     }
-    else {
-      return ({
-        success: false
-      })
-    }
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 export const createNewPago = async (
   id_servicio: string,
@@ -206,7 +201,7 @@ export const createNewPago = async (
       monto_a_credito: 0.0, // Ajusta según tu lógica
       responsable_pago_empresa: null, // Ajusta según tu lógica
       responsable_pago_agente: null, // Ajusta según tu lógica
-      fecha_creacion: new Date().toISOString().split('T')[0], // Fecha actual
+      fecha_creacion: new Date().toISOString().split("T")[0], // Fecha actual
       pago_por_credito: null, // Ajusta según tu lógica
       pendiente_por_cobrar: false, // Ajusta según tu lógica
       total: amount, // Monto total del pago
@@ -225,7 +220,7 @@ export const createNewPago = async (
     });
 
     const json = await response.json();
-    console.log(json)
+    console.log(json);
 
     if (json.data.success) {
       return { success: true };
@@ -309,19 +304,17 @@ export const createNewViajero = async (data: any, id_empresa: string[]) => {
     console.log(json);
     if (json.message === "Viajero creado correctamente") {
       return {
-        success: true
-      }
-    }
-    else {
+        success: true,
+      };
+    } else {
       return {
-        success: false
-      }
+        success: false,
+      };
     }
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 export const getCompaniesAgent = async (agent_id: string) => {
   try {
@@ -336,11 +329,10 @@ export const getCompaniesAgent = async (agent_id: string) => {
 
     const json = await response.json();
     return json;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 export const getCompaniesAgentViajeros = async (agent_id: string) => {
   try {
@@ -356,11 +348,10 @@ export const getCompaniesAgentViajeros = async (agent_id: string) => {
     const json = await response.json();
     console.log(json);
     return json;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
+};
 
 export const getEmpresasDatosFiscales = async (agent_id: string) => {
   try {
@@ -372,13 +363,10 @@ export const getEmpresasDatosFiscales = async (agent_id: string) => {
         ...AUTH,
       },
     });
-
     const json = await response.json();
     console.log(json);
     return json;
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
-}
-
+};

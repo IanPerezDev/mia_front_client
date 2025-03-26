@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { fetchCompaniesAgent } from '../hooks/useFetch';
 import { URL } from '../constants/apiConstant';
 
+
 interface DatosFiscalesFormProp {
   onSubmit: (data: Partial<TaxInfo>) => void;
   onCancel: () => void;
@@ -16,10 +17,15 @@ const AUTH = {
   "x-api-key": API_KEY,
 };
 
-
-export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFiscalesFormProp) {
+export function DatosFiscalesForm({
+  onSubmit,
+  onCancel,
+  initialData,
+}: DatosFiscalesFormProp) {
   const [empresas, setEmpresas] = useState<Company[]>([]);
-  const [codigoPostal, setCodigoPostal] = useState(initialData?.codigo_postal_fiscal || "");
+  const [codigoPostal, setCodigoPostal] = useState(
+    initialData?.codigo_postal_fiscal || ""
+  );
   const [datosCodigo, setDatosCodigo] = useState({
     colonia: initialData?.colonia || "",
     municipio: initialData?.municipio || "",
@@ -32,13 +38,13 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
     const formData = new FormData(form);
 
     const data: Partial<TaxInfo> = {
-      rfc: formData.get('rfc') as string,
-      calle: formData.get('calle') as string,
-      municipio: formData.get('municipio') as string,
-      estado: formData.get('estado') as string,
+      rfc: formData.get("rfc") as string,
+      calle: formData.get("calle") as string,
+      municipio: formData.get("municipio") as string,
+      estado: formData.get("estado") as string,
       colonia: formData.get("colonia") as string,
-      codigo_postal_fiscal: formData.get('codigo_postal_fiscal') as string,
-      regimen_fiscal: formData.get('regimen_fiscal') as string,
+      codigo_postal_fiscal: formData.get("codigo_postal_fiscal") as string,
+      regimen_fiscal: formData.get("regimen_fiscal") as string,
       id_empresa: formData.get("id_empresa") as string,
     };
 
@@ -46,13 +52,12 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];  // Obtiene el primer archivo seleccionado
+    const file = e.target.files[0]; // Obtiene el primer archivo seleccionado
     if (file) {
       console.log("Archivo seleccionado:", file);
       // Aquí podrías subir el archivo o hacer cualquier otra acción que necesites
     }
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,7 +75,7 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           "Content-Type": "application/json",
           ...AUTH, // Asegúrate de que AUTH esté definido
         }
-      })
+      )
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data) {
@@ -81,7 +86,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
             });
           }
         })
-        .catch((error) => console.error("Error obteniendo datos de código postal:", error));
+        .catch((error) =>
+          console.error("Error obteniendo datos de código postal:", error)
+        );
     }
   }, [codigoPostal]);
 
@@ -89,7 +96,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? 'Editar Datos Fiscales' : 'Registrar Nuevos Datos Fiscales'}
+          {initialData
+            ? "Editar Datos Fiscales"
+            : "Registrar Nuevos Datos Fiscales"}
         </h2>
         <button
           type="button"
@@ -102,9 +111,7 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            RFC
-          </label>
+          <label className="block text-sm font-medium text-gray-700">RFC</label>
           <input
             type="text"
             name="rfc"
@@ -127,7 +134,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Código Postal Fiscal</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Código Postal Fiscal
+          </label>
           <input
             type="text"
             name="codigo_postal_fiscal"
@@ -138,7 +147,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Colonia</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Colonia
+          </label>
           <input
             type="text"
             name="colonia"
@@ -149,7 +160,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Municipio</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Municipio
+          </label>
           <input
             type="text"
             name="municipio"
@@ -160,7 +173,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Estado</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Estado
+          </label>
           <input
             type="text"
             name="estado"
@@ -189,9 +204,9 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           <input
             type="file"
             name="file_upload"
-            accept=".jpg,.png,.pdf"  // Puedes restringir los tipos de archivo
+            accept=".jpg,.png,.pdf" // Puedes restringir los tipos de archivo
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            onChange={(e) => handleFileChange(e)}  // Llamada a la función para manejar el archivo seleccionado
+            onChange={(e) => handleFileChange(e)} // Llamada a la función para manejar el archivo seleccionado
           />
         </div>
         <div>
@@ -212,8 +227,6 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
             ))}
           </select>
         </div>
-
-
       </div>
 
       <div className="flex justify-end space-x-4">
@@ -228,7 +241,7 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Actualizar Datos Fiscales' : 'Crear Datos Fiscales'}
+          {initialData ? "Actualizar Datos Fiscales" : "Crear Datos Fiscales"}
         </button>
       </div>
     </form>

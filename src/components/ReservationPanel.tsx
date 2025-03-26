@@ -128,14 +128,21 @@ const CheckOutForm = ({
     if (!stripe || !elements) return;
     const { data } = await supabase.auth.getUser();
     const id_viajero = data.user?.id;
-    const response = await fetch("https://mianoktos.vercel.app/v1/stripe/create-payment-intent-card", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...AUTH,
-      },
-      body: JSON.stringify({ amount: paymentData.line_items[0].price_data.unit_amount, currency: paymentData.line_items[0].price_data.currency, id_viajero: id_viajero }),
-    });
+    const response = await fetch(
+      "https://mianoktos.vercel.app/v1/stripe/create-payment-intent-card",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+        body: JSON.stringify({
+          amount: paymentData.line_items[0].price_data.unit_amount,
+          currency: paymentData.line_items[0].price_data.currency,
+          id_viajero: id_viajero,
+        }),
+      }
+    );
     const { clientSecret } = await response.json();
 
     const result = await stripe.confirmCardPayment(clientSecret, {
