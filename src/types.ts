@@ -70,16 +70,19 @@ export interface TaxInfo {
 
 export interface Employee {
   id_viajero: string;
-  id_empresas: string[];
+  id_agente: string;
   primer_nombre: string;
+  segundo_nombre?: string | null;
   apellido_paterno: string;
-  apellido_materno: string;
+  apellido_materno?: string | null;
   correo: string;
-  telefono: string;
-  segundo_nombre: string;
-  razon_social: string;
   genero: string;
-  fecha_nacimiento: string;
+  telefono: string;
+  fecha_nacimiento?: string | null;
+  empresas: {
+    id_empresa: string;
+    razon_social: string;
+  }[];
 }
 
 export interface Assignment {
@@ -110,6 +113,15 @@ export interface Policy {
   employeeIds: string[];
   empresasIds: string[];
   status: PolicyStatus;
+}
+
+export interface CompanyWithTaxInfo {
+  id_empresa: string;
+  razon_social: string;
+  nombre_comercial: string;
+  direccion: string;
+  tipo_persona: string;
+  taxInfo?: TaxInfo | null;
 }
 
 export type PolicyType = 'budget' | 'schedule' | 'benefits' | 'other';
