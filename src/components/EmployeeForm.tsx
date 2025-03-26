@@ -69,7 +69,7 @@ export function EmployeeForm({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Nombre
+            Nombre <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -93,7 +93,7 @@ export function EmployeeForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Apellido Paterno
+            Apellido Paterno <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -117,7 +117,7 @@ export function EmployeeForm({
         </div>
         <div className='md:col-span-2'>
           <label className="block text-sm font-medium text-gray-700">
-            Correo electronico
+            Correo electronico <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -154,30 +154,23 @@ export function EmployeeForm({
 
         <div className="">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Empresas
+            Empresas <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {empresas.map((empresa) => (
-              <label
-                key={empresa.id_empresa}
-                className="relative flex items-start"
-              >
+              <label key={empresa.id_empresa} className="relative flex items-start">
                 <div className="flex items-center h-5">
                   <input
                     type="checkbox"
                     name="empresa"
                     required
                     value={empresa.id_empresa}
-                    defaultChecked={initialData?.id_empresas?.includes(empresa.id_empresa)}
+                    defaultChecked={initialData?.empresas?.some((e) => e.id_empresa === empresa.id_empresa)}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </div>
                 <div className="ml-3 text-sm">
-                  <span
-                    className="font-medium text-gray-700"
-                  >
-                    {empresa.razon_social}
-                  </span>
+                  <span className="font-medium text-gray-700">{empresa.razon_social}</span>
                 </div>
               </label>
             ))}

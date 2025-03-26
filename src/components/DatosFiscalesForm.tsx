@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Company, TaxInfo } from '../types';
 import { X } from 'lucide-react';
 import { fetchCompaniesAgent } from '../hooks/useFetch';
+import { URL } from '../constants/apiConstant';
 
 interface DatosFiscalesFormProp {
   onSubmit: (data: Partial<TaxInfo>) => void;
@@ -63,7 +64,7 @@ export function DatosFiscalesForm({ onSubmit, onCancel, initialData }: DatosFisc
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
-      fetch(`https://mianoktos.vercel.app/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
+      fetch(`${URL}/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

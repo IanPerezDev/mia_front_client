@@ -1,5 +1,6 @@
 import React from "react";
 import { useSolicitud } from "../hooks/useSolicitud";
+import { URL } from "../constants/apiConstant";
 
 interface CallToBackendProps {
   children: React.ReactNode;
@@ -40,8 +41,6 @@ export const CallToBackend: React.FC<CallToBackendProps> = ({
 };
 
 /* LLAMADAS A LA API*/
-const URL1 = "https://mianoktos.vercel.app";
-const URL = "http://localhost:3000";
 const ROUTES = {
   stripe: "/v1/stripe",
   solicitud: "/v1/solicitud",
@@ -59,7 +58,7 @@ const AUTH = {
 
 const obtenerSessionCheckout = async (ID_CHECKOUT_SESSION: string) => {
   const response = await fetch(
-    `${URL1}${ROUTES.stripe}${ENDPOINTS.retrieve}?id_checkout=${ID_CHECKOUT_SESSION}`,
+    `${URL}${ROUTES.stripe}${ENDPOINTS.retrieve}?id_checkout=${ID_CHECKOUT_SESSION}`,
     {
       method: "GET",
       headers: {
@@ -84,7 +83,7 @@ const crearSessionCheckout = async (payment_data: any, bookingData: any) => {
   console.log(bookingData);
   // const json = await response.json();
   try {
-    const response = await fetch(`https://mianoktos.vercel.app/v1/solicitud/create`, {
+    const response = await fetch(`${URL}/v1/solicitud/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

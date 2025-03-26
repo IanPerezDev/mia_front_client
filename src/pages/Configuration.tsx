@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Company, Employee, Assignment, FormMode, Tag, Policy, TaxInfo } from '../types';
+import { Company, Employee, Assignment, FormMode, Tag, Policy, TaxInfo, CompanyWithTaxInfo } from '../types';
 import { CompanyForm } from '../components/CompanyForm';
 import { EmployeeForm } from '../components/EmployeeForm';
 import { AssignmentForm } from '../components/AssignmentForm';
 import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
 import { DatosFiscalesForm } from '../components/DatosFiscalesForm';
+import { FiscalDataModal } from '../components/FiscalDataModal';
 import { createNewEmpresa, createNewViajero, createNewDatosFiscales } from '../hooks/useDatabase';
 import { fetchCompaniesAgent, fetchViajerosCompanies, fetchEmpresasDatosFiscales } from '../hooks/useFetch';
 import {
@@ -20,13 +21,14 @@ import {
   BookOpen,
   BookOpenText,
   Bell,
+  FileEdit,
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 
 
 export const Configuration = () => {
   const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications' | 'taxInfo'>('companies');
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyWithTaxInfo[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [datosFiscales, setDatosFiscales] = useState<TaxInfo[]>([]);
@@ -36,12 +38,49 @@ export const Configuration = () => {
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyWithTaxInfo | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+
+  const handleSaveFiscalData = (companyId: string, fiscalData: TaxInfo) => {
+    setCompanies(companies.map(company =>
+      company.id_empresa === companyId
+        ? { ...company, fiscalData }
+        : company
+    ));
+    setShowModal(false);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       if (activeTab === "companies") {
-        const data = await fetchCompaniesAgent();
-        setCompanies(data);
+        const data = await fetchEmpresasDatosFiscales();
+        if (data && Array.isArray(data)) {
+          const formattedCompanies: CompanyWithTaxInfo[] = data.map((company) => ({
+            id_empresa: company.id_empresa,
+            razon_social: company.razon_social,
+            nombre_comercial: company.nombre_comercial,
+            direccion: company.empresa_direccion || "", // Asegurar que haya dirección
+            tipo_persona: company.tipo_persona,
+            taxInfo: company.id_datos_fiscales
+              ? {
+                id_datos_fiscales: company.id_datos_fiscales,
+                id_empresa: company.id_empresa,
+                rfc: company.rfc,
+                calle: company.calle,
+                colonia: company.colonia,
+                municipio: company.municipio,
+                estado: company.estado,
+                codigo_postal_fiscal: company.codigo_postal_fiscal.toString(),
+                regimen_fiscal: company.regimen_fiscal || "",
+              }
+              : null,
+          }));
+
+          setCompanies(formattedCompanies);
+        }
       } else if (activeTab === "employees") {
         const data = await fetchViajerosCompanies();
         setEmployees(data);
@@ -268,30 +307,6 @@ export const Configuration = () => {
     }
   };
 
-  const renderTags = (tagIds: string[]) => {
-    return (
-      <div className="flex flex-wrap gap-2">
-        {tagIds.map((tagId) => {
-          const tag = tags.find((t) => t.id === tagId);
-          if (!tag) return null;
-          return (
-            <span
-              key={tag.id}
-              className="px-2 py-1 rounded-full text-xs font-medium"
-              style={{
-                backgroundColor: `${tag.color}20`,
-                color: tag.color,
-                border: `1px solid ${tag.color}`,
-              }}
-            >
-              {tag.name}
-            </span>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -331,7 +346,7 @@ export const Configuration = () => {
                 <Link className="mr-2 h-5 w-5" />
                 Assignments
               </button> */}
-              <button
+              {/* <button
                 onClick={() => setActiveTab('taxInfo')}
                 className={`${activeTab === 'taxInfo'
                   ? 'border-blue-500 text-blue-600'
@@ -340,7 +355,7 @@ export const Configuration = () => {
               >
                 <BookOpenText className="mr-2 h-5 w-5" />
                 Datos fiscales
-              </button>
+              </button> */}
               <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
@@ -429,7 +444,7 @@ export const Configuration = () => {
                               Viajero
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Empresa
+                              Empresas
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Fecha de nacimiento
@@ -540,7 +555,11 @@ export const Configuration = () => {
                               {company.phone}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => {
+                                setSelectedCompany(company);
+                                setShowModal(true);
+                              }}>
+                                <FileEdit size={16} className="mr-2" />
                                 Datos fiscales
                               </button>
                             </td>
@@ -562,7 +581,7 @@ export const Configuration = () => {
                                 <Trash2 className="h-5 w-5" />
                               </button>
                             </td>
-                            
+
                           </tr>
                         ))}
                       {activeTab === 'employees' &&
@@ -590,7 +609,9 @@ export const Configuration = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{employee.razon_social}</div>
+                              <div className="text-sm text-gray-900">
+                                {employee.empresas?.map(emp => emp.razon_social).join(', ')}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               {employee.fecha_nacimiento}
@@ -620,79 +641,6 @@ export const Configuration = () => {
                             </td>
                           </tr>
                         ))}
-                      {/*activeTab === 'assignments' &&
-                        handleSearch(assignments).map((assignment) => {
-                          const company = companies.find((c) => c.id === assignment.companyId);
-                          const employee = employees.find((e) => e.id === assignment.employeeId);
-                          return (
-                            <tr key={assignment.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  {company?.logo ? (
-                                    <img
-                                      src={company.logo}
-                                      alt={company.name}
-                                      className="h-10 w-10 rounded-full mr-3"
-                                    />
-                                  ) : (
-                                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                      <Building2 className="h-6 w-6 text-gray-500" />
-                                    </div>
-                                  )}
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {company?.name}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  {employee?.photo ? (
-                                    <img
-                                      src={employee.photo}
-                                      alt={employee.fullName}
-                                      className="h-10 w-10 rounded-full mr-3"
-                                    />
-                                  ) : (
-                                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                      <Users className="h-6 w-6 text-gray-500" />
-                                    </div>
-                                  )}
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {employee?.fullName}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.role === 'admin'
-                                  ? 'bg-red-100 text-red-800'
-                                  : assignment.role === 'manager'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-green-100 text-green-800'
-                                  }`}>
-                                  {assignment.role.charAt(0).toUpperCase() + assignment.role.slice(1)}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button
-                                  onClick={() => {
-                                    setFormMode('edit');
-                                    setSelectedItem(assignment);
-                                    setShowForm(true);
-                                  }}
-                                  className="text-blue-600 hover:text-blue-900 mr-4"
-                                >
-                                  <Pencil className="h-5 w-5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete('assignment', assignment.id)}
-                                  className="text-red-600 hover:text-red-900"
-                                >
-                                  <Trash2 className="h-5 w-5" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })*/}
                       {activeTab === 'taxInfo' &&
                         datosFiscales.map((datosFiscal) => {
                           const empresa = companies.find((c) => c.id_empresa === datosFiscal.id_empresa); // Suponiendo que 'companies' contiene las empresas relacionadas
@@ -857,6 +805,14 @@ export const Configuration = () => {
           </div>
         </div>
       </div>
+      {selectedCompany && (
+        <FiscalDataModal
+          company={selectedCompany}
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSave={handleSaveFiscalData}
+        />
+      )}
     </div>
   );
 }
