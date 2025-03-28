@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Company } from '../types';
 import { X } from 'lucide-react';
 
@@ -9,6 +9,8 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProps) {
+  const [tipoPersona, setTipoPersona] = useState(initialData?.tipo_persona || 'fisica');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
@@ -28,7 +30,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? 'Editar Compañia' : 'Registrar Nueva Compañia'}
+          {initialData ? (tipoPersona === 'fisica' ? 'Editar Persona Física' : 'Editar Compañía') : (tipoPersona === 'fisica' ? 'Registrar Nueva Persona Física' : 'Registrar Nueva Compañía')}
         </h2>
         <button
           type="button"
@@ -42,7 +44,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Nombre comercial de la empresa
+            {tipoPersona === 'fisica' ? 'Nombre de la Persona Física' : 'Nombre Comercial de la Empresa'}
           </label>
           <input
             type="text"
@@ -67,7 +69,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700">
-            Razón social
+            {tipoPersona === 'fisica' ? 'Nombre de la Persona Física' : 'Razón Social'}
           </label>
           <input
             type="text"
@@ -79,11 +81,12 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700">
-            Tipo de persona
+            Tipo de Persona
           </label>
           <select
             name="tipo_persona"
-            defaultValue={initialData?.tipo_persona || "fisica"}
+            value={tipoPersona}
+            onChange={(e) => setTipoPersona(e.target.value)}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
@@ -106,7 +109,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Actualizar Compañia' : 'Crear Compañia'}
+          {initialData ? 'Actualizar' : 'Guardar'} {tipoPersona === 'fisica' ? 'Persona Física' : 'Compañía'}
         </button>
       </div>
     </form>

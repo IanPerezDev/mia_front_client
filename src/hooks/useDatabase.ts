@@ -82,8 +82,11 @@ export const createEmpresa = async (data: any, id: string) => {
     return {
       success: false,
     };
+  }}catch (error) {
+    throw error;
   }
 };
+
 
 export const createNewEmpresa = async (data: any, id: string) => {
   try {
@@ -154,6 +157,71 @@ export const createNewDatosFiscales = async (data: any) => {
   }
 };
 
+export const createStripeUser = async (
+  email: string,
+  id_agente: string,
+) => {
+  try {
+    const response = await fetch(`${URL}/v1/stripe/create-user-stripe`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_agente: id_agente,
+        email: email,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.success) {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createPaymentMethod = async (
+  email: string,
+  id_customer: string,
+) => {
+  try {
+    const response = await fetch(`${URL}/v1/stripe/create-payment-method`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_customer: id_customer,
+        email: email,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.success) {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 export const createLogPayment = async (
   amount: number,
   id: string,
@@ -192,7 +260,10 @@ export const createNewPago = async (
   id_servicio: string,
   amount: number,
   id_viajero: string,
-  response_payment: any
+  response_payment: any,
+  banco: string,
+  last_digits: string,
+  tipo_de_tarjeta: string,
 ) => {
   try {
     // Datos para crear el pago
@@ -204,9 +275,13 @@ export const createNewPago = async (
       fecha_creacion: new Date().toISOString().split("T")[0], // Fecha actual
       pago_por_credito: null, // Ajusta según tu lógica
       pendiente_por_cobrar: false, // Ajusta según tu lógica
-      total: amount, // Monto total del pago
-      subtotal: amount * 0.84, // Subtotal (ajusta según tu lógica)
-      impuestos: amount * 0.16, // Impuestos (ajusta según tu lógica)
+      total: (amount /100), // Monto total del pago
+      subtotal: (amount /100) * 0.84, // Subtotal (ajusta según tu lógica)
+      impuestos: (amount /100) * 0.16, // Impuestos (ajusta según tu lógica)
+      banco: banco,
+      last_digits: last_digits,
+      tipo_de_tarjeta: tipo_de_tarjeta,
+      tipo_de_pago: "contado",
     };
 
     // Hacer la solicitud HTTP al backend para crear el pago
@@ -357,6 +432,24 @@ export const getEmpresasDatosFiscales = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener viajeros")
     const response = await fetch(`${URL}/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(agent_id)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+    });
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getPaymentMethods = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago")
+    const response = await fetch(`${URL}/v1/stripe/get-payment-methods?id_agente=${encodeURIComponent(agent_id)}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import type { RegistrationFormData, QuestionnaireData } from '../types';
-import { createAgente, createEmpresa, createNewViajero } from "../hooks/useDatabase";
+import { createAgente, createEmpresa, createNewViajero, createStripeUser } from "../hooks/useDatabase";
 import { sendAndCreateOTP, verifyOTP } from '../hooks/useEmailVerification';
 import { formatDate } from '../helpers/helpers';
 
@@ -253,6 +253,12 @@ export const registerUserAfterVerification = async (formData: any, code: string)
     // 3. Create agent profile
     const response = await createAgente(formData, authData.user.id);
     if (!response.success) {
+      throw new Error("No se pudo registrar al usuario");
+    }
+
+    // Create stripe user
+    const responseCustomerStripe = await createStripeUser(formData.correo, authData.user.id);
+    if (!responseCustomerStripe.success) {
       throw new Error("No se pudo registrar al usuario");
     }
 

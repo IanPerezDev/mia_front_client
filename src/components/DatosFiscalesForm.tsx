@@ -75,7 +75,7 @@ export function DatosFiscalesForm({
           "Content-Type": "application/json",
           ...AUTH, // Asegúrate de que AUTH esté definido
         }
-      )
+    })
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data) {

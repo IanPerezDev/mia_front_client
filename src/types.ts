@@ -124,6 +124,16 @@ export interface CompanyWithTaxInfo {
   taxInfo?: TaxInfo | null;
 }
 
+export interface PaymentMethod {
+  id: string;
+  card: {
+    brand: string;
+    last4: string;
+    exp_month: number;
+    exp_year: number;
+  };
+}
+
 export type PolicyType = 'budget' | 'schedule' | 'benefits' | 'other';
 export type PolicyStatus = 'active' | 'inactive' | 'draft' | 'expired';
 export type FormMode = 'create' | 'edit';
