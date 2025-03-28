@@ -19,7 +19,7 @@ const AUTH = {
 };
 
 export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalDataModalProps) {
-
+  const [colonias, setColonias] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(!company.taxInfo);
   const [formData, setFormData] = useState<TaxInfo>(
     company.taxInfo || {
@@ -68,13 +68,15 @@ export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalData
       })
         .then((res) => res.json())
         .then((data) => {
-          if (data.success && data.data) {
+          if (data.success && data.data.length > 0) {
+            setColonias(data.data.map((item: any) => item.d_asenta)); // Extraer colonias
             setFormData(prev => ({
               ...prev,
-              colonia: data.data.d_asenta,
-              municipio: data.data.D_mnpio,
-              estado: data.data.d_estado,
+              municipio: data.data[0].D_mnpio,
+              estado: data.data[0].d_estado
             }));
+          } else {
+            setColonias([]);
           }
         })
         .catch((error) => console.error("Error obteniendo datos de código postal:", error));
@@ -90,7 +92,7 @@ export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalData
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       const { data: user, error: userError } = await supabase.auth.getUser();
       if (userError) {
@@ -99,17 +101,17 @@ export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalData
       if (!user) {
         throw new Error("No hay usuario autenticado");
       }
-  
+
       if (!validateRFC(formData.rfc)) {
         setError("El formato del RFC no es válido");
         return;
       }
-  
+
       const responseCompany = await createNewDatosFiscales(formData);
       if (!responseCompany.success) {
         throw new Error("No se pudo registrar los datos fiscales");
       }
-  
+
       console.log("Datos fiscales guardados:", responseCompany);
       //onSave(company.id_empresa, formData);
       setIsEditing(false);
@@ -171,12 +173,17 @@ export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalData
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Colonia</label>
-                <input
-                  type="text"
+                <select
                   value={formData.colonia}
-                  readOnly
-                  className="w-full p-2 border rounded-md bg-gray-100"
-                />
+                  onChange={(e) => setFormData({ ...formData, colonia: e.target.value })}
+                  className="w-full p-2 border rounded-md bg-white"
+                  required
+                >
+                  <option value="">Selecciona una colonia</option>
+                  {colonias.map((colonia, index) => (
+                    <option key={index} value={colonia}>{colonia}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Municipio</label>

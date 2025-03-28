@@ -83,8 +83,8 @@ export function Barchart() {
   return (
     <>
       <Card className="sm:mx-auto lg:max-w-7xl border-none shadow-none w-full h-full">
-        <h3 className="ml-0 mr-0 font-semibold">TITULO</h3>
-        <p className="text-gray-600">Subtitulo</p>
+        <h3 className="ml-0 mr-0 font-semibold">Viajes por fecha</h3>
+        <p className="text-gray-600">Gastos</p>
         <BarChart
           data={data}
           index="date"

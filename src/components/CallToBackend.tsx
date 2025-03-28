@@ -1,6 +1,6 @@
 import React from "react";
 import { useSolicitud } from "../hooks/useSolicitud";
-import { URL } from "../constants/apiConstant";
+//import { URL } from "../constants/apiConstant";
 
 interface CallToBackendProps {
   children: React.ReactNode;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import type { BookingData } from "../types";
+import type { BookingData, PaymentMethod } from "../types";
 import {
   Calendar,
   Users,
@@ -14,6 +14,9 @@ import {
   BanknoteIcon,
   ArrowLeft,
   CheckCircle,
+  CheckCircle2,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { supabase } from "../services/supabaseClient";
@@ -27,8 +30,15 @@ import {
 } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { createLogPayment, createNewPago } from "../hooks/useDatabase";
+import { fetchPaymentMethods } from "../hooks/useFetch";
+import { URL } from "../constants/apiConstant";
 
 const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
+const API_KEY =
+  "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
+const AUTH = {
+  "x-api-key": API_KEY,
+};
 
 const cardStyle = {
   style: {
@@ -114,68 +124,105 @@ const CheckOutForm = ({
   paymentData,
   setSuccess,
   idServicio,
+  handleEndSubmit,
 }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
-  const API_KEY =
-    "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
-  const AUTH = {
-    "x-api-key": API_KEY,
-  };
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!stripe || !elements) return;
-    const { data } = await supabase.auth.getUser();
-    const id_viajero = data.user?.id;
-    const response = await fetch(
-      "https://mianoktos.vercel.app/v1/stripe/create-payment-intent-card",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          amount: paymentData.line_items[0].price_data.unit_amount,
-          currency: paymentData.line_items[0].price_data.currency,
-          id_viajero: id_viajero,
-        }),
-      }
-    );
-    const { clientSecret } = await response.json();
+    try {
+      if (!stripe || !elements) return;
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: elements.getElement(CardElement)! },
-    });
-
-    const responseLogPayment = await createLogPayment(
-      paymentData.line_items[0].price_data.unit_amount,
-      id_viajero,
-      result
-    );
-    if (!responseLogPayment.success)
-      setMessage("No se pudo hacer log del pago");
-
-    if (result.error) setMessage(result.error.message);
-    else if (result.paymentIntent.status === "succeeded") {
-      console.log(idServicio);
-      const responseNewPago = await createNewPago(
-        idServicio, // Reemplaza con el ID del servicio correspondiente
-        paymentData.line_items[0].price_data.unit_amount,
-        id_viajero,
-        result
-      );
-
-      if (responseNewPago.success) {
-        setSuccess(true);
-        setMessage("¡Pago exitoso!");
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const cardElement = elements.getElement(CardElement);
+      //crear metodo de pago
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: "card",
+        card: cardElement,
+      });
+      console.log("Se creo payment method");
+      if (error) {
+        setMessage(error.message);
       } else {
-        setMessage("Error al registrar el pago en la base de datos");
+        const response = await fetch(`${URL}/v1/stripe/save-payment-method`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...AUTH,
+          },
+          body: JSON.stringify({
+            paymentMethodId: paymentMethod.id,
+            id_agente: id_agente,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setMessage(data.message || "Metodo de pago guardado");
+          setSuccess(false);
+          handleEndSubmit();
+        } else {
+          setMessage("Ocurrio un error");
+        }
       }
-    } else if (result.error) {
-      setMessage(result.error.message);
+    } catch (error) {
+      console.log(error);
     }
+
+    // if (!setupIntentResponse.ok) {
+    //   throw new Error('Error al crear Setup Intent');
+    // }
+    // const { client_secret: clientSecret } = await setupIntentResponse.json();
+    // const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+    //   payment_method: {
+    //     card: elements.getElement(CardElement)!,
+    //     billing_details: {
+    //       name: 'Cliente',
+    //     },
+    //   },
+    // });
+
+    // if (error) {
+    //   throw error;
+    // }
+
+    // setMessage("¡Tarjeta guardada exitosamente!");
+    // setSuccess(false);
+    // const { clientSecret } = await response.json();
+
+    // const result = await stripe.confirmCardPayment(clientSecret, {
+    //   payment_method: { card: elements.getElement(CardElement)! },
+    // });
+
+    // const responseLogPayment = await createLogPayment(
+    //   paymentData.line_items[0].price_data.unit_amount,
+    //   id_viajero,
+    //   result
+    // );
+    // if (!responseLogPayment.success)
+    //   setMessage("No se pudo hacer log del pago");
+
+    // if (result.error) setMessage(result.error.message);
+    // else if (result.paymentIntent.status === "succeeded") {
+    //   console.log(idServicio);
+    //   const responseNewPago = await createNewPago(
+    //     idServicio, // Reemplaza con el ID del servicio correspondiente
+    //     paymentData.line_items[0].price_data.unit_amount,
+    //     id_viajero,
+    //     result
+    //   );
+
+    //   if (responseNewPago.success) {
+    //     setSuccess(true);
+    //     setMessage("¡Pago exitoso!");
+    //   } else {
+    //     setMessage("Error al registrar el pago en la base de datos");
+    //   }
+    // } else if (result.error) {
+    //   setMessage(result.error.message);
+    // }
   };
 
   return (
@@ -191,16 +238,14 @@ const CheckOutForm = ({
           className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
         >
           <PaymentIcon className="w-4 h-4" />
-          <span className="font-medium">Pagar</span>
+          <span className="font-medium">Agregar tarjeta</span>
         </button>
         <button
-          type="submit"
-          disabled={!stripe}
           className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
-          onClick={() => setCardPayment(false)}
+          onClick={() => setSuccess(false)}
         >
           <ArrowLeft className="w-4 h-4" />
-          <span className="font-medium">Cambiar forma de pago</span>
+          <span className="font-medium">Volver</span>
         </button>
       </form>
       {message && (
@@ -224,6 +269,7 @@ const CheckOutForm = ({
 
 export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   bookingData,
+  handleVolverInicio,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -231,6 +277,22 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   const [cardPayment, setCardPayment] = useState(false);
   const [successPayment, setSuccessPayment] = useState(false);
   const [idServicio, setIdServicio] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const fetchData = async () => {
+    const data = await fetchPaymentMethods();
+    console.log("Payment methods data:", data);
+    setPaymentMethods(data);
+  };
+
+  useEffect(() => {
+    if (cardPayment) {
+      fetchData();
+    }
+  }, [cardPayment]);
 
   useEffect(() => {
     // Auto-save booking when confirmation code is generated
@@ -359,6 +421,77 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     );
   }
 
+  const handleDeleteMethod = (id: string) => {
+    console.log("Delete payment method:", id);
+  };
+
+  const handleAddMethod = () => {
+    setShowAddPaymentForm(true);
+  };
+
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    setSaveError(null);
+
+    if (!selectedMethod) return;
+    const method = paymentMethods.find((m) => m.id === selectedMethod);
+    console.log("Processing payment with method:", method);
+    const paymentData = getPaymentData(bookingData);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const response = await fetch(`${URL}/v1/stripe/make-payment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+        body: JSON.stringify({
+          paymentMethodId: method?.id,
+          id_agente: id_agente,
+          amount: paymentData.line_items[0].price_data.unit_amount,
+          currency: paymentData.line_items[0].price_data.currency,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al procesar el pago en Stripe");
+      }
+
+      const responsePayment = await response.json();
+      console.log(responsePayment);
+      //Se guarda el log en la base
+      const responseLogPayment = await createLogPayment(
+        paymentData.line_items[0].price_data.unit_amount,
+        id_agente,
+        responsePayment
+      );
+      if (!responseLogPayment.success) {
+        throw new Error("No se pudo hacer log del pago");
+      }
+
+      //Se guarda el pago en la base
+      const responseNewPago = await createNewPago(
+        idServicio, // Reemplaza con el ID del servicio correspondiente
+        paymentData.line_items[0].price_data.unit_amount,
+        id_agente,
+        responsePayment,
+        method?.card.brand,
+        method?.card.last4,
+        method?.card?.funding || "xddd"
+      );
+      if (!responseNewPago.success) {
+        throw new Error("No se pudo guardar el pago en la base de datos");
+      }
+
+      setSuccessPayment(true);
+    } catch (error) {
+      console.log(error);
+      setSaveError("Hubo un error al procesar el pago");
+    }
+    setIsProcessing(false);
+  };
+
   const checkInDate = formatDate(bookingData.dates?.checkIn);
   const checkOutDate = formatDate(bookingData.dates?.checkOut);
 
@@ -385,21 +518,161 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
               {cardPayment ? (
                 <>
                   {successPayment ? (
-                    <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
-                      <p className="text-xl text-green-800 font-bold">
-                        ¡Se realizo el pago correctamente!
-                      </p>
-                      <CheckCircle className="w-10 h-10 text-green-800" />
-                    </div>
-                  ) : (
+                    <>
+                      <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
+                        <p className="text-xl text-green-800 font-bold">
+                          ¡Se realizo el pago correctamente!
+                        </p>
+                        <CheckCircle className="w-10 h-10 text-green-800" />
+                      </div>
+
+                      <button
+                        onClick={handleVolverInicio}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                          selectedMethod
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        Continuar con MIA
+                      </button>
+                    </>
+                  ) : showAddPaymentForm ? (
                     <Elements stripe={stripePromise}>
                       <CheckOutForm
                         setCardPayment={setCardPayment}
                         paymentData={getPaymentData(bookingData)}
-                        setSuccess={setSuccessPayment}
+                        setSuccess={setShowAddPaymentForm}
                         idServicio={idServicio}
+                        onCancel={() => setShowAddPaymentForm(false)}
+                        handleEndSubmit={fetchData}
                       />
                     </Elements>
+                  ) : (
+                    <div className="w-full bg-white rounded-xl shadow-lg p-6">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-6">
+                        Metodos de pago
+                      </h3>
+
+                      {paymentMethods.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg">
+                          <CreditCard
+                            className="mx-auto text-gray-400 mb-3"
+                            size={32}
+                          />
+                          <p className="text-gray-500">
+                            No se han guardado metodos de pago
+                          </p>
+                          <ul className="space-y-3 mb-6">
+                            <li
+                              onClick={handleAddMethod}
+                              className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Plus className="text-gray-600" size={20} />
+                                <p className="font-medium text-gray-800">
+                                  Agregar nuevo metodo de pago
+                                </p>
+                              </div>
+                            </li>
+                          </ul>
+                        </div>
+                      ) : (
+                        <>
+                          <ul className="space-y-3 mb-6">
+                            {paymentMethods.map((method) => (
+                              <li
+                                key={method.id}
+                                onClick={() => setSelectedMethod(method.id)}
+                                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${
+                                  selectedMethod === method.id
+                                    ? "bg-blue-50 border-2 border-blue-500"
+                                    : "bg-gray-50 hover:bg-gray-100"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <CreditCard
+                                    className={
+                                      selectedMethod === method.id
+                                        ? "text-blue-600"
+                                        : "text-gray-600"
+                                    }
+                                    size={20}
+                                  />
+                                  <div>
+                                    <p className="font-medium text-gray-800">
+                                      {method.card.brand.toUpperCase()} ••••{" "}
+                                      {method.card.last4}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Vence {method.card.exp_month}/
+                                      {method.card.exp_year}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {selectedMethod === method.id && (
+                                    <CheckCircle2
+                                      className="text-blue-600"
+                                      size={20}
+                                    />
+                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteMethod(method.id);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                    aria-label="Delete payment method"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
+                            <li
+                              onClick={handleAddMethod}
+                              className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Plus className="text-gray-600" size={20} />
+                                <p className="font-medium text-gray-800">
+                                  Agregar nuevo metodo de pago
+                                </p>
+                              </div>
+                            </li>
+                          </ul>
+                          <button
+                            onClick={handlePayment}
+                            disabled={!selectedMethod}
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                              selectedMethod
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
+                          >
+                            Pagar
+                          </button>
+                        </>
+                      )}
+                      <button
+                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+                        onClick={() => setCardPayment(false)}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="font-medium">
+                          Cambiar forma de pago
+                        </span>
+                      </button>
+                    </div>
+                    // <Elements stripe={stripePromise}>
+                    //   <CheckOutForm
+                    //     setCardPayment={setCardPayment}
+                    //     paymentData={getPaymentData(bookingData)}
+                    //     setSuccess={setSuccessPayment}
+                    //     idServicio={idServicio}
+                    //   />
+                    // </Elements>
                   )}
                 </>
               ) : (
@@ -421,7 +694,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   </CallToBackend>
                   <button
                     onClick={handleDownloadPDF}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
                     <Download className="w-4 h-4" />
                     <span className="font-medium">Descargar</span>
@@ -429,11 +702,11 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                 </div>
               )}
 
-              {saveError && (
+              {/* {saveError && (
                 <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
                   {saveError}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>

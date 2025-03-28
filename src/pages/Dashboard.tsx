@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { MessageSquare, X, User, LucideIcon } from "lucide-react";
+import {
+  MessageSquare,
+  X,
+  User,
+  LucideIcon,
+  Building,
+  CreditCard,
+  BarChart,
+} from "lucide-react";
 import { Barchart } from "../components/Chart";
 import { ChartLine } from "../components/LineChart";
+import { Link } from "wouter";
 
 // Types and Interfaces
 interface NavButton {
@@ -22,6 +31,40 @@ const Navigation: React.FC<{
 }> = ({ buttons, selectedDashboard, onSelect }) => (
   <nav className="bg-white shadow-md p-4">
     <div className="flex flex-wrap gap-2">
+      <Link href="/">
+        {" "}
+        <svg
+          className="h-8 w-auto"
+          viewBox="0 0 1152 539"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g>
+            <path
+              className="fill-blue-600"
+              d="M209.06,500.55s-.04.03-.06.02c-64.5-64.5-133.27-131.46-133.27-209.51,0-86.62,84.17-157.09,187.63-157.09s187.63,70.47,187.63,157.09c0,74.79-63.42,139.58-150.8,154.08-.02,0-.05-.01-.05-.04l-8.8-53.12c61.28-10.16,105.76-52.6,105.76-100.92,0-56.91-60-103.2-133.74-103.2s-133.74,46.3-133.74,103.2c0,49.8,48,93.56,111.66,101.79,0,0,.01,0,.01.02l-32.23,107.69Z"
+            />
+            <ellipse
+              className="fill-gray-800"
+              cx="215.01"
+              cy="277.85"
+              rx="28.37"
+              ry="37.7"
+            />
+            <ellipse
+              className="fill-gray-800"
+              cx="317.34"
+              cy="277.85"
+              rx="28.37"
+              ry="37.7"
+            />
+            <path
+              className="fill-blue-600"
+              d="M344.98,125.54c-2.9,0-5.84-.69-8.58-2.14-70.29-37.27-135.91-1.73-138.67-.2-8.84,4.91-20.01,1.76-24.95-7.07-4.94-8.82-1.84-19.96,6.96-24.93,3.45-1.95,85.44-47.12,173.85-.23,8.95,4.75,12.36,15.86,7.62,24.81-3.29,6.21-9.65,9.76-16.23,9.76Z"
+            />
+          </g>
+        </svg>
+      </Link>
       {buttons.map((button) => (
         <button
           key={button.id}
@@ -127,10 +170,11 @@ const ChatSidebar: React.FC<{
 
 // Constants
 const navButtons: NavButton[] = [
+  { id: 0, label: "Dashboard", icon: BarChart },
   { id: 1, label: "Viajeros", icon: User },
-  { id: 2, label: "Reservas", icon: User },
-  { id: 3, label: "Pagos", icon: User },
-  { id: 4, label: "Gastos", icon: User },
+  { id: 2, label: "Reservas", icon: Building },
+  { id: 3, label: "Pagos", icon: CreditCard },
+  { id: 4, label: "Gastos", icon: CreditCard },
 ];
 
 // Main App Component
@@ -150,11 +194,11 @@ export function Dashboard() {
         <DashboardGrid />
       </div>
 
-      <ChatButton
+      {/* <ChatButton
         isOpen={isChatOpen}
         onClick={() => setIsChatOpen(!isChatOpen)}
       />
-      <ChatSidebar isOpen={isChatOpen} />
+      <ChatSidebar isOpen={isChatOpen} /> */}
     </div>
   );
 }
