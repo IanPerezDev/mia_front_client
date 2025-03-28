@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Company, TaxInfo } from '../types';
-import { X } from 'lucide-react';
-import { fetchCompaniesAgent } from '../hooks/useFetch';
-import { URL } from '../constants/apiConstant';
-
+import React, { useEffect, useState } from "react";
+import { Company, TaxInfo } from "../types";
+import { X } from "lucide-react";
+import { fetchCompaniesAgent } from "../hooks/useFetch";
+import { URL } from "../constants/apiConstant";
 
 interface DatosFiscalesFormProp {
   onSubmit: (data: Partial<TaxInfo>) => void;
@@ -74,8 +73,8 @@ export function DatosFiscalesForm({
         headers: {
           "Content-Type": "application/json",
           ...AUTH, // Asegúrate de que AUTH esté definido
-        }
-      )
+        },
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data) {

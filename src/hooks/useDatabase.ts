@@ -34,20 +34,19 @@ export const createAgente = async (data: any, id: string) => {
         phone: data.telefono,
         password: data.password,
         gender: data.genero,
-        id: id
+        id: id,
       }),
     });
     const json = await response.json();
     console.log(json);
     if (json.message === "Agente creado correctamente") {
-      return ({
-        success: true
-      })
-    }
-    else {
-      return ({
-        success: false
-      })
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
     }
   } catch (error) {
     throw error;
@@ -55,7 +54,14 @@ export const createAgente = async (data: any, id: string) => {
 };
 
 export const createEmpresa = async (data: any, id: string) => {
-  const nombreEmpresa = data.primer_nombre + " " + data.segundo_nombre + " " + data.apellido_paterno + " " + data.apellido_materno;
+  const nombreEmpresa =
+    data.primer_nombre +
+    " " +
+    data.segundo_nombre +
+    " " +
+    data.apellido_paterno +
+    " " +
+    data.apellido_materno;
   try {
     const response = await fetch(`${URL}/v1/mia/empresas`, {
       method: "POST",
@@ -72,16 +78,19 @@ export const createEmpresa = async (data: any, id: string) => {
       }),
     });
 
-  const json = await response.json();
-  if (json.message === "Agente creado correctamente") {
-    return {
-      success: true,
-      empresa_id: json.data.id_empresa,
-    };
-  } else {
-    return {
-      success: false,
-    };
+    const json = await response.json();
+    if (json.message === "Agente creado correctamente") {
+      return {
+        success: true,
+        empresa_id: json.data.id_empresa,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -318,14 +327,19 @@ export const createNewViajero = async (data: any, id_empresa: string[]) => {
 
 export const getCompaniesAgent = async (agent_id: string) => {
   try {
-    console.log("En proceso de obtener empresas")
-    const response = await fetch(`${URL}/v1/mia/agentes/empresas-con-agentes?id_agente=${encodeURIComponent(agent_id)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...AUTH,
-      },
-    });
+    console.log("En proceso de obtener empresas");
+    const response = await fetch(
+      `${URL}/v1/mia/agentes/empresas-con-agentes?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
 
     const json = await response.json();
     return json;
@@ -336,14 +350,19 @@ export const getCompaniesAgent = async (agent_id: string) => {
 
 export const getCompaniesAgentViajeros = async (agent_id: string) => {
   try {
-    console.log("En proceso de obtener viajeros")
-    const response = await fetch(`${URL}/v1/mia/agentes/viajeros-con-empresas?id_agente=${encodeURIComponent(agent_id)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...AUTH,
-      },
-    });
+    console.log("En proceso de obtener viajeros");
+    const response = await fetch(
+      `${URL}/v1/mia/agentes/viajeros-con-empresas?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
 
     const json = await response.json();
     console.log(json);
@@ -355,14 +374,19 @@ export const getCompaniesAgentViajeros = async (agent_id: string) => {
 
 export const getEmpresasDatosFiscales = async (agent_id: string) => {
   try {
-    console.log("En proceso de obtener viajeros")
-    const response = await fetch(`${URL}/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(agent_id)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...AUTH,
-      },
-    });
+    console.log("En proceso de obtener viajeros");
+    const response = await fetch(
+      `${URL}/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
     const json = await response.json();
     console.log(json);
     return json;
