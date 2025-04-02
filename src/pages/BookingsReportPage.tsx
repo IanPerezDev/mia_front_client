@@ -16,6 +16,7 @@ import {
   Filter,
   ArrowRight,
   Receipt,
+  ListCollapse,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import type { Invoice, BillingOption } from "../types";
@@ -24,6 +25,7 @@ import { BillingOptions } from "../components/BillingOptions";
 import { fetchInvoices } from "../services/billingService";
 import { CallToBackend } from "../components/CallToBackend";
 import { useSolicitud } from "../hooks/useSolicitud";
+import { Link } from "wouter";
 
 const DOMAIN = "http://localhost:5173";
 const payment_metadata = {};
@@ -320,7 +322,14 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                   <Receipt className="w-4 h-4" />
                   <span>Facturar</span>
                 </button>
-                {booking.status === "pending" && (
+                <Link
+                  to={`/reserva/${booking.id}`}
+                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
+                >
+                  <ListCollapse className="w-4 h-4" />
+                  <span>Details</span>
+                </Link>
+                {/* {booking.status === "pending" && (
                   <CallToBackend
                     paymentData={getPaymentData(booking)}
                     bookingData={booking}
@@ -330,7 +339,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                     <span>Pagar</span>
                     <ArrowRight className="w-4 h-4" />
                   </CallToBackend>
-                )}
+                )} */}
               </div>
             </div>
           </div>
