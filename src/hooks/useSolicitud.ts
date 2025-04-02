@@ -19,7 +19,7 @@ async function getSolicitud(callback: (json: PostBodyParams) => void) {
       headers: HEADERS_API,
     });
     const json = await res.json();
-    console.log(json);
+    console.log("Esto es lo que esta sucediendo: ", json);
     const data = json.map((reservaDB) => {
       return {
         id: Math.round(Math.random() * 12345678),
