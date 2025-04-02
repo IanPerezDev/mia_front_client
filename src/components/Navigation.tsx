@@ -11,8 +11,10 @@ import {
   LogOut,
   Sparkles,
   HelpCircle,
+  BarChart,
 } from "lucide-react";
 import type { User } from "../types";
+import { Link } from "wouter";
 
 interface NavigationProps {
   user: User | null;
@@ -82,8 +84,12 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
               <User2 className="w-4 h-4 text-blue-600" />
             </div>
-            <span>{user?.name || 'Usuario'}</span>
-            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
+            <span>{user?.name || "Usuario"}</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isDropdownOpen ? "transform rotate-180" : ""
+              }`}
+            />
           </button>
 
           {/* Dropdown Menu */}
@@ -96,6 +102,13 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <User2 className="w-4 h-4" />
                 <span>Mi Perfil</span>
               </button>
+              <Link
+                href="/dashboard"
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+              >
+                <BarChart className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
               <button
                 onClick={onConfigurationClick}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
@@ -239,9 +252,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <Sparkles className="w-4 h-4" />
                   <span>Mejora tu Viaje</span>
                 </a>
-                <button
-                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
-                >
+                <button className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2">
                   <LifeBuoy className="w-4 h-4" />
                   <span>Contactar a Soporte</span>
                 </button>
