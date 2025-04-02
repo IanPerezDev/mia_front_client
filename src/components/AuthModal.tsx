@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Mail, Lock, X, Eye, EyeOff, ArrowRight, User, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Mail, Lock, X, Eye, EyeOff, ArrowRight, User, AlertCircle, Barcode, CheckCircle2 } from 'lucide-react';
 import { loginUser } from '../services/authService';
+import { sendAndCreateOTP, verifyOTP } from '../hooks/useEmailVerification';
+import { supabase } from '../services/supabaseClient';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,12 +12,12 @@ interface AuthModalProps {
   onNavigateToRegister: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onLogin, 
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  onLogin,
   onRegister,
-  onNavigateToRegister 
+  onNavigateToRegister
 }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
@@ -24,6 +26,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState("inicio");
+  const [correo, setCorreo] = useState("");
+  const [showVerif, setShowVerif] = useState(false);
+  const [code, setCode] = useState("");
+  const [notif, setNotif] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    setPage("inicio")
+  }, []);
 
   if (!isOpen) return null;
 
@@ -57,6 +70,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const sendOTP = async () => {
+    setIsLoading(true);
+    setError(null);
+    setNotif(null);
+    const response = await sendAndCreateOTP(correo);
+
+    if (!response.success) {
+      setError('No se pudo enviar el correo con codigo de confirmacion');
+    }
+    else {
+      setShowVerif(true);
+      setPage("verify-code")
+      setNotif("Correo electronico con codigo enviado");
+    }
+    setIsLoading(false);
+  }
+
+  const verificar = async () => {
+    setIsLoading(true);
+    setError(null);
+    setNotif(null);
+    const response = await verifyOTP(correo, code);
+    if (!response.success) {
+      setError('Código de verificación incorrecto');
+    } else {
+      setNotif('Código verificado. Ahora puedes ingresar tu nueva contraseña.');
+      setPage("reset-password");
+    }
+    setIsLoading(false);
+  }
+
+  const handleResetPassword = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    if (newPassword.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      setIsLoading(false);
+      return;
+    }
+    else {
+      setNotif('Contraseña restablecida con éxito.');
+      setPage("inicio");
+    }
+
+    setIsLoading(false);
+  };
+
   const handleRegisterClick = () => {
     onClose();
     onNavigateToRegister();
@@ -74,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
 
         {/* Content */}
-        <div className="p-8">
+        {page === "inicio" && <div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -95,6 +162,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
+          {/* Notif */}
+          {notif && (
+            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <p className="text-sm text-blue-800">{notif}</p>
+              </div>
+            </div>
+          )}
+
           {/* Form */}
           <form id="auth-form" onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -109,11 +186,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`pl-10 block w-full rounded-lg border ${
-                    error
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  } shadow-sm transition-all duration-200`}
+                  className={`pl-10 block w-full rounded-lg border ${error
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    } shadow-sm transition-all duration-200`}
                   placeholder="tu@email.com"
                   required
                 />
@@ -132,11 +208,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`pl-10 pr-10 block w-full rounded-lg border ${
-                    error
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  } shadow-sm transition-all duration-200`}
+                  className={`pl-10 pr-10 block w-full rounded-lg border ${error
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    } shadow-sm transition-all duration-200`}
                   placeholder="••••••••"
                   required
                 />
@@ -165,9 +240,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Recordarme
                 </label>
               </div>
-              <a href="#" className="text-blue-600 hover:text-blue-800">
+              <button className="text-blue-600 hover:text-blue-800" onClick={() => setPage("send-code")}>
                 ¿Olvidaste tu contraseña?
-              </a>
+              </button>
             </div>
 
             <button
@@ -196,6 +271,305 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           </div>
         </div>
+        }
+
+        {page === "send-code" && <div className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Reinicio de contraseña
+            </h2>
+            <p className="text-gray-600">
+              Ingresa tu correo electronico con el que te registraste, te llegara un codigo que tendras que ingresar para verificar tu identidad y cambiar tu contraseña
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Notif */}
+          {notif && (
+            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <p className="text-sm text-blue-800">{notif}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Form */}
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Correo electrónico
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                className={`pl-10 block w-full rounded-lg border ${error
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                  } shadow-sm transition-all duration-200`}
+                placeholder="tu@email.com"
+                required
+              />
+            </div>
+          </div>
+
+          {/* {showVerif &&
+            <>
+              <div className="space-y-2 mt-5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Codigo de verificacion
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Barcode className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    className={`pl-10 block w-full rounded-lg border ${error
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      } shadow-sm transition-all duration-200`}
+                    placeholder="codigo de verificación"
+                    required
+                  />
+                </div>
+              </div>
+              <button
+                disabled={isLoading}
+                className="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 mt-8"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Verificar Codigo</span>
+
+                  </>
+                )}
+              </button>
+            </>} */}
+
+
+
+          <button
+            disabled={isLoading}
+            className="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-200 mt-8"
+            onClick={sendOTP}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <span>Enviar correo</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
+        }
+
+        {page === "verify-code" && <div className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Ingresa el codigo de verificación
+            </h2>
+            <p className="text-gray-600">
+              Ingresa el codigo de verificación enviado a {correo}
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Notif */}
+          {notif && (
+            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <p className="text-sm text-blue-800">{notif}</p>
+              </div>
+            </div>
+          )}
+
+          <>
+            <div className="space-y-2 mt-5">
+              <label className="block text-sm font-medium text-gray-700">
+                Codigo de verificacion
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Barcode className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className={`pl-10 block w-full rounded-lg border ${error
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    } shadow-sm transition-all duration-200`}
+                  placeholder="codigo de verificación"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              disabled={isLoading}
+              className="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 mt-8"
+              onClick={verificar}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Verificar Codigo</span>
+                </>
+              )}
+            </button>
+          </>
+        </div>
+        }
+        {page === "reset-password" && <div className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Ingresa tu nueva contraseña
+            </h2>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Notif */}
+          {notif && (
+            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <p className="text-sm text-blue-800">{notif}</p>
+              </div>
+            </div>
+          )}
+
+          <>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Nueva Contraseña
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={`pl-10 pr-10 block w-full rounded-lg border ${error
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    } shadow-sm transition-all duration-200`}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+
+            <div className="space-y-2 mt-5">
+              <label className="block text-sm font-medium text-gray-700">
+                Confirma tu Contraseña
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`pl-10 pr-10 block w-full rounded-lg border ${error
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    } shadow-sm transition-all duration-200`}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+
+            <button
+              disabled={isLoading}
+              className="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-200 mt-8"
+              onClick={handleResetPassword}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Cambiar contraseña</span>
+                </>
+              )}
+            </button>
+          </>
+        </div>
+        }
 
         {/* Decorative elements */}
         <div className="absolute inset-0 pointer-events-none">

@@ -165,59 +165,6 @@ const CheckOutForm = ({
         setMessage("Ocurrio un error");
       }
     }
-
-    // if (!setupIntentResponse.ok) {
-    //   throw new Error('Error al crear Setup Intent');
-    // }
-    // const { client_secret: clientSecret } = await setupIntentResponse.json();
-    // const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
-    //   payment_method: {
-    //     card: elements.getElement(CardElement)!,
-    //     billing_details: {
-    //       name: 'Cliente',
-    //     },
-    //   },
-    // });
-
-    // if (error) {
-    //   throw error;
-    // }
-
-    // setMessage("¡Tarjeta guardada exitosamente!");
-    // setSuccess(false);
-    // const { clientSecret } = await response.json();
-
-    // const result = await stripe.confirmCardPayment(clientSecret, {
-    //   payment_method: { card: elements.getElement(CardElement)! },
-    // });
-
-    // const responseLogPayment = await createLogPayment(
-    //   paymentData.line_items[0].price_data.unit_amount,
-    //   id_viajero,
-    //   result
-    // );
-    // if (!responseLogPayment.success)
-    //   setMessage("No se pudo hacer log del pago");
-
-    // if (result.error) setMessage(result.error.message);
-    // else if (result.paymentIntent.status === "succeeded") {
-    //   console.log(idServicio);
-    //   const responseNewPago = await createNewPago(
-    //     idServicio, // Reemplaza con el ID del servicio correspondiente
-    //     paymentData.line_items[0].price_data.unit_amount,
-    //     id_viajero,
-    //     result
-    //   );
-
-    //   if (responseNewPago.success) {
-    //     setSuccess(true);
-    //     setMessage("¡Pago exitoso!");
-    //   } else {
-    //     setMessage("Error al registrar el pago en la base de datos");
-    //   }
-    // } else if (result.error) {
-    //   setMessage(result.error.message);
-    // }
   };
 
   return (
@@ -473,6 +420,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
         method?.card.brand,
         method?.card.last4,
         method?.card?.funding || "xddd",
+        "tarjeta"
       );
       if (!responseNewPago.success) {
         throw new Error("No se pudo guardar el pago en la base de datos");
