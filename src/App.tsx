@@ -281,6 +281,59 @@ const ResponsiveChat = () => {
     setCurrentPage("configuration");
   };
 
+  const handleVolverInicio = async () => {
+    setInputMessage("");
+    setIsLoading(true);
+
+    if (!authState.isAuthenticated) {
+      setAuthState((prev) => ({
+        ...prev,
+        promptCount: prev.promptCount + 1,
+      }));
+    }
+
+    try {
+      const response = await sendMessageToN8N(
+        "Podrias ayudarme con algo mas?",
+        authState.user?.id
+      );
+
+      if (response.data?.bookingData) {
+        setBookingData(response.data.bookingData);
+      }
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content:
+          response.output || "Lo siento, hubo un error al procesar tu mensaje.",
+        timestamp: new Date(),
+        isUser: false,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Lo siento, hubo un error al procesar tu mensaje.",
+        timestamp: new Date(),
+        isUser: false,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+    // const botMessage: Message = {
+    //   id: (Date.now() + 1).toString(),
+    //   content:
+    //     "¿Te puedo ayudar con algo mas?",
+    //   timestamp: new Date(),
+    //   isUser: false,
+    // };
+
+    // setMessages((prev) => [...prev, botMessage]);
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -616,6 +669,7 @@ const ResponsiveChat = () => {
               <ReservationPanel
                 bookingData={bookingData}
                 onProceedToPayment={handleProceedToPayment}
+                handleVolverInicio={handleVolverInicio}
               />
             </div>
           )}

@@ -83,10 +83,11 @@ const getPaymentData = (bookingData: BookingData) => {
           currency: "mxn",
           product_data: {
             name: bookingData.hotel.name,
-            description: `Reservación en ${bookingData.hotel.name} - ${bookingData.room?.type === "single"
-              ? "Habitación Sencilla"
-              : "Habitación Doble"
-              }`,
+            description: `Reservación en ${bookingData.hotel.name} - ${
+              bookingData.room?.type === "single"
+                ? "Habitación Sencilla"
+                : "Habitación Doble"
+            }`,
             images: [imageToUse],
           },
           unit_amount: Math.round((bookingData.room?.totalPrice || 0) * 100),
@@ -123,47 +124,51 @@ const CheckOutForm = ({
   paymentData,
   setSuccess,
   idServicio,
+  handleEndSubmit,
 }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!stripe || !elements) return;
+    try {
+      if (!stripe || !elements) return;
 
-    const { data } = await supabase.auth.getUser();
-    const id_agente = data.user?.id;
-    const cardElement = elements.getElement(CardElement)
-    //crear metodo de pago
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement,
-    });
-    console.log("Se creo payment method");
-    if (error) {
-      setMessage(error.message);
-    }
-    else {
-      const response = await fetch(`${URL}/v1/stripe/save-payment-method`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...AUTH,
-        },
-        body: JSON.stringify({
-          paymentMethodId: paymentMethod.id,
-          id_agente: id_agente,
-        })
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const cardElement = elements.getElement(CardElement);
+      //crear metodo de pago
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: "card",
+        card: cardElement,
       });
+      console.log("Se creo payment method");
+      if (error) {
+        setMessage(error.message);
+      } else {
+        const response = await fetch(`${URL}/v1/stripe/save-payment-method`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...AUTH,
+          },
+          body: JSON.stringify({
+            paymentMethodId: paymentMethod.id,
+            id_agente: id_agente,
+          }),
+        });
 
-      const data = await response.json();
-      if (data.success) {
-        setMessage(data.message || "Metodo de pago guardado");
-        setSuccess(false);
+        const data = await response.json();
+        if (data.success) {
+          setMessage(data.message || "Metodo de pago guardado");
+          setSuccess(false);
+          handleEndSubmit();
+        } else {
+          setMessage("Ocurrio un error");
+        }
       }
-      else {
-        setMessage("Ocurrio un error");
-      }
+    } catch (error) {
+      console.log(error);
     }
 
     // if (!setupIntentResponse.ok) {
@@ -264,6 +269,7 @@ const CheckOutForm = ({
 
 export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   bookingData,
+  handleVolverInicio,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -301,8 +307,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
     const opt = {
       margin: 1,
-      filename: `reservacion-${bookingData?.confirmationCode || "borrador"
-        }.pdf`,
+      filename: `reservacion-${
+        bookingData?.confirmationCode || "borrador"
+      }.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
@@ -313,7 +320,6 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
   const saveBookingToDatabase = async () => {
     if (!bookingData || isSaving || isBookingSaved) return;
-
 
     try {
       setIsSaving(true);
@@ -416,7 +422,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   }
 
   const handleDeleteMethod = (id: string) => {
-    console.log('Delete payment method:', id);
+    console.log("Delete payment method:", id);
   };
 
   const handleAddMethod = () => {
@@ -428,8 +434,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     setSaveError(null);
 
     if (!selectedMethod) return;
-    const method = paymentMethods.find(m => m.id === selectedMethod);
-    console.log('Processing payment with method:', method);
+    const method = paymentMethods.find((m) => m.id === selectedMethod);
+    console.log("Processing payment with method:", method);
     const paymentData = getPaymentData(bookingData);
     try {
       const { data } = await supabase.auth.getUser();
@@ -445,8 +451,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
           id_agente: id_agente,
           amount: paymentData.line_items[0].price_data.unit_amount,
           currency: paymentData.line_items[0].price_data.currency,
-        })
-      })
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("Error al procesar el pago en Stripe");
@@ -472,7 +478,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
         responsePayment,
         method?.card.brand,
         method?.card.last4,
-        method?.card?.funding || "xddd",
+        method?.card?.funding || "xddd"
       );
       if (!responseNewPago.success) {
         throw new Error("No se pudo guardar el pago en la base de datos");
@@ -519,17 +525,18 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                         </p>
                         <CheckCircle className="w-10 h-10 text-green-800" />
                       </div>
+
                       <button
-                        onClick={() => window.location.reload()}
-                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                          ? 'bg-green-600 text-white hover:bg-green-700'
-                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                          }`}
+                        onClick={handleVolverInicio}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                          selectedMethod
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
                       >
-                        Volver a inicio
+                        Continuar con MIA
                       </button>
                     </>
-
                   ) : showAddPaymentForm ? (
                     <Elements stripe={stripePromise}>
                       <CheckOutForm
@@ -538,16 +545,24 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                         setSuccess={setShowAddPaymentForm}
                         idServicio={idServicio}
                         onCancel={() => setShowAddPaymentForm(false)}
+                        handleEndSubmit={fetchData}
                       />
                     </Elements>
                   ) : (
                     <div className="w-full bg-white rounded-xl shadow-lg p-6">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-6">Metodos de pago</h3>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-6">
+                        Metodos de pago
+                      </h3>
 
                       {paymentMethods.length === 0 ? (
                         <div className="text-center py-8 bg-gray-50 rounded-lg">
-                          <CreditCard className="mx-auto text-gray-400 mb-3" size={32} />
-                          <p className="text-gray-500">No se han guardado metodos de pago</p>
+                          <CreditCard
+                            className="mx-auto text-gray-400 mb-3"
+                            size={32}
+                          />
+                          <p className="text-gray-500">
+                            No se han guardado metodos de pago
+                          </p>
                           <ul className="space-y-3 mb-6">
                             <li
                               onClick={handleAddMethod}
@@ -555,7 +570,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                             >
                               <div className="flex items-center gap-3">
                                 <Plus className="text-gray-600" size={20} />
-                                <p className="font-medium text-gray-800">Agregar nuevo metodo de pago</p>
+                                <p className="font-medium text-gray-800">
+                                  Agregar nuevo metodo de pago
+                                </p>
                               </div>
                             </li>
                           </ul>
@@ -567,28 +584,38 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                               <li
                                 key={method.id}
                                 onClick={() => setSelectedMethod(method.id)}
-                                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === method.id
-                                  ? 'bg-blue-50 border-2 border-blue-500'
-                                  : 'bg-gray-50 hover:bg-gray-100'
-                                  }`}
+                                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${
+                                  selectedMethod === method.id
+                                    ? "bg-blue-50 border-2 border-blue-500"
+                                    : "bg-gray-50 hover:bg-gray-100"
+                                }`}
                               >
                                 <div className="flex items-center gap-3">
                                   <CreditCard
-                                    className={selectedMethod === method.id ? 'text-blue-600' : 'text-gray-600'}
+                                    className={
+                                      selectedMethod === method.id
+                                        ? "text-blue-600"
+                                        : "text-gray-600"
+                                    }
                                     size={20}
                                   />
                                   <div>
                                     <p className="font-medium text-gray-800">
-                                      {method.card.brand.toUpperCase()} •••• {method.card.last4}
+                                      {method.card.brand.toUpperCase()} ••••{" "}
+                                      {method.card.last4}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                      Vence {method.card.exp_month}/{method.card.exp_year}
+                                      Vence {method.card.exp_month}/
+                                      {method.card.exp_year}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {selectedMethod === method.id && (
-                                    <CheckCircle2 className="text-blue-600" size={20} />
+                                    <CheckCircle2
+                                      className="text-blue-600"
+                                      size={20}
+                                    />
                                   )}
                                   <button
                                     onClick={(e) => {
@@ -609,17 +636,20 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                             >
                               <div className="flex items-center gap-3">
                                 <Plus className="text-gray-600" size={20} />
-                                <p className="font-medium text-gray-800">Agregar nuevo metodo de pago</p>
+                                <p className="font-medium text-gray-800">
+                                  Agregar nuevo metodo de pago
+                                </p>
                               </div>
                             </li>
                           </ul>
                           <button
                             onClick={handlePayment}
                             disabled={!selectedMethod}
-                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                              ? 'bg-green-600 text-white hover:bg-green-700'
-                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                              }`}
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                              selectedMethod
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
                           >
                             Pagar
                           </button>
@@ -630,7 +660,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                         onClick={() => setCardPayment(false)}
                       >
                         <ArrowLeft className="w-4 h-4" />
-                        <span className="font-medium">Cambiar forma de pago</span>
+                        <span className="font-medium">
+                          Cambiar forma de pago
+                        </span>
                       </button>
                     </div>
                     // <Elements stripe={stripePromise}>
@@ -662,7 +694,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   </CallToBackend>
                   <button
                     onClick={handleDownloadPDF}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
                     <Download className="w-4 h-4" />
                     <span className="font-medium">Descargar</span>
@@ -670,11 +702,11 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                 </div>
               )}
 
-              {saveError && (
+              {/* {saveError && (
                 <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
                   {saveError}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
