@@ -271,11 +271,13 @@ export const createNewPago = async (
   id_servicio: string,
   amount: number,
   id_viajero: string,
-  response_payment: any,
   banco: string,
   last_digits: string,
   tipo_de_tarjeta: string,
   metodo_de_pago: string,
+  concepto: string,
+  autorizacion:string,
+  currency: string
 ) => {
   try {
     // Datos para crear el pago
@@ -283,7 +285,7 @@ export const createNewPago = async (
       id_servicio: id_servicio, // ID del servicio relacionado
       monto_a_credito: 0.0, // Ajusta según tu lógica
       responsable_pago_empresa: null, // Ajusta según tu lógica
-      responsable_pago_agente: null, // Ajusta según tu lógica
+      responsable_pago_agente: id_viajero, // Ajusta según tu lógica
       fecha_creacion: new Date().toISOString().split("T")[0], // Fecha actual
       pago_por_credito: null, // Ajusta según tu lógica
       pendiente_por_cobrar: false, // Ajusta según tu lógica
@@ -294,8 +296,10 @@ export const createNewPago = async (
       last_digits: last_digits,
       tipo_de_tarjeta: tipo_de_tarjeta,
       tipo_de_pago: "contado",
-      autorizacion_stripe: response_payment.paymentIntent.id,
+      autorizacion_stripe: autorizacion,
       metodo_de_pago: metodo_de_pago,
+      concepto: concepto,
+      currency: currency
     };
 
     // Hacer la solicitud HTTP al backend para crear el pago
@@ -480,6 +484,29 @@ export const getPaymentMethods = async (agent_id: string) => {
     console.log("En proceso de obtener metodos de pago");
     const response = await fetch(
       `${URL}/v1/stripe/get-payment-methods?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCreditAgent = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/pagos/agente?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {

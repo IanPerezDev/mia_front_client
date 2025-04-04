@@ -30,7 +30,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { createLogPayment, createNewPago } from "../hooks/useDatabase";
-import { fetchPaymentMethods } from "../hooks/useFetch";
+import { fetchPaymentMethods, fetchCreditAgent } from "../hooks/useFetch";
 import { URL } from "../constants/apiConstant";
 
 const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
@@ -222,9 +222,12 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isBookingSaved, setIsBookingSaved] = useState(false);
   const [cardPayment, setCardPayment] = useState(false);
+  const [creditoPayment, setCreditoPayment] = useState(false);
   const [successPayment, setSuccessPayment] = useState(false);
+  const [successCreditPayment, setSuccessCreditPayment] = useState(false);
   const [idServicio, setIdServicio] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [creditoValue, setCreditoValue] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -235,11 +238,23 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     setPaymentMethods(data);
   };
 
+  const fetchCredit = async () => {
+    const data = await fetchCreditAgent();
+    console.log("Credito del agente", data);
+    setCreditoValue(data);
+  };
+
   useEffect(() => {
     if (cardPayment) {
       fetchData();
     }
   }, [cardPayment]);
+
+  useEffect(() => {
+    if (creditoPayment) {
+      fetchCredit();
+    }
+  }, [creditoPayment]);
 
   useEffect(() => {
     // Auto-save booking when confirmation code is generated
@@ -421,11 +436,13 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
         idServicio, // Reemplaza con el ID del servicio correspondiente
         paymentData.line_items[0].price_data.unit_amount,
         id_agente,
-        responsePayment,
         method?.card.brand,
         method?.card.last4,
         method?.card?.funding || "xddd",
-        "tarjeta"
+        "tarjeta",
+        "Reservacion en " + bookingData.hotel?.name,
+        responsePayment.paymentIntent.client_secret,
+        responsePayment.paymentIntent.currency
       );
       if (!responseNewPago.success) {
         throw new Error("No se pudo guardar el pago en la base de datos");
@@ -438,6 +455,43 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     }
     setIsProcessing(false);
   };
+
+  const handlePaymentCredito = async () => {
+    setSaveError(null);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const response = await fetch(`${URL}/v1/mia/pagos/credito`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+        body: JSON.stringify({
+          id_servicio: idServicio,
+          responsable_pago_agente: id_agente,
+          fecha_creacion: new Date().toISOString().split('T')[0],
+          pago_por_credito: bookingData.room?.totalPrice,
+          pendiente_por_cobrar: bookingData.room?.totalPrice,
+          total: bookingData.room?.totalPrice,
+          subtotal: bookingData.room?.totalPrice * 0.84,
+          impuestos: bookingData.room?.totalPrice * 0.16,
+          tipo_de_pago: "credito",
+          credito_restante: creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice,
+          concepto: "Reservacion en " + bookingData.hotel?.name,
+          monto_a_credito: bookingData.room?.totalPrice
+        }),
+      });
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Error al procesar el pago por credito");
+      }
+      setSuccessCreditPayment(true);
+    } catch (error) {
+      console.log(error);
+      setSaveError("Hubo un error al procesar el pago");
+    }
+  }
 
   const checkInDate = formatDate(bookingData.dates?.checkIn);
   const checkOutDate = formatDate(bookingData.dates?.checkOut);
@@ -619,38 +673,121 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     // </Elements>
                   )}
                 </>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    onClick={() => setCardPayment(true)}
-                  >
-                    <PaymentIcon className="w-4 h-4" />
-                    <span className="font-medium">Pagar por Stripe</span>
-                  </button>
-                  <CallToBackend
+              ) : creditoPayment ?
+                (<>
+                  {successCreditPayment ? (
+                    <>
+                      <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
+                        <p className="text-xl text-green-800 font-bold">
+                          ¡Se realizo el pago correctamente!
+                        </p>
+                        <CheckCircle className="w-10 h-10 text-green-800" />
+                      </div>
+
+                      <button
+                        onClick={() => window.location.reload()}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors bg-green-600 text-white hover:bg-green-700`}
+                      >
+                        Continuar con MIA
+                      </button>
+                    </>
+                  ) : (
+                    <div className="w-full bg-white rounded-xl shadow-lg p-6">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-6">
+                        Pago con credito
+                      </h3>
+                      {creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice > 0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (<div className="space-y-4">
+                        <p className="text-xl font-medium text-gray-700">
+                          Crédito Disponible:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente}</span>
+                        </p>
+
+                        <p className="text-xl font-medium text-gray-700">
+                          Monto a Pagar:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">${bookingData.room?.totalPrice}</span>
+                        </p>
+
+                        <p className="text-xl font-medium text-gray-700">
+                          Crédito Restante:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice}</span>
+                        </p>
+                        <button
+                          onClick={handlePaymentCredito}
+                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
+                          bg-green-600 text-white hover:bg-green-700
+                            `}
+                        >
+                          Pagar
+                        </button>
+                      </div>
+
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-xl font-medium text-gray-700">
+                            No cuentas con crédito suficiente para pagar esta reservación
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+                        onClick={() => setCreditoPayment(false)}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="font-medium">
+                          Cambiar forma de pago
+                        </span>
+                      </button>
+                    </div>
+                    // <Elements stripe={stripePromise}>
+                    //   <CheckOutForm
+                    //     setCardPayment={setCardPayment}
+                    //     paymentData={getPaymentData(bookingData)}
+                    //     setSuccess={setSuccessPayment}
+                    //     idServicio={idServicio}
+                    //   />
+                    // </Elements>
+                  )}
+                </>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={() => setCardPayment(true)}
+                    >
+                      <PaymentIcon className="w-4 h-4" />
+                      <span className="font-medium">Pagar por Stripe</span>
+                    </button>
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={() => setCreditoPayment(true)}
+                    >
+                      <BanknoteIcon className="w-4 h-4" />
+                      <span className="font-medium">Pagar por Crédito</span>
+                    </button>
+                    {/* <CallToBackend
                     paymentData={getPaymentData(bookingData)}
                     className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     bookingData={bookingData}
                   >
                     <BanknoteIcon className="w-4 h-4" />
-                    <span className="font-medium">Pagar por Transferencia</span>
-                  </CallToBackend>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span className="font-medium">Descargar</span>
-                  </button>
-                </div>
-              )}
+                    <span className="font-medium">Pagar por Crédito</span>
+                  </CallToBackend> */}
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="font-medium">Descargar</span>
+                    </button>
+                  </div>
+                )}
 
-              {/* {saveError && (
+              {saveError && (
                 <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
                   {saveError}
                 </div>
-              )} */}
+              )}
             </div>
           </div>
         </div>

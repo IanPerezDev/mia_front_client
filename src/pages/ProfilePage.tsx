@@ -446,7 +446,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
               }`}
           >
             <CreditCard className="w-5 h-5" />
-            <span>Pagos</span>
+            <span>Metodos de pago</span>
           </button>
         </div>
 
@@ -541,7 +541,146 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                     </div>
                   </div>
                 </div>
+              </>
+            )}
 
+            {activeTab === 'preferences' && (
+              <>
+                <div className="bg-white rounded-xl shadow-lg p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Preferencias de Viaje
+                    </h2>
+                    {!isEditingPreferences ? (
+                      <button
+                        onClick={() => setIsEditingPreferences(true)}
+                        className="text-blue-600 hover:text-blue-700 flex items-center space-x-2"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                        <span>Editar</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="text-gray-500 hover:text-gray-700 flex items-center space-x-2"
+                        >
+                          <X className="w-5 h-5" />
+                          <span>Cancelar</span>
+                        </button>
+                        <button
+                          onClick={handleSavePreferences}
+                          disabled={isSaving}
+                          className="text-blue-600 hover:text-blue-700 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Save className="w-5 h-5" />
+                          <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {saveSuccess && (
+                    <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center space-x-2">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Preferencias guardadas exitosamente</span>
+                    </div>
+                  )}
+
+                  {saveError && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center space-x-2">
+                      <AlertTriangle className="w-5 h-5" />
+                      <span>{saveError}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Hotel className="w-5 h-5 text-gray-400" />
+                          <label className="text-sm font-medium text-gray-700">
+                            Hotel Preferido
+                          </label>
+                        </div>
+                        {isEditingPreferences ? (
+                          <input
+                            type="text"
+                            value={editedPreferences.preferred_hotel || ''}
+                            onChange={(e) => setEditedPreferences(prev => ({
+                              ...prev,
+                              preferred_hotel: e.target.value
+                            }))}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                            placeholder="Ej: Marriott, Hilton, etc."
+                          />
+                        ) : (
+                          <p className="text-lg text-gray-900">
+                            {preferences?.preferred_hotel || 'No especificado'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Clock className="w-5 h-5 text-gray-400" />
+                          <label className="text-sm font-medium text-gray-700">
+                            Cambios Frecuentes
+                          </label>
+                        </div>
+                        {isEditingPreferences ? (
+                          <select
+                            value={editedPreferences.frequent_changes ? 'true' : 'false'}
+                            onChange={(e) => setEditedPreferences(prev => ({
+                              ...prev,
+                              frequent_changes: e.target.value === 'true'
+                            }))}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                          >
+                            <option value="true">Sí</option>
+                            <option value="false">No</option>
+                          </select>
+                        ) : (
+                          <p className="text-lg text-gray-900">
+                            {preferences?.frequent_changes ? 'Sí' : 'No'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <MapPinOff className="w-5 h-5 text-gray-400" />
+                          <label className="text-sm font-medium text-gray-700">
+                            Lugares a Evitar
+                          </label>
+                        </div>
+                        {isEditingPreferences ? (
+                          <textarea
+                            value={editedPreferences.avoid_locations || ''}
+                            onChange={(e) => setEditedPreferences(prev => ({
+                              ...prev,
+                              avoid_locations: e.target.value
+                            }))}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                            rows={3}
+                            placeholder="Especifica lugares que prefieres evitar"
+                          />
+                        ) : (
+                          <p className="text-lg text-gray-900">
+                            {preferences?.avoid_locations || 'No especificado'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'payments' && (
+              <>
                 {/* Metodos de pago */}
                 <div className="bg-white rounded-xl shadow-lg p-8">
                   <div className="flex items-center justify-between mb-6">
@@ -632,207 +771,71 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                     </div>
                   )}
                 </div>
-              </>
-            )}
-
-            {activeTab === 'preferences' && (
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Preferencias de Viaje
-                  </h2>
-                  {!isEditingPreferences ? (
-                    <button
-                      onClick={() => setIsEditingPreferences(true)}
-                      className="text-blue-600 hover:text-blue-700 flex items-center space-x-2"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                      <span>Editar</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center space-x-4">
-                      <button
-                        onClick={handleCancelEdit}
-                        className="text-gray-500 hover:text-gray-700 flex items-center space-x-2"
-                      >
-                        <X className="w-5 h-5" />
-                        <span>Cancelar</span>
-                      </button>
-                      <button
-                        onClick={handleSavePreferences}
-                        disabled={isSaving}
-                        className="text-blue-600 hover:text-blue-700 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Save className="w-5 h-5" />
-                        <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
-                      </button>
+                <div className="bg-white rounded-xl shadow-lg p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Historial de Pagos
+                    </h2>
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <Clock className="w-5 h-5" />
+                      <span>Últimas transacciones</span>
                     </div>
-                  )}
-                </div>
-
-                {saveSuccess && (
-                  <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center space-x-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Preferencias guardadas exitosamente</span>
                   </div>
-                )}
 
-                {saveError && (
-                  <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center space-x-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    <span>{saveError}</span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Hotel className="w-5 h-5 text-gray-400" />
-                        <label className="text-sm font-medium text-gray-700">
-                          Hotel Preferido
-                        </label>
-                      </div>
-                      {isEditingPreferences ? (
-                        <input
-                          type="text"
-                          value={editedPreferences.preferred_hotel || ''}
-                          onChange={(e) => setEditedPreferences(prev => ({
-                            ...prev,
-                            preferred_hotel: e.target.value
-                          }))}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                          placeholder="Ej: Marriott, Hilton, etc."
-                        />
-                      ) : (
-                        <p className="text-lg text-gray-900">
-                          {preferences?.preferred_hotel || 'No especificado'}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                        <label className="text-sm font-medium text-gray-700">
-                          Cambios Frecuentes
-                        </label>
-                      </div>
-                      {isEditingPreferences ? (
-                        <select
-                          value={editedPreferences.frequent_changes ? 'true' : 'false'}
-                          onChange={(e) => setEditedPreferences(prev => ({
-                            ...prev,
-                            frequent_changes: e.target.value === 'true'
-                          }))}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    {payments.length > 0 ? (
+                      payments.map((payment) => (
+                        <div
+                          key={payment.id}
+                          className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow"
                         >
-                          <option value="true">Sí</option>
-                          <option value="false">No</option>
-                        </select>
-                      ) : (
-                        <p className="text-lg text-gray-900">
-                          {preferences?.frequent_changes ? 'Sí' : 'No'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <MapPinOff className="w-5 h-5 text-gray-400" />
-                        <label className="text-sm font-medium text-gray-700">
-                          Lugares a Evitar
-                        </label>
-                      </div>
-                      {isEditingPreferences ? (
-                        <textarea
-                          value={editedPreferences.avoid_locations || ''}
-                          onChange={(e) => setEditedPreferences(prev => ({
-                            ...prev,
-                            avoid_locations: e.target.value
-                          }))}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                          rows={3}
-                          placeholder="Especifica lugares que prefieres evitar"
-                        />
-                      ) : (
-                        <p className="text-lg text-gray-900">
-                          {preferences?.avoid_locations || 'No especificado'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'payments' && (
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Historial de Pagos
-                  </h2>
-                  <div className="flex items-center space-x-2 text-gray-500">
-                    <Clock className="w-5 h-5" />
-                    <span>Últimas transacciones</span>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  {payments.length > 0 ? (
-                    payments.map((payment) => (
-                      <div
-                        key={payment.id}
-                        className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {payment.bookings?.hotel_name || 'Hotel'}
-                            </h3>
-                            <p className="text-gray-500 text-sm">
-                              {payment.bookings?.confirmation_code}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-gray-900">
-                              ${payment.amount.toLocaleString('es-MX')} {payment.currency.toUpperCase()}
-                            </p>
-                            <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(payment.status)}`}>
-                              {getPaymentStatusIcon(payment.status)}
-                              <span className="capitalize">
-                                {payment.status === 'completed' ? 'Completado' :
-                                  payment.status === 'pending' ? 'Pendiente' : 'Fallido'}
-                              </span>
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {payment.bookings?.hotel_name || 'Hotel'}
+                              </h3>
+                              <p className="text-gray-500 text-sm">
+                                {payment.bookings?.confirmation_code}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-gray-900">
+                                ${payment.amount.toLocaleString('es-MX')} {payment.currency.toUpperCase()}
+                              </p>
+                              <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(payment.status)}`}>
+                                {getPaymentStatusIcon(payment.status)}
+                                <span className="capitalize">
+                                  {payment.status === 'completed' ? 'Completado' :
+                                    payment.status === 'pending' ? 'Pendiente' : 'Fallido'}
+                                </span>
+                              </div>
                             </div>
                           </div>
+
+                          {payment.bookings && (
+                            <div className="flex items-center space-x-4 text-gray-500 text-sm">
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="w-4 h-4" />
+                                <span>{formatDate(payment.bookings.check_in)}</span>
+                              </div>
+                              <span>•</span>
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="w-4 h-4" />
+                                <span>{formatDate(payment.bookings.check_out)}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
-
-                        {payment.bookings && (
-                          <div className="flex items-center space-x-4 text-gray-500 text-sm">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(payment.bookings.check_in)}</span>
-                            </div>
-                            <span>•</span>
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(payment.bookings.check_out)}</span>
-                            </div>
-                          </div>
-                        )}
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500">No hay pagos registrados</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12">
-                      <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">No hay pagos registrados</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 

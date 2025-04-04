@@ -141,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
 
         {/* Content */}
-        {page === "inicio" && <div className="p-8">
+        {page === "inicio" && (<div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -270,10 +270,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               ¿No tienes cuenta? Regístrate
             </button>
           </div>
-        </div>
+        </div>)
         }
 
-        {page === "send-code" && <div className="p-8">
+        {page === "send-code" && (<div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -383,10 +383,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </>
             )}
           </button>
-        </div>
+        </div>)
         }
 
-        {page === "verify-code" && <div className="p-8">
+        {page === "verify-code" && (<div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -454,9 +454,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
             </button>
           </>
-        </div>
+        </div>)
         }
-        {page === "reset-password" && <div className="p-8">
+        {page === "reset-password" && (<div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -568,7 +568,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
             </button>
           </>
-        </div>
+        </div>)
         }
 
         {/* Decorative elements */}
