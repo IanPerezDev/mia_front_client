@@ -62,7 +62,7 @@ export const Configuration = () => {
             id_empresa: company.id_empresa,
             razon_social: company.razon_social,
             nombre_comercial: company.nombre_comercial,
-            direccion: company.empresa_direccion || "", // Asegurar que haya dirección
+            calle: company.empresa_direccion || "", // Asegurar que haya dirección
             tipo_persona: company.tipo_persona,
             taxInfo: company.id_datos_fiscales
               ? {
@@ -428,7 +428,7 @@ export const Configuration = () => {
                               Nombre de la empresa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Dirección
+                              Calle y número
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Tipo de persona
@@ -547,7 +547,7 @@ export const Configuration = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.direccion}
+                              {company.calle}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {company.tipo_persona}

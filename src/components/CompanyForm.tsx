@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Company } from '../types';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { Company } from '../types';
+import { URL } from '../constants/apiConstant';
 
 interface CompanyFormProps {
   onSubmit: (data: Partial<Company>) => void;
@@ -8,8 +9,43 @@ interface CompanyFormProps {
   initialData?: Company;
 }
 
+const API_KEY =
+  "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
+const AUTH = {
+  "x-api-key": API_KEY,
+};
+
 export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProps) {
   const [tipoPersona, setTipoPersona] = useState(initialData?.tipo_persona || 'fisica');
+  const [colonias, setColonias] = useState<string[]>([]);
+  const [estado, setEstado] = useState(initialData?.estado || '');
+  const [municipio, setMunicipio] = useState(initialData?.municipio || '');
+  const [calle, setCalle] = useState(initialData?.calle || '');
+  const [colonia, setColonia] = useState(initialData?.colonia || '');
+  const [codigoPostal, setCodigoPostal] = useState(initialData?.codigo_postal || '');
+
+  useEffect(() => {
+    if (codigoPostal.length > 4) {
+      fetch(`${URL}/v1/sepoMex/buscar-codigo-postal?d_codigo=${codigoPostal}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data.length > 0) {
+            setColonias(data.data.map((item: any) => item.d_asenta)); // Extraer colonias
+            setMunicipio(data.data[0].D_mnpio);
+            setEstado(data.data[0].d_estado);
+          } else {
+            setColonias([]);
+          }
+        })
+        .catch((error) => console.error("Error obteniendo datos de código postal:", error));
+    }
+  }, [codigoPostal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,9 +54,13 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
 
     const data: Partial<Company> = {
       nombre_comercial: formData.get('nombre_comercial') as string,
-      razon_social: formData.get('razon_social') as string,
+      razon_social: tipoPersona === "moral" ? formData.get('razon_social') as string : formData.get('nombre_comercial') as string,
       tipo_persona: formData.get('tipo_persona') as string,
-      direccion: formData.get('address') as string,
+      calle: calle,
+      colonia: colonia,
+      estado: estado,
+      municipio: municipio,
+      codigo_postal: formData.get('codigo_postal') as string,
     };
 
     onSubmit(data);
@@ -55,46 +95,89 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Direccion
-          </label>
-          <input
-            type="text"
-            name="address"
-            defaultValue={initialData?.direccion}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            {tipoPersona === 'fisica' ? 'Nombre de la Persona Física' : 'Razón Social'}
-          </label>
+        {tipoPersona === "moral" && <div>
+          <label className="block text-sm font-medium text-gray-700">Razón Social</label>
           <input
             type="text"
             name="razon_social"
-            defaultValue={initialData?.razon_social}
+            defaultValue={initialData?.razon_social || ''}
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Tipo de Persona
-          </label>
+        </div>}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tipo de Persona</label>
           <select
             name="tipo_persona"
+            required
             value={tipoPersona}
             onChange={(e) => setTipoPersona(e.target.value)}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
-            <option value="fisica">Física</option>
-            <option value="moral">Moral</option>
+            <option value="fisica">Persona Física</option>
+            <option value="moral">Persona Moral</option>
           </select>
         </div>
 
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Calle</label>
+          <input
+            type="text"
+            name="calle"
+            value={calle}
+            onChange={(e) => setCalle(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Código Postal</label>
+          <input
+            type="text"
+            name="codigo_postal"
+            value={codigoPostal}
+            onChange={(e) => setCodigoPostal(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Colonia</label>
+          <select
+            name="colonia"
+            value={colonia}
+            onChange={(e) => setColonia(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Seleccione una colonia</option>
+            {colonias.map((colonia, index) => (
+              <option key={index} value={colonia}>{colonia}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Estado</label>
+          <input
+            type="text"
+            name="estado"
+            value={estado}
+            readOnly
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Municipio</label>
+          <input
+            type="text"
+            name="municipio"
+            value={municipio}
+            readOnly
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end space-x-4">

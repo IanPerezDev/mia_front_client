@@ -74,7 +74,11 @@ export const createEmpresa = async (data: any, id: string) => {
         razon_social: nombreEmpresa,
         nombre_comercial: nombreEmpresa,
         tipo_persona: "fisica",
-        direccion: " ",
+        calle: data.calle || null,
+        colonia: data.colonia || null,
+        estado: data.estado || null,
+        municipio: data.municipio || null,
+        codigo_postal: data.codigo_postal || null,
       }),
     });
 
@@ -107,7 +111,11 @@ export const createNewEmpresa = async (data: any, id: string) => {
         razon_social: data.razon_social,
         nombre_comercial: data.nombre_comercial,
         tipo_persona: data.tipo_persona,
-        direccion: data.direccion,
+        calle: data.calle || null,
+        colonia: data.colonia || null,
+        estado: data.estado || null,
+        municipio: data.municipio || null,
+        codigo_postal: data.codigo_postal || null,
       }),
     });
 
@@ -126,6 +134,7 @@ export const createNewEmpresa = async (data: any, id: string) => {
     throw error;
   }
 };
+
 
 export const createNewDatosFiscales = async (data: any) => {
   try {
@@ -262,10 +271,13 @@ export const createNewPago = async (
   id_servicio: string,
   amount: number,
   id_viajero: string,
-  response_payment: any,
   banco: string,
   last_digits: string,
-  tipo_de_tarjeta: string
+  tipo_de_tarjeta: string,
+  metodo_de_pago: string,
+  concepto: string,
+  autorizacion:string,
+  currency: string
 ) => {
   try {
     // Datos para crear el pago
@@ -273,17 +285,21 @@ export const createNewPago = async (
       id_servicio: id_servicio, // ID del servicio relacionado
       monto_a_credito: 0.0, // Ajusta según tu lógica
       responsable_pago_empresa: null, // Ajusta según tu lógica
-      responsable_pago_agente: null, // Ajusta según tu lógica
+      responsable_pago_agente: id_viajero, // Ajusta según tu lógica
       fecha_creacion: new Date().toISOString().split("T")[0], // Fecha actual
       pago_por_credito: null, // Ajusta según tu lógica
       pendiente_por_cobrar: false, // Ajusta según tu lógica
-      total: amount / 100, // Monto total del pago
+      total: (amount / 100), // Monto total del pago
       subtotal: (amount / 100) * 0.84, // Subtotal (ajusta según tu lógica)
       impuestos: (amount / 100) * 0.16, // Impuestos (ajusta según tu lógica)
       banco: banco,
       last_digits: last_digits,
       tipo_de_tarjeta: tipo_de_tarjeta,
       tipo_de_pago: "contado",
+      autorizacion_stripe: autorizacion,
+      metodo_de_pago: metodo_de_pago,
+      concepto: concepto,
+      currency: currency
     };
 
     // Hacer la solicitud HTTP al backend para crear el pago
@@ -468,6 +484,29 @@ export const getPaymentMethods = async (agent_id: string) => {
     console.log("En proceso de obtener metodos de pago");
     const response = await fetch(
       `${URL}/v1/stripe/get-payment-methods?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCreditAgent = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/pagos/agente?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {

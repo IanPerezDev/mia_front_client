@@ -52,9 +52,14 @@ export interface Company {
   id_empresa: string;
   razon_social: string;
   nombre_comercial: string;
-  direccion: string;
-  tipo_persona:string;
+  tipo_persona: string;
+  calle: string | null;
+  colonia: string | null;
+  estado: string | null;
+  municipio: string | null;
+  codigo_postal: string | null;
 }
+
 
 export interface TaxInfo {
   id_datos_fiscales: string;
@@ -119,7 +124,7 @@ export interface CompanyWithTaxInfo {
   id_empresa: string;
   razon_social: string;
   nombre_comercial: string;
-  direccion: string;
+  calle: string;
   tipo_persona: string;
   taxInfo?: TaxInfo | null;
 }

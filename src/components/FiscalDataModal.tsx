@@ -162,7 +162,7 @@ export function FiscalDataModal({ company, isOpen, onClose, onSave }: FiscalData
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Calle</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Calle y número</label>
                 <input
                   type="text"
                   value={formData.calle}

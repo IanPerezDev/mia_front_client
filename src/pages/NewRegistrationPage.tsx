@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Phone, Mail, User, Lock, CheckCircle2, Calendar, PersonStanding } from 'lucide-react';
+import { Phone, Mail, User, Lock, CheckCircle2, Calendar, PersonStanding, RotateCcw } from 'lucide-react';
 import { newRegisterUser, registerUserAfterVerification } from '../services/authService';
+import { sendAndCreateOTP } from '../hooks/useEmailVerification';
 
 interface RegistrationFormData {
     primer_nombre: string;
@@ -96,6 +97,31 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
         }
     };
 
+    const sendOTP = async () => {
+        try {
+            if (isRegistering) return;
+            setIsRegistering(true);
+            setRegistrationError('');
+
+            const result = await sendAndCreateOTP(formData.correo);
+            console.log(result);
+            if (result.success) {
+                console.log('se volvio a enviar codigo')
+                setRegistrationError("");
+            }
+            else {
+                throw new Error('Codigo incorrecto');
+            }
+        } catch (error: any) {
+            console.error('Error during registration:', error);
+            setRegistrationError(
+                error.message || 'No se pudo volver a enviar el codigo.'
+            );
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
 
     const handlePersonalSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,6 +182,24 @@ export const NewRegistrationPage: React.FC<RegistrationPageProps> = ({ onComplet
                         <>
                             <span>Verificar</span>
                             <CheckCircle2 className="w-5 h-5" />
+                        </>
+                    )}
+                </button>
+
+                <button
+                    onClick={sendOTP}
+                    disabled={isRegistering}
+                    className={`flex items-center space-x-2 w-full justify-center px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors ${isRegistering ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                >
+                    {isRegistering ? (
+                        <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </>
+                    ) : (
+                        <>
+                            <span>Volver a enviar</span>
+                            <RotateCcw className="w-5 h-5" />
                         </>
                     )}
                 </button>
