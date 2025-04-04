@@ -4,17 +4,22 @@ export const useSolicitud = () => {
   const crearSolicitud = async (solicitud: any, id_usuario: any) =>
     await postSolicitud(solicitud, id_usuario);
 
-  const obtenerSolicitudes = async (callback: (json: PostBodyParams) => any) =>
-    getSolicitud(callback);
+  const obtenerSolicitudes = async (
+    callback: (json: PostBodyParams) => any,
+    user
+  ) => getSolicitud(callback, user);
   return {
     crearSolicitud,
     obtenerSolicitudes,
   };
 };
 
-async function getSolicitud(callback: (json: PostBodyParams) => void) {
+async function getSolicitud(
+  callback: (json: PostBodyParams) => void,
+  user: string
+) {
   try {
-    const res = await fetch(`${URL}/v1/mia/solicitud/client`, {
+    const res = await fetch(`${URL}/v1/mia/solicitud/client?user_id=${user}`, {
       method: "GET",
       headers: HEADERS_API,
     });
@@ -22,7 +27,7 @@ async function getSolicitud(callback: (json: PostBodyParams) => void) {
     console.log("Esto es lo que esta sucediendo: ", json);
     const data = json.map((reservaDB) => {
       return {
-        id: Math.round(Math.random() * 12345678),
+        id: reservaDB.id_solicitud,
         confirmation_code: reservaDB.confirmation_code,
         hotel_name: reservaDB.hotel,
         check_in: reservaDB.check_in,

@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Receipt,
   ListCollapse,
+  List,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import type { Invoice, BillingOption } from "../types";
@@ -26,6 +27,7 @@ import { fetchInvoices } from "../services/billingService";
 import { CallToBackend } from "../components/CallToBackend";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { Link } from "wouter";
+import { useUser } from "../context/authContext";
 
 const DOMAIN = "http://localhost:5173";
 const payment_metadata = {};
@@ -97,17 +99,19 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const { authState } = useUser();
   const [showBillingOptions, setShowBillingOptions] = useState(false);
   const [selectedBookingForBilling, setSelectedBookingForBilling] =
     useState<Booking | null>(null);
 
   useEffect(() => {
-    fetchBookings();
-    loadInvoices();
-    obtenerSolicitudes((json) => {
-      console.log(json);
-      setBookings([...json, ...bookings]);
-    });
+    if (authState?.user) {
+      fetchBookings();
+      loadInvoices();
+      obtenerSolicitudes((json) => {
+        setBookings([...json, ...bookings]);
+      }, authState?.user?.id);
+    }
   }, []);
 
   useEffect(() => {
@@ -144,7 +148,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("Soy la data", data);
       // setBookings([...bookings, ...data]);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -208,128 +211,111 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
     }
   };
 
-  const renderBookingCard = (booking: Booking) => (
-    <div
-      key={booking.id}
-      className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Image Section */}
-        <div className="md:col-span-1">
-          <div className="h-full relative">
-            <img
-              src={
-                booking.image_url ||
-                "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-              }
-              alt={booking.hotel_name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-4 left-4">
-              <div
-                className={`px-3 py-1 rounded-full border ${getStatusColor(
-                  booking.status
-                )} flex items-center space-x-1`}
-              >
-                {getStatusIcon(booking.status)}
-                <span className="text-sm font-medium capitalize">
-                  {booking.status === "Completada"
-                    ? "Completada"
-                    : booking.status === "pending"
-                    ? "Pendiente"
-                    : "Cancelada"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Details Section */}
-        <div className="md:col-span-2 p-6 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {booking.hotel_name}
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Código: {booking.confirmation_code}
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setSelectedBooking(booking);
-                setShowDeleteModal(true);
-              }}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Hotel Details */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-gray-700">
-                <Hotel className="w-5 h-5" />
-                <h4 className="font-medium">Detalles del Hotel</h4>
-              </div>
-              <div className="space-y-2">
-                <p className="text-gray-900">
-                  <span className="text-gray-500">Tipo de Habitación:</span>{" "}
-                  {booking.room_type === "single" ? "Sencilla" : "Doble"}
-                </p>
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-gray-700">
-                <Calendar className="w-5 h-5" />
-                <h4 className="font-medium">Fechas de Estancia</h4>
-              </div>
-              <div className="space-y-2">
-                <p className="text-gray-900">
-                  <span className="text-gray-500">Check-in:</span>{" "}
-                  {formatDate(booking.check_in)}
-                </p>
-                <p className="text-gray-900">
-                  <span className="text-gray-500">Check-out:</span>{" "}
-                  {formatDate(booking.check_out)}
-                </p>
-              </div>
+  const renderBookingCard = (booking: Booking) => {
+    console.log(booking);
+    return (
+      <div
+        key={booking.id}
+        className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Image Section */}
+          <div className="md:col-span-1">
+            <div className="h-full relative">
+              <img
+                src={
+                  booking.image_url ||
+                  "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+                }
+                alt={booking.hotel_name}
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
-          {/* Payment Details */}
-          <div className="border-t border-gray-100 pt-4">
-            <div className="flex items-center justify-between">
+          {/* Details Section */}
+          <div className="md:col-span-2 p-6 space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-start">
               <div>
-                <p className="text-gray-500 text-sm">Total</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${booking.total_price.toLocaleString("es-MX")} MXN
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {booking.hotel_name}
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Código: {booking.confirmation_code}
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    setSelectedBookingForBilling(booking);
-                    setShowBillingOptions(true);
-                  }}
-                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
-                >
-                  <Receipt className="w-4 h-4" />
-                  <span>Facturar</span>
-                </button>
-                <Link
-                  to={`/reserva/${booking.id}`}
-                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
-                >
-                  <ListCollapse className="w-4 h-4" />
-                  <span>Details</span>
-                </Link>
-                {/* {booking.status === "pending" && (
+              <button
+                onClick={() => {
+                  setSelectedBooking(booking);
+                  setShowDeleteModal(true);
+                }}
+                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Hotel Details */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-gray-700">
+                  <Hotel className="w-5 h-5" />
+                  <h4 className="font-medium">Detalles del Hotel</h4>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-gray-900">
+                    <span className="text-gray-500">Tipo de Habitación:</span>{" "}
+                    {booking.room_type === "single" ? "Sencilla" : "Doble"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-gray-700">
+                  <Calendar className="w-5 h-5" />
+                  <h4 className="font-medium">Fechas de Estancia</h4>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-gray-900">
+                    <span className="text-gray-500">Check-in:</span>{" "}
+                    {formatDate(booking.check_in)}
+                  </p>
+                  <p className="text-gray-900">
+                    <span className="text-gray-500">Check-out:</span>{" "}
+                    {formatDate(booking.check_out)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Details */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ${booking.total_price.toLocaleString("es-MX")} MXN
+                  </p>
+                </div>
+                <div className="flex space-x-3">
+                  <Link
+                    to={`/factura/${booking.id}`}
+                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    <span>Facturar</span>
+                  </Link>
+                  <Link
+                    to={`/reserva/${booking.id}`}
+                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
+                  >
+                    <ListCollapse className="w-4 h-4" />
+                    <span>Details</span>
+                  </Link>
+                  {/* {booking.status === "pending" && (
                   <CallToBackend
                     paymentData={getPaymentData(booking)}
                     bookingData={booking}
@@ -340,13 +326,14 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                     <ArrowRight className="w-4 h-4" />
                   </CallToBackend>
                 )} */}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
@@ -397,17 +384,8 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Historial de Facturas - Izquierda */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">Facturas</h2>
-              <Receipt className="w-6 h-6 text-white/60" />
-            </div>
-            <InvoiceHistory invoices={invoices} isLoading={isLoadingInvoices} />
-          </div>
-
           {/* Contenido Principal - Derecha */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Filtros y Búsqueda */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -440,6 +418,11 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                     Canceladas
                   </option>
                 </select>
+              </div>
+              <div className="flex justify-center items-center w-16 h-16">
+                <div className="p-4 rounded-sm bg-white/10 cursor-pointer">
+                  <List className="text-sky-100"></List>
+                </div>
               </div>
             </div>
 

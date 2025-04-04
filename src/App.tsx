@@ -4,6 +4,7 @@ import { ChatMessage } from "./components/ChatMessage";
 import { Navigation } from "./components/Navigation";
 import { sendMessageToN8N } from "./services/n8nService";
 import { supabase } from "./services/supabaseClient";
+import { useUser } from "./context/authContext";
 import type { User, Message, AuthState, BookingData } from "./types";
 import {
   Menu,
@@ -53,11 +54,7 @@ const ResponsiveChat = () => {
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [showPaymentPage, setShowPaymentPage] = useState(false);
   const [showRegistrationPage, setShowRegistrationPage] = useState(false);
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    promptCount: 0,
-  });
+  const { authState, setAuthState } = useUser();
 
   useEffect(() => {
     // Check URL for manual-reservation route
@@ -88,59 +85,6 @@ const ResponsiveChat = () => {
         "showPaymentPage",
         handleShowPaymentPage as EventListener
       );
-    };
-  }, []);
-
-  useEffect(() => {
-    // Check for existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const isAdmin = session.user.email === "mianoktos@gmail.com";
-        setAuthState({
-          user: {
-            id: session.user.id,
-            email: session.user.email!,
-            name:
-              session.user.user_metadata.full_name ||
-              session.user.email!.split("@")[0],
-            isAdmin,
-          },
-          isAuthenticated: true,
-          promptCount: 0,
-        });
-      }
-    });
-
-    // Set up auth state change listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const isAdmin = session.user.email === "mianoktos@gmail.com";
-        setAuthState({
-          user: {
-            id: session.user.id,
-            email: session.user.email!,
-            name:
-              session.user.user_metadata.full_name ||
-              session.user.email!.split("@")[0],
-            isAdmin,
-          },
-          isAuthenticated: true,
-          promptCount: 0,
-        });
-      } else {
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          promptCount: 0,
-        });
-        setCurrentPage("chat");
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
   }, []);
 
