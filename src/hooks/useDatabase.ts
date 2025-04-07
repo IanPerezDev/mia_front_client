@@ -276,7 +276,7 @@ export const createNewPago = async (
   tipo_de_tarjeta: string,
   metodo_de_pago: string,
   concepto: string,
-  autorizacion:string,
+  autorizacion: string,
   currency: string
 ) => {
   try {
@@ -386,7 +386,7 @@ export const createNewViajero = async (data: any, id_empresa: string[]) => {
         segundo_nombre: data.segundo_nombre ? data.segundo_nombre : null,
         apellido_paterno: data.apellido_paterno,
         apellido_materno: data.apellido_materno ? data.apellido_materno : null,
-        correo: data.correo,
+        correo: data.correo ? data.correo : null,
         telefono: data.telefono ? data.telefono : null,
         genero: data.genero ? data.genero : null,
         fecha_nacimiento: fechaFormateada ? fechaFormateada : null,

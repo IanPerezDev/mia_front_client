@@ -428,7 +428,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
             <User2 className="w-5 h-5" />
             <span>Perfil</span>
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveTab('preferences')}
             className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'preferences'
               ? 'bg-white text-blue-600'
@@ -437,7 +437,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
           >
             <Settings className="w-5 h-5" />
             <span>Preferencias</span>
-          </button>
+          </button> */}
           <button
             onClick={() => setActiveTab('payments')}
             className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments'
@@ -499,7 +499,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                 </div>
 
                 {/* Company Information */}
-                <div className="bg-white rounded-xl shadow-lg p-8">
+                {/* <div className="bg-white rounded-xl shadow-lg p-8">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900">
                       Información de la Empresa
@@ -540,7 +540,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </>
             )}
 
@@ -842,7 +842,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-8">
             {/* Quick Stats */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            {/* <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Resumen de Actividad
               </h3>
@@ -881,7 +881,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                   </span>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Account Security */}
             <div className="bg-white rounded-xl shadow-lg p-6">

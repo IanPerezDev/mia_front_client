@@ -18,11 +18,11 @@ const AUTH = {
 export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProps) {
   const [tipoPersona, setTipoPersona] = useState(initialData?.tipo_persona || 'fisica');
   const [colonias, setColonias] = useState<string[]>([]);
-  const [estado, setEstado] = useState(initialData?.estado || '');
-  const [municipio, setMunicipio] = useState(initialData?.municipio || '');
-  const [calle, setCalle] = useState(initialData?.calle || '');
-  const [colonia, setColonia] = useState(initialData?.colonia || '');
-  const [codigoPostal, setCodigoPostal] = useState(initialData?.codigo_postal || '');
+  const [estado, setEstado] = useState(initialData?.empresa_estado || '');
+  const [municipio, setMunicipio] = useState(initialData?.empresa_municipio || '');
+  const [calle, setCalle] = useState(initialData?.empresa_direccion || '');
+  const [colonia, setColonia] = useState(initialData?.empresa_colonia || '');
+  const [codigoPostal, setCodigoPostal] = useState(initialData?.empresa_cp || '');
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
@@ -56,11 +56,11 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
       nombre_comercial: formData.get('nombre_comercial') as string,
       razon_social: tipoPersona === "moral" ? formData.get('razon_social') as string : formData.get('nombre_comercial') as string,
       tipo_persona: formData.get('tipo_persona') as string,
-      calle: calle,
-      colonia: colonia,
-      estado: estado,
-      municipio: municipio,
-      codigo_postal: formData.get('codigo_postal') as string,
+      empresa_direccion: calle,
+      empresa_colonia: colonia,
+      empresa_estado: estado,
+      empresa_municipio: municipio,
+      empresa_cp: formData.get('codigo_postal') as string,
     };
 
     onSubmit(data);
@@ -79,6 +79,20 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         >
           <X size={24} />
         </button>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Tipo de Persona</label>
+        <select
+          name="tipo_persona"
+          required
+          value={tipoPersona}
+          onChange={(e) => setTipoPersona(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          <option value="fisica">Persona Física</option>
+          <option value="moral">Persona Moral</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -105,23 +119,11 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Tipo de Persona</label>
-          <select
-            name="tipo_persona"
-            required
-            value={tipoPersona}
-            onChange={(e) => setTipoPersona(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="fisica">Persona Física</option>
-            <option value="moral">Persona Moral</option>
-          </select>
-        </div>
+
 
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Calle</label>
+          <label className="block text-sm font-medium text-gray-700">Calle y número</label>
           <input
             type="text"
             name="calle"
