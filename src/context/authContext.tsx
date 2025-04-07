@@ -80,6 +80,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
+  useEffect(() => {
+    console.log(authState);
+  }, [authState]);
+
   return (
     <UserContext.Provider
       value={{
