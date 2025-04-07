@@ -62,7 +62,11 @@ export const Configuration = () => {
             id_empresa: company.id_empresa,
             razon_social: company.razon_social,
             nombre_comercial: company.nombre_comercial,
-            calle: company.empresa_direccion || "", // Asegurar que haya dirección
+            empresa_direccion: company.empresa_direccion || "", // Asegurar que haya dirección
+            empresa_municipio: company.empresa_municipio,
+            empresa_estado: company.empresa_estado,
+            empresa_colonia: company.empresa_colonia,
+            empresa_cp: company.empresa_cp,
             tipo_persona: company.tipo_persona,
             taxInfo: company.id_datos_fiscales
               ? {
@@ -80,6 +84,7 @@ export const Configuration = () => {
           }));
 
           setCompanies(formattedCompanies);
+          console.log(companies);
         }
       } else if (activeTab === "employees") {
         const data = await fetchViajerosCompanies();
@@ -547,7 +552,7 @@ export const Configuration = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {company.calle}
+                              {company.empresa_direccion}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {company.tipo_persona}
@@ -614,7 +619,7 @@ export const Configuration = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              {employee.fecha_nacimiento}
+                               {employee.fecha_nacimiento ? new Date(employee.fecha_nacimiento).toLocaleDateString():""}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {employee.correo}

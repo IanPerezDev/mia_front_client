@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Lock, X, Eye, EyeOff, ArrowRight, User, AlertCircle, Barcode, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, X, Eye, EyeOff, ArrowRight, User, AlertCircle, Barcode, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { loginUser } from '../services/authService';
 import { sendAndCreateOTP, verifyOTP } from '../hooks/useEmailVerification';
 import { supabase } from '../services/supabaseClient';
@@ -74,15 +74,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     setError(null);
     setNotif(null);
-    const response = await sendAndCreateOTP(correo);
+    const { data, error } = await supabase.auth
+      .resetPasswordForEmail(correo)
+    //const response = await sendAndCreateOTP(correo);
 
-    if (!response.success) {
+    if (error) {
       setError('No se pudo enviar el correo con codigo de confirmacion');
     }
     else {
       setShowVerif(true);
-      setPage("verify-code")
-      setNotif("Correo electronico con codigo enviado");
+      //setPage("verify-code")
+      setNotif("Se te envio un correo electronico con el cual podras restablecer tu contraseña");
     }
     setIsLoading(false);
   }
@@ -280,7 +282,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               Reinicio de contraseña
             </h2>
             <p className="text-gray-600">
-              Ingresa tu correo electronico con el que te registraste, te llegara un codigo que tendras que ingresar para verificar tu identidad y cambiar tu contraseña
+              Ingresa tu correo electronico con el que te registraste, te llegara un link con el cual podras restablecer tu contraseña
             </p>
           </div>
 
@@ -380,6 +382,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <>
                 <span>Enviar correo</span>
                 <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+
+          <button
+            disabled={isLoading}
+            className="w-full flex items-center justify-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed transition-all duration-200 mt-4"
+            onClick={() => setPage("inicio")}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <ArrowLeft className="w-4 h-4" />
+                <span>Volver</span>
               </>
             )}
           </button>
