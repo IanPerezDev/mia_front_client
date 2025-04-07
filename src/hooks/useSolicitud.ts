@@ -4,32 +4,99 @@ export const useSolicitud = () => {
   const crearSolicitud = async (solicitud: any, id_usuario: any) =>
     await postSolicitud(solicitud, id_usuario);
 
-  const obtenerSolicitudes = async (callback: (json: PostBodyParams) => any) =>
-    getSolicitud(callback);
+  const obtenerSolicitudes = async (
+    callback: (json: PostBodyParams) => any,
+    user
+  ) => getSolicitud(callback, user);
+
+  const obtenerSolicitudesWithViajero = async (
+    callback: (json: PostBodyParams) => any,
+    user
+  ) => getSolicitudViajero(callback, user);
   return {
     crearSolicitud,
     obtenerSolicitudes,
+    obtenerSolicitudesWithViajero,
   };
 };
 
-async function getSolicitud(callback: (json: PostBodyParams) => void) {
+async function getSolicitudViajero(
+  callback: (json: PostBodyParams) => void,
+  user: string
+) {
   try {
-    const res = await fetch(`${URL}/v1/mia/solicitud/client`, {
+    const response = await fetch(
+      `${URL}/v1/mia/solicitud/withviajero?id=${user}`,
+      {
+        method: "GET",
+        headers: HEADERS_API,
+      }
+    );
+    const jsondata = await response.json();
+    const viajero = jsondata[jsondata.length - 1];
+    const {
+      primer_nombre,
+      segundo_nombre,
+      apellido_paterno,
+      apellido_materno,
+    } = viajero;
+    const nombre_completo = [
+      primer_nombre,
+      segundo_nombre,
+      apellido_paterno,
+      apellido_materno,
+    ]
+      .filter((obj) => !!obj)
+      .join(" ");
+
+    const res = await fetch(`${URL}/v1/mia/solicitud/client?user_id=${user}`, {
       method: "GET",
       headers: HEADERS_API,
     });
     const json = await res.json();
-    console.log(json);
+    console.log("Esto es lo que esta sucediendo: ", json);
     const data = json.map((reservaDB) => {
       return {
-        id: Math.round(Math.random() * 12345678),
+        id: reservaDB.id_solicitud,
         confirmation_code: reservaDB.confirmation_code,
         hotel_name: reservaDB.hotel,
         check_in: reservaDB.check_in,
         check_out: reservaDB.check_out,
         room_type: reservaDB.room,
         total_price: reservaDB.total,
-        status: reservaDB.status,
+        status: "completed",
+        traveler_id: nombre_completo,
+        created_at: new Date().toLocaleDateString(),
+        image_url: "",
+      };
+    });
+    callback(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function getSolicitud(
+  callback: (json: PostBodyParams) => void,
+  user: string
+) {
+  try {
+    const res = await fetch(`${URL}/v1/mia/solicitud/client?user_id=${user}`, {
+      method: "GET",
+      headers: HEADERS_API,
+    });
+    const json = await res.json();
+    console.log("Esto es lo que esta sucediendo: ", json);
+    const data = json.map((reservaDB) => {
+      return {
+        id: reservaDB.id_solicitud,
+        confirmation_code: reservaDB.confirmation_code,
+        hotel_name: reservaDB.hotel,
+        check_in: reservaDB.check_in,
+        check_out: reservaDB.check_out,
+        room_type: reservaDB.room,
+        total_price: reservaDB.total,
+        status: "completed",
+        traveler_id: "Angel Castañeda",
         created_at: new Date().toLocaleDateString(),
         image_url: "",
       };

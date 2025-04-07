@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Hotel, User, Bed, ArrowRight } from "lucide-react";
+import { HEADERS_API, URL } from "../constants/apiConstant";
 import { useRoute } from "wouter";
 
 // Types for our reservation data
@@ -68,7 +69,7 @@ export function Reserva() {
   // const { id } = useParams();
   const [match, params] = useRoute("/reserva/:id");
   const [mockReservation, setMockReservation] = useState<Reservation>({
-    id: params?.id || "",
+    id: params?.id || "hola",
     viajero: "",
     nombre_hotel: "",
     check_in: "",
@@ -79,10 +80,35 @@ export function Reserva() {
   useEffect(() => {
     const fetchReservation = async () => {
       if (match) {
-        const response = await fetch(`/v1/mia/solicitudes/id?id=${params.id}`); //Cambiar esto por la api real
-        const data = await response.json();
+        const response = await fetch(
+          `${URL}/v1/mia/solicitud/id?id=${params.id}`,
+          {
+            method: "GET",
+            headers: HEADERS_API,
+          }
+        );
+        const json = await response.json();
+        const data = json[0];
+        const responseviajero = await fetch(
+          `${URL}/v1/mia/solicitud/viajero?id=${data.id_viajero}`,
+          {
+            method: "GET",
+            headers: HEADERS_API,
+          }
+        );
+        const jsonviajero = await responseviajero.json();
+        const dataviajero = jsonviajero[0];
+        const { primer_nombre, apellido_paterno } = dataviajero;
+        console.log(jsonviajero);
         console.log(data);
-        // setMockReservation(data);
+        setMockReservation({
+          id: data.id_solicitud,
+          viajero: `${primer_nombre} ${apellido_paterno}`,
+          nombre_hotel: data.hotel,
+          check_in: data.check_in.split("T")[0],
+          check_out: data.check_out.split("T")[0],
+          room: data.room,
+        });
       } else {
         setMockReservation({
           id: "",
@@ -95,7 +121,7 @@ export function Reserva() {
       }
     };
     fetchReservation();
-  }, [params]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50">
