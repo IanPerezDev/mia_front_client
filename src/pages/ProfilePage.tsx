@@ -27,9 +27,10 @@ import {
   Trash2,
   Plus,
   CreditCard as PaymentIcon,
+  BookOpenText,
 } from 'lucide-react';
 import type { UserPreferences, PaymentHistory } from '../types';
-import { fetchPaymentMethods } from "../hooks/useFetch";
+import { fetchPaymentMethods, fetchPagosAgent } from "../hooks/useFetch";
 import type { PaymentMethod } from "../types";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -167,7 +168,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'payments'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'payments' | 'payments-history'>('profile');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [trigger, setTrigger] = useState(0);
@@ -207,27 +208,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
         setEditedPreferences(preferencesData || {});
 
         // Get payment history
-        const { data: paymentsData, error: paymentsError } = await supabase
-          .from('payments')
-          .select(`
-            id,
-            amount,
-            currency,
-            status,
-            created_at,
-            booking_id,
-            bookings (
-              confirmation_code,
-              hotel_name,
-              check_in,
-              check_out
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
 
-        if (paymentsError) throw paymentsError;
-        setPayments(paymentsData);
 
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -245,9 +226,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       const data = await fetchPaymentMethods();
       console.log("Payment methods data:", data);
       setPaymentMethods(data);
+      const paymentsData = await fetchPagosAgent();
+      setPayments(paymentsData);
     };
     fetchData();
   }, [trigger])
+
+
 
   const handleSavePreferences = async () => {
     if (!user) return;
@@ -321,26 +306,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
     });
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-600 bg-green-100';
-      case 'pending':
-        return 'text-yellow-600 bg-yellow-100';
-      default:
-        return 'text-red-600 bg-red-100';
-    }
+  const getPaymentStatusColor = (status: number) => {
+    if (status == 0)
+      return 'text-green-600 bg-green-100';
+    else if (status != 0)
+      return 'text-yellow-600 bg-yellow-100';
+    else
+      return 'text-red-600 bg-red-100';
   };
 
-  const getPaymentStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="w-4 h-4" />;
-      case 'pending':
-        return <Clock className="w-4 h-4" />;
-      default:
-        return <AlertTriangle className="w-4 h-4" />;
-    }
+  const getPaymentStatusIcon = (status: number) => {
+    if (status == 0)
+      return <CheckCircle2 className="w-4 h-4" />;
+    else if (status != 0)
+      return <Clock className="w-4 h-4" />;
+    else
+      return <AlertTriangle className="w-4 h-4" />;
   };
 
   const handleDeleteMethod = async (id: string) => {
@@ -447,6 +428,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
           >
             <CreditCard className="w-5 h-5" />
             <span>Metodos de pago</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('payments-history')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments-history'
+              ? 'bg-white text-blue-600'
+              : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+          >
+            <BookOpenText className="w-5 h-5" />
+            <span>Historial de pagos</span>
           </button>
         </div>
 
@@ -771,71 +763,74 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                     </div>
                   )}
                 </div>
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Historial de Pagos
-                    </h2>
-                    <div className="flex items-center space-x-2 text-gray-500">
-                      <Clock className="w-5 h-5" />
-                      <span>Últimas transacciones</span>
-                    </div>
-                  </div>
+              </>
+            )}
 
-                  <div className="space-y-6">
-                    {payments.length > 0 ? (
-                      payments.map((payment) => (
-                        <div
-                          key={payment.id}
-                          className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {payment.bookings?.hotel_name || 'Hotel'}
-                              </h3>
-                              <p className="text-gray-500 text-sm">
-                                {payment.bookings?.confirmation_code}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-gray-900">
-                                ${payment.amount.toLocaleString('es-MX')} {payment.currency.toUpperCase()}
-                              </p>
-                              <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(payment.status)}`}>
-                                {getPaymentStatusIcon(payment.status)}
-                                <span className="capitalize">
-                                  {payment.status === 'completed' ? 'Completado' :
-                                    payment.status === 'pending' ? 'Pendiente' : 'Fallido'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {payment.bookings && (
-                            <div className="flex items-center space-x-4 text-gray-500 text-sm">
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatDate(payment.bookings.check_in)}</span>
-                              </div>
-                              <span>•</span>
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatDate(payment.bookings.check_out)}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-12">
-                        <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">No hay pagos registrados</p>
-                      </div>
-                    )}
+            {activeTab === 'payments-history' && (
+              <div className="bg-white rounded-xl shadow-lg p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Historial de Pagos
+                  </h2>
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <Clock className="w-5 h-5" />
+                    <span>Últimas transacciones</span>
                   </div>
                 </div>
-              </>
+
+                <div className="space-y-6">
+                  {payments.length > 0 ? (
+                    payments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {payment.hotel_name || 'Hotel'}
+                            </h3>
+                            <p className="text-gray-500 text-sm">
+                              {payment.confirmation_code}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-gray-900">
+                              ${payment.booking_total.toLocaleString('es-MX')} {payment.currency.toUpperCase()}
+                            </p>
+                            <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(payment.pendiente_por_cobrar)}`}>
+                              {getPaymentStatusIcon(payment.pendiente_por_cobrar)}
+                              <span className="capitalize">
+                                {payment.pendiente_por_cobrar === 0 ? 'Completado' :
+                                  payment.pendiente_por_cobrar != 0 ? 'Pendiente' : 'Fallido'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {payment && (
+                          <div className="flex items-center space-x-4 text-gray-500 text-sm">
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDate(payment.check_in)}</span>
+                            </div>
+                            <span>•</span>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDate(payment.check_out)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500">No hay pagos registrados</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 

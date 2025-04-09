@@ -68,6 +68,8 @@ async function getSolicitudViajero(
         traveler_id: nombre_completo,
         created_at: new Date().toLocaleDateString(),
         image_url: "",
+        pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
+        id_pago: reservaDB.id_pago,
       };
     });
     callback(data);
