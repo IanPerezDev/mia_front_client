@@ -63,7 +63,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
       obtenerSolicitudesWithViajero((json) => {
         setBookings([...json, ...bookings]);
       }, authState?.user?.id);
-    } 
+    }
   }, []);
 
   const formatDate = (dateStr: string) => {
@@ -295,74 +295,78 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
           {filteredBookings.length > 0 ? (
             <div className="divide-y divide-gray-200">
               {filteredBookings.map((booking) => (
-                <div key={booking.id} className="p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          <img
-                            src={
-                              booking.image_url ||
-                              "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-                            }
-                            alt={booking.hotel_name}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
-                        </div>
+                <>
+                  {booking.pendiente_por_cobrar == 0 && booking.id_pago != null &&
+                    (<div key={booking.id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold">
-                            {booking.hotel_name}
-                          </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>Código: {booking.confirmation_code}</span>
-                            {booking.traveler_id && (
-                              <>
-                                <span>•</span>
-                                <span>ID Viajero: {booking.traveler_id}</span>
-                              </>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <img
+                                src={
+                                  booking.image_url ||
+                                  "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+                                }
+                                alt={booking.hotel_name}
+                                className="w-16 h-16 rounded-lg object-cover"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold">
+                                {booking.hotel_name}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <span>Código: {booking.confirmation_code}</span>
+                                {booking.traveler_id && (
+                                  <>
+                                    <span>•</span>
+                                    <span>ID Viajero: {booking.traveler_id}</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4" />
+                                  {formatDate(booking.check_in)} -{" "}
+                                  {formatDate(booking.check_out)}
+                                </span>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                                    booking.status
+                                  )}`}
+                                >
+                                  {booking.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {booking.pendiente_por_cobrar == 0 && booking.id_pago != null ? (<Link
+                            to={`/factura/${booking.id}`}
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                          >
+                            <Receipt className="w-4 h-4" />
+                            <span>Facturar</span>
+                          </Link>)
+                            : (
+                              <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                <CreditCard className="w-4 h-4" />
+                                <span>Pagar</span>
+                              </button>
                             )}
-                          </div>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {formatDate(booking.check_in)} -{" "}
-                              {formatDate(booking.check_out)}
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                                booking.status
-                              )}`}
-                            >
-                              {booking.status}
-                            </span>
-                          </div>
+                          <Link
+                            to={`/reserva/${booking.id}`}
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                          >
+                            <ListCollapse className="w-4 h-4" />
+                            <span>Detalles</span>
+                          </Link>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {booking.pendiente_por_cobrar == 0 && booking.id_pago != null ? (<Link
-                        to={`/factura/${booking.id}`}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      >
-                        <Receipt className="w-4 h-4" />
-                        <span>Facturar</span>
-                      </Link>)
-                        : (
-                          <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
-                            <CreditCard className="w-4 h-4" />
-                            <span>Pagar</span>
-                          </button>
-                        )}
-                      <Link
-                        to={`/reserva/${booking.id}`}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      >
-                        <ListCollapse className="w-4 h-4" />
-                        <span>Detalles</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                    </div>)
+                  }
+                </>
               ))}
             </div>
           ) : (

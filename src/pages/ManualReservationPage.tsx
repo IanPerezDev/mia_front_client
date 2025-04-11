@@ -108,7 +108,6 @@ const CheckOutForm = ({
   setCardPayment,
   paymentData,
   setSuccess,
-  idServicio,
   handleEndSubmit,
 }: any) => {
   const stripe = useStripe();
@@ -248,7 +247,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
   const [creditoPayment, setCreditoPayment] = useState(false);
   const [successPayment, setSuccessPayment] = useState(false);
   const [successCreditPayment, setSuccessCreditPayment] = useState(false);
-  const [idServicio, setIdServicio] = useState("");
+  //const [idServicio, setIdServicio] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [creditoValue, setCreditoValue] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -380,32 +379,35 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         user.id
       );
 
-      setIdServicio(responseSolicitud.data.id_servicio);
+      const idServicio = responseSolicitud.data.id_servicio;
 
       // Save booking to database
-      const { data: booking, error: bookingError } = await supabase
-        .from("bookings")
-        .insert({
-          confirmation_code: `RES-${numerosAleatorios}`,
-          user_id: user.id,
-          hotel_name: hotel?.MARCA,
-          check_in: reservationData.checkIn,
-          check_out: reservationData.checkOut,
-          room_type: reservationData.roomType,
-          total_price: reservationData.totalPrice,
-          status: "pending",
-          image_url: imageUrl,
-        })
-        .select()
-        .single();
+      // const { data: booking, error: bookingError } = await supabase
+      //   .from("bookings")
+      //   .insert({
+      //     confirmation_code: `RES-${numerosAleatorios}`,
+      //     user_id: user.id,
+      //     hotel_name: hotel?.MARCA,
+      //     check_in: reservationData.checkIn,
+      //     check_out: reservationData.checkOut,
+      //     room_type: reservationData.roomType,
+      //     total_price: reservationData.totalPrice,
+      //     status: "pending",
+      //     image_url: imageUrl,
+      //   })
+      //   .select()
+      //   .single();
 
-      if (bookingError) {
-        console.error("Error saving booking:", bookingError);
-        throw bookingError;
-      }
+      // if (bookingError) {
+      //   console.error("Error saving booking:", bookingError);
+      //   throw bookingError;
+      // }
 
       console.log("guardado");
       setIsBookingSaved(true);
+
+      return idServicio;
+
     } catch (error: any) {
       console.error("Error saving booking:", error);
       setSaveError(error.message || "Error al guardar la reservación");
@@ -428,7 +430,11 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
 
     if (!selectedMethod) return;
     const method = paymentMethods.find((m) => m.id === selectedMethod);
-    await saveBookingToDatabase();
+    // Guardar la reservación en la base de datos y obtener el idServicio
+    const idServicio = await saveBookingToDatabase();
+    if (!idServicio) {
+      throw new Error("No se pudo obtener el idServicio para el pago");
+    }
     console.log("Processing payment with method:", method);
     const paymentData = getPaymentData(hotel, reservationData);
     try {
@@ -493,7 +499,11 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
   const handlePaymentCredito = async () => {
     setSaveError(null);
     try {
-      await saveBookingToDatabase();
+      // Guardar la reservación en la base de datos y obtener el idServicio
+      const idServicio = await saveBookingToDatabase();
+      if (!idServicio) {
+        throw new Error("No se pudo obtener el idServicio para el pago");
+      }
       const { data } = await supabase.auth.getUser();
       const id_agente = data.user?.id;
       const response = await fetch(`${URL}/v1/mia/pagos/credito`, {
@@ -839,7 +849,6 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                       setCardPayment={setCardPayment}
                       paymentData={getPaymentData(hotel, reservationData)}
                       setSuccess={setShowAddPaymentForm}
-                      idServicio={idServicio}
                       onCancel={() => setShowAddPaymentForm(false)}
                       handleEndSubmit={fetchData}
                     />
