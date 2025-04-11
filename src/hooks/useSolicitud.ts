@@ -70,6 +70,8 @@ async function getSolicitudViajero(
         image_url: "",
         is_booking: Boolean(reservaDB.is_booking),
         factura: reservaDB.id_facturama,
+        pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
+        id_pago: reservaDB.id_pago,
       };
     });
     callback(data);

@@ -1,5 +1,5 @@
 import { supabase } from "../services/supabaseClient";
-import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales, getPaymentMethods, getCreditAgent } from "./useDatabase";
+import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales, getPaymentMethods, getCreditAgent, getPagosAgente } from "./useDatabase";
 
 export const fetchCompaniesAgent = async () => {
   try {
@@ -65,6 +65,22 @@ export const fetchCreditAgent = async () => {
 
     const creditData = await getCreditAgent(user.user.id);
     return creditData || [];
+  } catch (error) {
+    console.error("Error fetching credit:", error);
+    return [];
+  }
+};
+
+export const fetchPagosAgent = async () => {
+  try {
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error("No hay usuario autenticado");
+    console.log("fsfasfas")
+    const paymentData = await getPagosAgente(user.user.id);
+    
+    console.log(paymentData);
+    return paymentData || [];
   } catch (error) {
     console.error("Error fetching credit:", error);
     return [];

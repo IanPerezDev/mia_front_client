@@ -1,17 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { 
-  ArrowLeft, 
-  Hotel, 
-  Calendar, 
-  Users, 
-  User, 
+import {
+  ArrowLeft,
+  Hotel,
+  Calendar,
+  Users,
+  User,
   Coffee,
   CreditCard as PaymentIcon,
   BanknoteIcon,
-  ArrowRight
+  ArrowRight,
+  CheckCircle,
+  CreditCard,
+  Plus,
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import { CallToBackend } from '../components/CallToBackend';
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  useStripe,
+  useElements,
+  CardElement,
+} from "@stripe/react-stripe-js";
+import { useSolicitud } from "../hooks/useSolicitud";
+import { createLogPayment, createNewPago } from "../hooks/useDatabase";
+import { fetchPaymentMethods, fetchCreditAgent } from "../hooks/useFetch";
+import { URL } from "../constants/apiConstant";
+import type { BookingData, PaymentMethod } from "../types";
+
+const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
+const API_KEY =
+  "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
+const AUTH = {
+  "x-api-key": API_KEY,
+};
+
+const cardStyle = {
+  style: {
+    base: {
+      color: "#32325d", // Color del texto
+      fontSize: "16px",
+      fontFamily: "Arial, sans-serif",
+      "::placeholder": {
+        color: "#aab7c4", // Color del placeholder
+      },
+
+      backgroundColor: "#f8f8f8", // Fondo del input
+      padding: "20px",
+      borderRadius: "5px",
+    },
+    invalid: {
+      color: "#fa755a", // Color cuando hay un error
+    },
+  },
+};
+
+const stripePromise = loadStripe(
+  "pk_test_51R1WOrQttaqZirA7uXoQzqBjIsogB3hbIMWzIimqVnmMR0ZdSGhtl9icQpUkqHhIrWDjvRj2vjV71FEHTcbZjMre005S8gHlDD"
+);
+
+const formatDate = (dateStr: string | null) => {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  return {
+    weekday: date.toLocaleDateString("es-MX", { weekday: "long" }),
+    day: date.getDate(),
+    month: date.toLocaleDateString("es-MX", { month: "long" }),
+    year: date.getFullYear(),
+  };
+};
 
 interface Hotel {
   id_interno: number;
@@ -45,7 +104,96 @@ interface ManualReservationPageProps {
 
 const DOMAIN = "http://localhost:5173";
 
+const CheckOutForm = ({
+  setCardPayment,
+  paymentData,
+  setSuccess,
+  idServicio,
+  handleEndSubmit,
+}: any) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [message, setMessage] = useState("");
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      if (!stripe || !elements) return;
+
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const cardElement = elements.getElement(CardElement);
+      //crear metodo de pago
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: "card",
+        card: cardElement,
+      });
+      console.log("Se creo payment method");
+      if (error) {
+        setMessage(error.message);
+      } else {
+        const response = await fetch(`${URL}/v1/stripe/save-payment-method`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...AUTH,
+          },
+          body: JSON.stringify({
+            paymentMethodId: paymentMethod.id,
+            id_agente: id_agente,
+          })
+          ,
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setMessage(data.message || "Metodo de pago guardado");
+          setSuccess(false);
+          handleEndSubmit();
+        }
+        else {
+          setMessage("Ocurrio un error");
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return (
+    <div className="flex flex-col w-full px-4">
+      <h2 className="font-semibold text-lg text-[#10244c] mb-5">
+        Ingresa los detalles de tu tarjeta de credito
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <CardElement options={cardStyle} />
+        <button
+          type="submit"
+          disabled={!stripe}
+          className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+        >
+          <PaymentIcon className="w-4 h-4" />
+          <span className="font-medium">Agregar tarjeta</span>
+        </button>
+        <button
+          className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+          onClick={() => setSuccess(false)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-medium">Volver</span>
+        </button>
+      </form>
+      {message && (
+        <div className="h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl">
+          <p className="text-base text-center">{message}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
+
+
   const payment_metadata = {
     hotel_name: hotel.MARCA,
     check_in: reservationData.checkIn,
@@ -63,9 +211,8 @@ const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
           currency: "mxn",
           product_data: {
             name: hotel.MARCA,
-            description: `Reservación en ${hotel.MARCA} - ${
-              reservationData.roomType === 'single' ? 'Habitación Sencilla' : 'Habitación Doble'
-            }`,
+            description: `Reservación en ${hotel.MARCA} - ${reservationData.roomType === 'single' ? 'Habitación Sencilla' : 'Habitación Doble'
+              }`,
             images: [
               hotel.IMAGES || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
             ],
@@ -94,6 +241,43 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     pricePerNight: 0,
     totalPrice: 0
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isBookingSaved, setIsBookingSaved] = useState(false);
+  const [cardPayment, setCardPayment] = useState(false);
+  const [creditoPayment, setCreditoPayment] = useState(false);
+  const [successPayment, setSuccessPayment] = useState(false);
+  const [successCreditPayment, setSuccessCreditPayment] = useState(false);
+  const [idServicio, setIdServicio] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [creditoValue, setCreditoValue] = useState([]);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const fetchData = async () => {
+    const data = await fetchPaymentMethods();
+    console.log("Payment methods data:", data);
+    setPaymentMethods(data);
+  };
+
+  const fetchCredit = async () => {
+    const data = await fetchCreditAgent();
+    console.log("Credito del agente", data);
+    setCreditoValue(data);
+  };
+
+  useEffect(() => {
+    if (cardPayment) {
+      fetchData();
+    }
+  }, [cardPayment]);
+
+  useEffect(() => {
+    if (creditoPayment) {
+      fetchCredit();
+    }
+  }, [creditoPayment]);
 
   useEffect(() => {
     const storedHotel = sessionStorage.getItem('selectedHotel');
@@ -131,8 +315,8 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     const start = new Date(checkIn);
     const end = new Date(checkOut);
     const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    
-    const pricePerNight = roomType === 'single' 
+
+    const pricePerNight = roomType === 'single'
       ? hotel["TARIFA HAB SENCILLA Q"]
       : hotel["TARIFA HAB DOBLE QQ"];
 
@@ -159,6 +343,193 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
       };
     });
   };
+
+  const saveBookingToDatabase = async () => {
+    if (!reservationData || isSaving || isBookingSaved) return;
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      // Get the first image URL from additionalImages
+      const imageUrl =
+        hotel?.IMAGES ||
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
+      const numerosAleatorios = Math.floor(100000 + Math.random() * 900000); // Genera un número de 6 dígitos
+      const responseSolicitud = await crearSolicitud(
+        {
+          confirmation_code: `RES-${numerosAleatorios}`,
+          hotel_name: hotel?.MARCA,
+          dates: {
+            checkIn: reservationData.checkIn,
+            checkOut: reservationData.checkOut,
+          },
+          room: {
+            type: reservationData.roomType,
+            totalPrice: reservationData.totalPrice,
+          },
+        },
+        user.id
+      );
+
+      setIdServicio(responseSolicitud.data.id_servicio);
+
+      // Save booking to database
+      const { data: booking, error: bookingError } = await supabase
+        .from("bookings")
+        .insert({
+          confirmation_code: `RES-${numerosAleatorios}`,
+          user_id: user.id,
+          hotel_name: hotel?.MARCA,
+          check_in: reservationData.checkIn,
+          check_out: reservationData.checkOut,
+          room_type: reservationData.roomType,
+          total_price: reservationData.totalPrice,
+          status: "pending",
+          image_url: imageUrl,
+        })
+        .select()
+        .single();
+
+      if (bookingError) {
+        console.error("Error saving booking:", bookingError);
+        throw bookingError;
+      }
+
+      console.log("guardado");
+      setIsBookingSaved(true);
+    } catch (error: any) {
+      console.error("Error saving booking:", error);
+      setSaveError(error.message || "Error al guardar la reservación");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteMethod = (id: string) => {
+    console.log("Delete payment method:", id);
+  };
+
+  const handleAddMethod = () => {
+    setShowAddPaymentForm(true);
+  };
+
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    setSaveError(null);
+
+    if (!selectedMethod) return;
+    const method = paymentMethods.find((m) => m.id === selectedMethod);
+    await saveBookingToDatabase();
+    console.log("Processing payment with method:", method);
+    const paymentData = getPaymentData(hotel, reservationData);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const response = await fetch(`${URL}/v1/stripe/make-payment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+        body: JSON.stringify({
+          paymentMethodId: method?.id,
+          id_agente: id_agente,
+          amount: paymentData.line_items[0].price_data.unit_amount,
+          currency: paymentData.line_items[0].price_data.currency,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al procesar el pago en Stripe");
+      }
+
+      const responsePayment = await response.json();
+      console.log(responsePayment);
+      //Se guarda el log en la base
+      const responseLogPayment = await createLogPayment(
+        paymentData.line_items[0].price_data.unit_amount,
+        id_agente,
+        responsePayment
+      );
+      if (!responseLogPayment.success) {
+        throw new Error("No se pudo hacer log del pago");
+      }
+
+      //Se guarda el pago en la base
+      const responseNewPago = await createNewPago(
+        idServicio, // Reemplaza con el ID del servicio correspondiente
+        paymentData.line_items[0].price_data.unit_amount,
+        id_agente,
+        method?.card.brand,
+        method?.card.last4,
+        method?.card?.funding || "xddd",
+        "tarjeta",
+        "Reservacion en " + hotel?.MARCA,
+        responsePayment.paymentIntent.client_secret,
+        responsePayment.paymentIntent.currency
+      );
+      if (!responseNewPago.success) {
+        throw new Error("No se pudo guardar el pago en la base de datos");
+      }
+
+      setSuccessPayment(true);
+    } catch (error) {
+      console.log(error);
+      setSaveError("Hubo un error al procesar el pago");
+    }
+    setIsProcessing(false);
+  };
+
+
+  const handlePaymentCredito = async () => {
+    setSaveError(null);
+    try {
+      await saveBookingToDatabase();
+      const { data } = await supabase.auth.getUser();
+      const id_agente = data.user?.id;
+      const response = await fetch(`${URL}/v1/mia/pagos/credito`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+        body: JSON.stringify({
+          id_servicio: idServicio,
+          responsable_pago_agente: id_agente,
+          fecha_creacion: new Date().toISOString().split('T')[0],
+          pago_por_credito: reservationData.totalPrice,
+          pendiente_por_cobrar: reservationData.totalPrice,
+          total: reservationData.totalPrice,
+          subtotal: reservationData.totalPrice * 0.84,
+          impuestos: reservationData.totalPrice * 0.16,
+          tipo_de_pago: "credito",
+          credito_restante: creditoValue[0]?.monto_credito_agente - reservationData.totalPrice,
+          concepto: "Reservacion en " + hotel?.MARCA,
+          monto_a_credito: reservationData.totalPrice
+        }),
+      });
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Error al procesar el pago por credito");
+      }
+      setSuccessCreditPayment(true);
+    } catch (error) {
+      console.log(error);
+      setSaveError("Hubo un error al procesar el pago");
+    }
+  }
+
+  const checkInDate = formatDate(reservationData.checkIn);
+  const checkOutDate = formatDate(reservationData.checkOut);
 
   if (!hotel) {
     return (
@@ -389,7 +760,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           {/* Guest Information */}
           <div className="mt-8 space-y-6">
             <h3 className="text-lg font-medium text-gray-900">Información de Huéspedes</h3>
-            
+
             {/* Main Guest */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -440,42 +811,283 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           </div>
 
           {/* Reservation Summary */}
-          {reservationData.totalNights > 0 && (
-            <div className="mt-8 bg-gray-50 rounded-xl p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Resumen de la Reservación</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between text-gray-600">
-                  <span>Total de Noches:</span>
-                  <span>{reservationData.totalNights}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Precio por Noche:</span>
-                  <span>{formatPrice(reservationData.pricePerNight)}</span>
-                </div>
-                <div className="flex justify-between text-gray-900 font-bold text-lg pt-3 border-t border-gray-200">
-                  <span>Precio Total:</span>
-                  <span>{formatPrice(reservationData.totalPrice)}</span>
-                </div>
-              </div>
+          {reservationData.totalNights > 0 &&
+            (cardPayment ? (
+              <>
+                {successPayment ? (
+                  <>
+                    <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
+                      <p className="text-xl text-green-800 font-bold">
+                        ¡Se realizo el pago correctamente!
+                      </p>
+                      <CheckCircle className="w-10 h-10 text-green-800" />
+                    </div>
 
-              {/* Payment Options */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <CallToBackend
-                  paymentData={getPaymentData(hotel, reservationData)}
-                  bookingData={reservationData}
-                  className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <PaymentIcon className="w-5 h-5" />
-                  <span>Pagar con Stripe</span>
-                  <ArrowRight className="w-5 h-5" />
-                </CallToBackend>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                    >
+                      Continuar con MIA
+                    </button>
+                  </>
+                ) : showAddPaymentForm ? (
+                  <Elements stripe={stripePromise}>
+                    <CheckOutForm
+                      setCardPayment={setCardPayment}
+                      paymentData={getPaymentData(hotel, reservationData)}
+                      setSuccess={setShowAddPaymentForm}
+                      idServicio={idServicio}
+                      onCancel={() => setShowAddPaymentForm(false)}
+                      handleEndSubmit={fetchData}
+                    />
+                  </Elements>
+                ) : (
+                  <div className="w-full bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6">
+                      Metodos de pago
+                    </h3>
 
-                <button className="flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                  <BanknoteIcon className="w-5 h-5" />
-                  <span>Pagar por Transferencia</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
+                    {paymentMethods.length === 0 ? (
+                      <div className="text-center py-8 bg-gray-50 rounded-lg">
+                        <CreditCard
+                          className="mx-auto text-gray-400 mb-3"
+                          size={32}
+                        />
+                        <p className="text-gray-500">
+                          No se han guardado metodos de pago
+                        </p>
+                        <ul className="space-y-3 mb-6">
+                          <li
+                            onClick={handleAddMethod}
+                            className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Plus className="text-gray-600" size={20} />
+                              <p className="font-medium text-gray-800">
+                                Agregar nuevo metodo de pago
+                              </p>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+                    ) : (
+                      <>
+                        <ul className="space-y-3 mb-6">
+                          {paymentMethods.map((method) => (
+                            <li
+                              key={method.id}
+                              onClick={() => setSelectedMethod(method.id)}
+                              className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === method.id
+                                ? "bg-blue-50 border-2 border-blue-500"
+                                : "bg-gray-50 hover:bg-gray-100"
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <CreditCard
+                                  className={
+                                    selectedMethod === method.id
+                                      ? "text-blue-600"
+                                      : "text-gray-600"
+                                  }
+                                  size={20}
+                                />
+                                <div>
+                                  <p className="font-medium text-gray-800">
+                                    {method.card.brand.toUpperCase()} ••••{" "}
+                                    {method.card.last4}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Vence {method.card.exp_month}/
+                                    {method.card.exp_year}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {selectedMethod === method.id && (
+                                  <CheckCircle2
+                                    className="text-blue-600"
+                                    size={20}
+                                  />
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMethod(method.id);
+                                  }}
+                                  className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                  aria-label="Delete payment method"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            </li>
+                          ))}
+                          <li
+                            onClick={handleAddMethod}
+                            className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Plus className="text-gray-600" size={20} />
+                              <p className="font-medium text-gray-800">
+                                Agregar nuevo metodo de pago
+                              </p>
+                            </div>
+                          </li>
+                        </ul>
+                        <button
+                          onClick={handlePayment}
+                          disabled={!selectedMethod}
+                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
+                        >
+                          Pagar
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+                      onClick={() => setCardPayment(false)}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="font-medium">
+                        Cambiar forma de pago
+                      </span>
+                    </button>
+                  </div>
+                  // <Elements stripe={stripePromise}>
+                  //   <CheckOutForm
+                  //     setCardPayment={setCardPayment}
+                  //     paymentData={getPaymentData(bookingData)}
+                  //     setSuccess={setSuccessPayment}
+                  //     idServicio={idServicio}
+                  //   />
+                  // </Elements>
+                )}
+              </>
+            ) : creditoPayment ?
+              (<>
+                {successCreditPayment ? (
+                  <>
+                    <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
+                      <p className="text-xl text-green-800 font-bold">
+                        ¡Se realizo el pago correctamente!
+                      </p>
+                      <CheckCircle className="w-10 h-10 text-green-800" />
+                    </div>
+
+                    <button
+                      onClick={() => window.location.reload()}
+                      className={`w-full py-3 px-4 rounded-lg font-medium transition-colors bg-green-600 text-white hover:bg-green-700`}
+                    >
+                      Continuar con MIA
+                    </button>
+                  </>
+                ) : (
+                  <div className="w-full bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6">
+                      Pago con credito
+                    </h3>
+                    {creditoValue[0]?.monto_credito_agente - reservationData.totalPrice > 0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (<div className="space-y-4">
+                      <p className="text-xl font-medium text-gray-700">
+                        Crédito Disponible:
+                        <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente}</span>
+                      </p>
+
+                      <p className="text-xl font-medium text-gray-700">
+                        Monto a Pagar:
+                        <span className="text-2xl font-bold text-gray-900 ml-2">${reservationData.totalPrice}</span>
+                      </p>
+
+                      <p className="text-xl font-medium text-gray-700">
+                        Crédito Restante:
+                        <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente - reservationData.totalPrice}</span>
+                      </p>
+                      <button
+                        onClick={handlePaymentCredito}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
+                          bg-green-600 text-white hover:bg-green-700
+                            `}
+                      >
+                        Pagar
+                      </button>
+                    </div>
+
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-xl font-medium text-gray-700">
+                          No cuentas con crédito suficiente para pagar esta reservación
+                        </p>
+                      </div>
+                    )}
+
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full mt-5"
+                      onClick={() => setCreditoPayment(false)}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="font-medium">
+                        Cambiar forma de pago
+                      </span>
+                    </button>
+                  </div>
+                  // <Elements stripe={stripePromise}>
+                  //   <CheckOutForm
+                  //     setCardPayment={setCardPayment}
+                  //     paymentData={getPaymentData(bookingData)}
+                  //     setSuccess={setSuccessPayment}
+                  //     idServicio={idServicio}
+                  //   />
+                  // </Elements>
+                )}
+              </>
+              ) : (
+                <div className="mt-8 bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Resumen de la Reservación</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Total de Noches:</span>
+                      <span>{reservationData.totalNights}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Precio por Noche:</span>
+                      <span>{formatPrice(reservationData.pricePerNight)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-900 font-bold text-lg pt-3 border-t border-gray-200">
+                      <span>Precio Total:</span>
+                      <span>{formatPrice(reservationData.totalPrice)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={() => setCardPayment(true)}
+                    >
+                      <PaymentIcon className="w-4 h-4" />
+                      <span className="font-medium">Pagar por Stripe</span>
+                    </button>
+
+                    <button
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      onClick={() => setCreditoPayment(true)}
+                    >
+                      <BanknoteIcon className="w-4 h-4" />
+                      <span className="font-medium">Pagar por Crédito</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            )
+          }
+          {saveError && (
+            <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
+              {saveError}
             </div>
           )}
         </div>

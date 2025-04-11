@@ -84,6 +84,9 @@ export interface Employee {
   genero: string;
   telefono: string;
   fecha_nacimiento?: string | null;
+  nacionalidad: string;
+  numero_pasaporte: string;
+  numero_empleado: string;
   empresas: {
     id_empresa: string;
     razon_social: string;

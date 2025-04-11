@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Company, Employee } from '../types';
 import { X } from 'lucide-react';
 import { fetchCompaniesAgent } from '../hooks/useFetch';
+import { formatDate } from '../helpers/helpers';
 
 interface EmployeeFormProps {
   onSubmit: (data: Partial<Employee>) => void;
@@ -20,6 +21,15 @@ export function EmployeeForm({
 }: EmployeeFormProps) {
 
   const [empresas, setEmpresas] = useState<Company[]>([]);
+  const [selectedEmpresas, setSelectedEmpresas] = useState(
+    initialData?.empresas?.map((e) => e.id_empresa) || []
+  );
+  const handleCheckboxChange = (event : any) => {
+    const { value, checked } = event.target;
+    setSelectedEmpresas((prev) =>
+      checked ? [...prev, value] : prev.filter((id) => id !== value)
+    );
+  };
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,6 +48,9 @@ export function EmployeeForm({
       id_empresas: formData.getAll('empresa') as string[],
       fecha_nacimiento: formData.get('fecha_nacimiento') as string,
       genero: formData.get('genero') as string,
+      numero_empleado: formData.get('numero_empleado') as string,
+      numero_pasaporte: formData.get('numero_pasaporte') as string,
+      nacionalidad: formData.get('nacionalidad') as string,
     };
 
     onSubmit(data);
@@ -87,7 +100,7 @@ export function EmployeeForm({
           <input
             type="text"
             name="segundNombre"
-            defaultValue={initialData?.segundo_nombre}
+            defaultValue={initialData?.segundo_nombre || ""}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -111,7 +124,7 @@ export function EmployeeForm({
           <input
             type="text"
             name="apellidoM"
-            defaultValue={initialData?.apellido_materno}
+            defaultValue={initialData?.apellido_materno || ""}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -150,29 +163,56 @@ export function EmployeeForm({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-
-        <div className="">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Empresas <span className="text-red-500">*</span>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Numero de pasaporte
           </label>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {empresas.map((empresa) => (
-              <label key={empresa.id_empresa} className="relative flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    type="checkbox"
-                    name="empresa"
-                    value={empresa.id_empresa}
-                    defaultChecked={initialData?.empresas?.some((e) => e.id_empresa === empresa.id_empresa)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <span className="font-medium text-gray-700">{empresa.razon_social}</span>
-                </div>
-              </label>
-            ))}
-          </div>
+          <input
+            type="text"
+            name="numero_pasaporte"
+            defaultValue={initialData?.numero_pasaporte}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Numero de empleado
+          </label>
+          <input
+            type="text"
+            name="numero_empleado"
+            defaultValue={initialData?.numero_empleado}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Nacionalidad
+          </label>
+          <select
+            name="nacionalidad"
+            defaultValue={initialData?.nacionalidad || ""}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Selecciona una nacionalidad</option>
+            <option value="MX">Mexicana</option>
+            <option value="US">Estadounidense</option>
+            <option value="CA">Canadiense</option>
+            <option value="ES">Española</option>
+            <option value="AR">Argentina</option>
+            <option value="BR">Brasileña</option>
+            <option value="FR">Francesa</option>
+            <option value="DE">Alemana</option>
+            <option value="IT">Italiana</option>
+            <option value="JP">Japonesa</option>
+            <option value="CN">China</option>
+            <option value="IN">India</option>
+            <option value="UK">Británica</option>
+            <option value="AU">Australiana</option>
+            <option value="CL">Chilena</option>
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -188,6 +228,36 @@ export function EmployeeForm({
             <option value="femenino">Femenino</option>
           </select>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Empresas <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {empresas.map((empresa) => (
+              <label key={empresa.id_empresa} className="relative flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    name="empresa"
+                    value={empresa.id_empresa}
+                    checked={selectedEmpresas.includes(empresa.id_empresa)}
+                    onChange={handleCheckboxChange}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    required={selectedEmpresas.length === 0} // Solo requiere si no hay ninguno seleccionado
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <span className="font-medium text-gray-700">{empresa.razon_social}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+          {selectedEmpresas.length === 0 && (
+            <p className="text-red-500 text-sm mt-2">Debes seleccionar al menos una empresa.</p>
+          )}
+        </div>
+
 
         {/* <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -382,14 +382,17 @@ export const createNewViajero = async (data: any, id_empresa: string[]) => {
       },
       body: JSON.stringify({
         id_empresas: id_empresa,
-        primer_nombre: data.primer_nombre,
-        segundo_nombre: data.segundo_nombre ? data.segundo_nombre : null,
-        apellido_paterno: data.apellido_paterno,
-        apellido_materno: data.apellido_materno ? data.apellido_materno : null,
+        primer_nombre: data.primer_nombre.toUpperCase(),
+        segundo_nombre: data.segundo_nombre ? data.segundo_nombre.toUpperCase() : null,
+        apellido_paterno: data.apellido_paterno.toUpperCase(),
+        apellido_materno: data.apellido_materno ? data.apellido_materno.toUpperCase() : null,
         correo: data.correo ? data.correo : null,
         telefono: data.telefono ? data.telefono : null,
         genero: data.genero ? data.genero : null,
         fecha_nacimiento: fechaFormateada ? fechaFormateada : null,
+        nacionalidad: data.nacionalidad ? data.nacionalidad: null,
+        numero_pasaporte: data.numero_pasaporte ? data.numero_pasaporte : null,
+        numero_empleado: data.numero_empleado ? data.numero_empleado : null,
       }),
     });
 
@@ -507,6 +510,29 @@ export const getCreditAgent = async (agent_id: string) => {
     console.log("En proceso de obtener metodos de pago");
     const response = await fetch(
       `${URL}/v1/mia/pagos/agente?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getPagosAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/pagos/pagosAgente?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {
