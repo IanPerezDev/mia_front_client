@@ -14,11 +14,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "../helpers/helpers";
-import { DataInvoice, ProductInvoice } from "../types/billing";
+import { DataInvoice, DescargaFactura, ProductInvoice } from "../types/billing";
+import { useApi } from "../hooks/useApi";
 import { useRoute, Link } from "wouter";
 import { HEADERS_API, URL } from "../constants/apiConstant";
 import { DataFiscalModalWithCompanies } from "../components/DataFiscalModalWithCompanies";
 import { CompanyWithTaxInfo } from "../types";
+import { Root } from "../types/billing";
+import { useUser } from "../context/authContext";
 
 const cfdiUseOptions = [
   { value: "G01", label: "Adquisición de mercancías" },
@@ -70,6 +73,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
   onBack,
   invoiceData,
 }) => {
+  const { authState } = useUser();
   const [match, params] = useRoute("/factura/:id");
   const [showFiscalModal, setShowFiscalModal] = useState(false);
   const [solicitud, setSolicitud] = useState(null);
@@ -77,7 +81,11 @@ export const BillingPage: React.FC<BillingPageProps> = ({
   const [selectedCfdiUse, setSelectedCfdiUse] = useState("G03");
   const [selectedPaymentForm, setSelectedPaymentForm] = useState("03");
   const [showValidationModal, setShowValidationModal] = useState(false);
-  const [isInvoiceGenerated, setIsInvoiceGenerated] = useState(false);
+  const [descarga, setDescarga] = useState<DescargaFactura | null>(null);
+  const [isInvoiceGenerated, setIsInvoiceGenerated] = useState<Root | null>(
+    null
+  );
+  const { crearCfdi, descargarFactura, mandarCorreo } = useApi();
   const [cfdi, setCfdi] = useState({
     Receiver: {
       Name: "",
@@ -196,7 +204,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
             Name: data_fiscal.razon_social,
             CfdiUse: selectedCfdiUse,
             Rfc: data_fiscal.rfc,
-            FiscalRegime: data_fiscal.regimen_fiscal || "601",
+            FiscalRegime: data_fiscal.regimen_fiscal || "606",
             TaxZipCode: data_fiscal.codigo_postal_fiscal,
           },
           CfdiType: "I",
@@ -226,7 +234,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   Name: "IVA",
                   Rate: "0.16",
                   Total: (data_solicitud.solicitud_total * 0.16).toFixed(2),
-                  Base: "1",
+                  Base: data_solicitud.solicitud_total,
                   IsRetention: "false",
                   IsFederalTax: "true",
                 },
@@ -254,12 +262,16 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     }
   }, []);
 
-  const handleDownloadPDF = () => {
-    console.log("Descargando PDF...");
-  };
-
-  const handleSendEmail = () => {
-    console.log("Enviando por correo...");
+  const handleSendEmail = async () => {
+    if (isInvoiceGenerated?.Id) {
+      const correo = prompt(
+        "¿A que correo electronico deseas mandar la factura?"
+      );
+      await mandarCorreo(isInvoiceGenerated?.Id, correo || "");
+      alert("El correo fue mandado con exito");
+    } else {
+      alert("ocurrio un error");
+    }
   };
 
   const validateInvoiceData = () => {
@@ -275,7 +287,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     return true;
   };
 
-  const handleGenerateInvoice = () => {
+  const handleGenerateInvoice = async () => {
     if (validateInvoiceData()) {
       const invoiceData = {
         ...cfdi,
@@ -285,8 +297,42 @@ export const BillingPage: React.FC<BillingPageProps> = ({
         },
         PaymentForm: selectedPaymentForm,
       };
-      console.log("Datos de factura validados:", invoiceData);
-      setIsInvoiceGenerated(true);
+      try {
+        // Obtener la fecha actual
+        const now = new Date();
+
+        // Restar una hora a la fecha actual
+        now.setHours(now.getHours() - 6);
+
+        // Formatear la fecha en el formato requerido: "YYYY-MM-DDTHH:mm:ss"
+        const formattedDate = now.toISOString().split(".")[0];
+
+        console.log(formattedDate);
+        // Ejemplo: "2025-04-06T12:10:00"
+
+        const response = await crearCfdi({
+          cfdi: {
+            ...cfdi,
+            Currency: "MXN", // Add the required currency
+            OrderNumber: "12345", // Add a placeholder or dynamic order number
+            Date: formattedDate, // Ensure the date is within the 72-hour limit
+          },
+          info_user: {
+            id_user: authState?.user?.id,
+            id_solicitud: params?.id,
+          },
+        });
+        if (response.error) {
+          throw new Error(response);
+        }
+        alert("Se ha generado con exito la factura");
+        descargarFactura(response.data.Id)
+          .then((factura) => setDescarga(factura))
+          .catch((err) => console.error(err));
+        setIsInvoiceGenerated(response.data);
+      } catch (error) {
+        alert("Ocurrio un error, intenta mas tarde");
+      }
     }
   };
 
@@ -452,14 +498,14 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                       <Mail className="w-4 h-4" />
                       <span className="text-sm">Enviar por Correo</span>
                     </button>
-
-                    <button
-                      onClick={handleDownloadPDF}
+                    <a
+                      href={`data:application/pdf;base64,${descarga?.Content}`}
+                      download="factura.pdf"
                       className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors border border-blue-200"
                     >
                       <Download className="w-4 h-4" />
                       <span className="text-sm">Descargar PDF</span>
-                    </button>
+                    </a>
                   </>
                 ) : (
                   <button
@@ -496,13 +542,8 @@ export const BillingPage: React.FC<BillingPageProps> = ({
               </h2>
             </div>
             <p className="text-gray-700 mb-4">
-              Por favor, asegúrate de completar todos los campos requeridos:
-              <ul className="list-disc ml-6 mt-2 text-sm">
-                <li>RFC</li>
-                <li>Código Postal</li>
-                <li>Uso de CFDI</li>
-                <li>Forma de Pago</li>
-              </ul>
+              Por favor, regresa a tu configuración y establece los datos
+              fiscales para poder realizar tu factura
             </p>
             <div className="flex justify-end">
               <button

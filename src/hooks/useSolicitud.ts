@@ -66,8 +66,10 @@ async function getSolicitudViajero(
         total_price: reservaDB.total,
         status: "completed",
         traveler_id: nombre_completo,
-        created_at: new Date().toLocaleDateString(),
+        created_at: reservaDB.created_at,
         image_url: "",
+        is_booking: Boolean(reservaDB.is_booking),
+        factura: reservaDB.id_facturama,
         pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
         id_pago: reservaDB.id_pago,
       };
