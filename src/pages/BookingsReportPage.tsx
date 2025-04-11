@@ -11,11 +11,15 @@ import {
   ListCollapse,
   User,
   ChevronDown,
+  Send,
+  DownloadCloud,
+  X,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { Link } from "wouter";
 import { useUser } from "../context/authContext";
+import useApi from "../hooks/useApi";
 
 interface Booking {
   id: string;
@@ -32,6 +36,15 @@ interface Booking {
   traveler_id?: string;
   payment_method?: string;
   booking_stage?: string;
+  is_booking?: boolean;
+  factura: string | null;
+}
+
+interface InvoiceData {
+  ContentEncoding: string;
+  ContentType: string;
+  ContentLength: number;
+  Content: string;
 }
 
 interface BookingsReportPageProps {
@@ -41,6 +54,7 @@ interface BookingsReportPageProps {
 export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
   onBack,
 }) => {
+  const { mandarCorreo, descargarFactura } = useApi();
   const { obtenerSolicitudesWithViajero } = useSolicitud();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +67,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
   const [endDate, setEndDate] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("all");
   const [selectedStage, setSelectedStage] = useState("all");
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
 
   useEffect(() => {
     if (authState?.user) {
@@ -69,6 +84,37 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
       month: "numeric",
       day: "numeric",
     });
+  };
+
+  const handleSendFactura = async (id_facturama: string) => {
+    try {
+      const correo = prompt(
+        "¿A que correo electronico deseas mandar la factura?"
+      );
+      await mandarCorreo(id_facturama, correo || "");
+      alert("El correo fue mandado con exito");
+    } catch (error) {
+      alert("ha ocurrido un error");
+    }
+  };
+
+  const handleDescargarFactura = async (id: string) => {
+    try {
+      const obj = await descargarFactura(id);
+      setInvoiceData(obj);
+    } catch (error) {
+      alert("Ha ocurrido un error al descargar la factura");
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!invoiceData) return;
+
+    const linkSource = `data:application/pdf;base64,${invoiceData.Content}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = "factura.pdf";
+    downloadLink.click();
   };
 
   const getStatusColor = (status: string) => {
@@ -137,6 +183,33 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[#4c93f8] pt-16 relative overflow-hidden">
+      {invoiceData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Descargar Factura</h3>
+              <button
+                onClick={() => setInvoiceData(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="mb-4 text-gray-600">
+              Tu factura está lista para descargar. Haz clic en el botón para
+              comenzar la descarga.
+            </p>
+            <button
+              onClick={handleDownloadPDF}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <DownloadCloud className="w-5 h-5" />
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
         <div className="flex items-center justify-between mb-8">
           <button
@@ -155,7 +228,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
           </button>
         </div>
 
-        {/* Barra de búsqueda y filtros */}
         <div className="bg-white rounded-lg p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -175,7 +247,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
             </div>
 
-            {/* Botón de filtros */}
             <div className="relative">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -190,11 +261,9 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                 />
               </button>
 
-              {/* Panel de filtros */}
               {showFilters && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg p-4 z-50">
                   <div className="space-y-4">
-                    {/* Tipo de búsqueda */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
                         Buscar por
@@ -225,7 +294,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       </div>
                     </div>
 
-                    {/* Rango de fechas */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
                         Rango de fechas
@@ -246,7 +314,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       </div>
                     </div>
 
-                    {/* Método de pago */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
                         Método de pago
@@ -265,7 +332,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       </select>
                     </div>
 
-                    {/* Etapa de reservación */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
                         Etapa
@@ -287,7 +353,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
           </div>
         </div>
 
-        {/* Lista de Reservaciones */}
         <div
           id="bookings-report"
           className="bg-white rounded-lg overflow-hidden"
@@ -340,13 +405,36 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Link
-                        to={`/factura/${booking.id}`}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      >
-                        <Receipt className="w-4 h-4" />
-                        <span>Facturar</span>
-                      </Link>
+                      {booking.factura && (
+                        <>
+                          <button
+                            onClick={() => {
+                              handleSendFactura(booking.factura || "");
+                            }}
+                            className="flex border p-2 rounded border-sky-200 items-center gap-1 bg-sky-600 text-blue-50 font-semibold hover:text-blue-700"
+                          >
+                            <Send className="w-4 h-4" /> Enviar factura
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleDescargarFactura(booking.factura || "");
+                            }}
+                            className="flex border p-2 rounded border-sky-200 items-center gap-1 bg-sky-600 text-blue-50 font-semibold hover:text-blue-700"
+                          >
+                            <DownloadCloud className="w-4 h-4" /> Descargar
+                            factura
+                          </button>
+                        </>
+                      )}
+                      {booking.is_booking && !booking.factura && (
+                        <Link
+                          to={`/factura/${booking.id}`}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                        >
+                          <Receipt className="w-4 h-4" />
+                          <span>Facturar</span>
+                        </Link>
+                      )}
                       <Link
                         to={`/reserva/${booking.id}`}
                         className="flex items-center gap-1 text-blue-600 hover:text-blue-700"

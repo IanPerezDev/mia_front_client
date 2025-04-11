@@ -11,7 +11,7 @@ export const probando = async () => {
   console.log(bookings);
 };
 
-const useApi = () => {
+export const useApi = () => {
   const obtenerSessionCheckout = async (ID_CHECKOUT_SESSION: string) => {
     const response = await fetch(
       `${URL}${ROUTES.stripe}${ENDPOINTS.retrieve}?id_checkout=${ID_CHECKOUT_SESSION}`,
@@ -59,6 +59,17 @@ const useApi = () => {
     return json;
   };
 
+  const crearCfdi = async (cfdi: CfdiInvoice) => {
+    const response = await fetch(`${URL}/v1/mia/factura`, {
+      method: "POST",
+      headers: HEADERS_API,
+      body: JSON.stringify(cfdi),
+    });
+    const json = await response.json();
+    console.log(json);
+    return json;
+  };
+
   const obtenerClientes = async () =>
     await getFactura(ENDPOINTS.facturas.getClientes.endpoint, "");
 
@@ -82,9 +93,6 @@ const useApi = () => {
 
   const mandarCorreo = async (id_cfdi: string, email: string) =>
     postFactura(ENDPOINTS.facturas.sendEmail.endpoint, { id_cfdi, email });
-
-  const crearCfdi = async (cfdi: CfdiInvoice) =>
-    postFactura(ENDPOINTS.facturas.createCfdi.endpoint, { cfdi });
 
   const crearClient = async (client: any) =>
     postFactura(ENDPOINTS.facturas.createClient.endpoint, { client });

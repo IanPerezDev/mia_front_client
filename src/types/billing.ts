@@ -48,3 +48,108 @@ export interface CfdiInvoice {
 export interface DataInvoice {
   cfdi: CfdiInvoice;
 }
+
+export interface Root {
+  Id: string;
+  CfdiType: string;
+  Type: string;
+  Serie: string;
+  Folio: string;
+  Date: string;
+  CertNumber: string;
+  PaymentTerms: string;
+  PaymentMethod: string;
+  PaymentAccountNumber: string;
+  PaymentBankName: string;
+  ExpeditionPlace: string;
+  ExchangeRate: number;
+  Currency: string;
+  Subtotal: number;
+  Discount: number;
+  Total: number;
+  Observations: string;
+  OrderNumber: string;
+  Issuer: Issuer;
+  Receiver: Receiver;
+  Items: Item[];
+  Taxes: Tax[];
+  Complement: Complement;
+  Status: string;
+  OriginalString: string;
+}
+
+export interface Issuer {
+  FiscalRegime: string;
+  Rfc: string;
+  TaxName: string;
+  Email: string;
+  Phone: string;
+  TaxAddress: TaxAddress;
+  IssuedIn: IssuedIn;
+}
+
+export interface TaxAddress {
+  Street: string;
+  ExteriorNumber: string;
+  InteriorNumber: string;
+  Neighborhood: string;
+  ZipCode: string;
+  Municipality: string;
+  State: string;
+  Country: string;
+}
+
+export interface IssuedIn {
+  Street: string;
+  ExteriorNumber: string;
+  Neighborhood: string;
+  ZipCode: string;
+  Municipality: string;
+  State: string;
+  Country: string;
+}
+
+export interface Receiver {
+  Rfc: string;
+  Name: string;
+  Email: string;
+}
+
+export interface Item {
+  ProductCode: string;
+  IdentificationNumber: string;
+  UnitCode: string;
+  Discount: number;
+  CuentaPredial: string;
+  Quantity: number;
+  Unit: string;
+  Description: string;
+  UnitValue: number;
+  Total: number;
+}
+
+export interface Tax {
+  Total: number;
+  Name: string;
+  Rate: number;
+  Type: string;
+}
+
+export interface Complement {
+  TaxStamp: TaxStamp;
+}
+
+export interface TaxStamp {
+  Uuid: string;
+  Date: string;
+  CfdiSign: string;
+  SatCertNumber: string;
+  SatSign: string;
+  RfcProvCertif: string;
+}
+export interface DescargaFactura {
+  ContentEncoding: string;
+  ContentType: string;
+  ContentLength: number;
+  Content: string;
+}
