@@ -379,7 +379,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                 {user?.user_metadata?.full_name || 'Usuario'}
               </h1>
               <p className="text-gray-500 mb-4">{user?.email}</p>
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+              {/* <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <div className="flex items-center space-x-2 px-4 py-2 bg-blue-50 rounded-lg">
                   <Building2 className="w-5 h-5 text-blue-600" />
                   <span className="text-blue-600">{companyProfile?.company_name}</span>
@@ -392,7 +392,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                   <Briefcase className="w-5 h-5 text-blue-600" />
                   <span className="text-blue-600">{companyProfile?.industry}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

@@ -165,7 +165,7 @@ export function EmployeeForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Numero de pasaporte
+            Número de pasaporte
           </label>
           <input
             type="text"
@@ -177,7 +177,7 @@ export function EmployeeForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Numero de empleado
+            Número de empleado
           </label>
           <input
             type="text"
