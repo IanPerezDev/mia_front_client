@@ -96,7 +96,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
               <button
-                onClick={onProfileClick}
+                onClick={() =>{onProfileClick(); setIsDropdownOpen(!isDropdownOpen)}}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <User2 className="w-4 h-4" />
@@ -110,7 +110,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <span>Dashboard</span>
               </Link>
               <button
-                onClick={onConfigurationClick}
+                onClick={() => {onConfigurationClick(); setIsDropdownOpen(!isDropdownOpen)}}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
@@ -118,7 +118,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
               <div className="border-t border-gray-100 my-1"></div>
               <button
-                onClick={onLogout}
+                onClick={() => {onLogout(); setIsDropdownOpen(!isDropdownOpen)}}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
               >
                 <LogOut className="w-4 h-4" />

@@ -414,7 +414,7 @@ const ResponsiveChat = () => {
                         para Viajes Corporativos.
                       </h2>
                       <div className="fixed bottom-10 right-10 flex flex-row items-center gap-x-3 text-lg">
-                        Mia Ahora en WhatsApp!
+                        MIA Ahora en WhatsApp!
                         <a
                           href="https://wa.me/525520951970?text=Hola,%20necesito%20que%20me%20ayudes%20a%20realizar%20una%20reserva"
                           target="_blank"
