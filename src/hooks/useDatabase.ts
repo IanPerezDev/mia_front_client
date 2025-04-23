@@ -111,11 +111,11 @@ export const createNewEmpresa = async (data: any, id: string) => {
         razon_social: data.razon_social,
         nombre_comercial: data.nombre_comercial,
         tipo_persona: data.tipo_persona,
-        calle: data.calle || null,
-        colonia: data.colonia || null,
-        estado: data.estado || null,
-        municipio: data.municipio || null,
-        codigo_postal: data.codigo_postal || null,
+        calle: data.empresa_direccion || null,
+        colonia: data.empresa_colonia || null,
+        estado: data.empresa_estado || null,
+        municipio: data.empresa_municipio || null,
+        codigo_postal: data.empresa_cp || null,
       }),
     });
 
@@ -124,6 +124,44 @@ export const createNewEmpresa = async (data: any, id: string) => {
       return {
         success: true,
         empresa_id: json.data.id_empresa,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateEmpresa = async (data: any, empresaId: string, id: string) => {
+  try {
+    const response = await fetch(`${URL}/v1/mia/empresas/`, {
+      method: "PUT", // o "PATCH" dependiendo de tu API
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_empresa: empresaId,
+        agente_id: id,
+        razon_social: data.razon_social,
+        nombre_comercial: data.nombre_comercial,
+        tipo_persona: data.tipo_persona,
+        calle: data.empresa_direccion || null,
+        colonia: data.empresa_colonia || null,
+        estado: data.empresa_estado || null,
+        municipio: data.empresa_municipio || null,
+        codigo_postal: data.empresa_cp || null,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.message === "Empresa actualizada correctamente") { // Ajusta este mensaje según tu API
+      return {
+        success: true,
+        empresa_id: empresaId, // Devolvemos el mismo ID ya que es una actualización
       };
     } else {
       return {
@@ -412,6 +450,54 @@ export const createNewViajero = async (data: any, id_empresa: string[]) => {
   }
 };
 
+export const updateViajero = async (data: any, id_empresa: string[], id_viajero: string) => {
+  let fechaFormateada = "";
+  if (data.fecha_nacimiento) {
+    const fechaNacimiento = new Date(data.fecha_nacimiento);
+    fechaFormateada = fechaNacimiento.toISOString().split("T")[0] + " 00:00:00";
+  }
+
+  try {
+    console.log(data);
+    const response = await fetch(`${URL}/v1/mia/viajeros`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_viajero: id_viajero,
+        id_empresas: id_empresa,
+        primer_nombre: data.primer_nombre.toUpperCase(),
+        segundo_nombre: data.segundo_nombre ? data.segundo_nombre.toUpperCase() : null,
+        apellido_paterno: data.apellido_paterno.toUpperCase(),
+        apellido_materno: data.apellido_materno ? data.apellido_materno.toUpperCase() : null,
+        correo: data.correo ? data.correo : null,
+        telefono: data.telefono ? data.telefono : null,
+        genero: data.genero ? data.genero : null,
+        fecha_nacimiento: fechaFormateada ? fechaFormateada : null,
+        nacionalidad: data.nacionalidad ? data.nacionalidad: null,
+        numero_pasaporte: data.numero_pasaporte ? data.numero_pasaporte : null,
+        numero_empleado: data.numero_empleado ? data.numero_empleado : null,
+      }),
+    });
+
+    const json = await response.json();
+    console.log(json);
+    if (json.message === "Viajero actualizado correctamente") {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getCompaniesAgent = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener empresas");
@@ -535,6 +621,50 @@ export const getPagosAgente = async (agent_id: string) => {
       `${URL}/v1/mia/pagos/pagosAgente?id_agente=${encodeURIComponent(
         agent_id
       )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getPendientesAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/pagos/pendientesAgente?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getHoteles = async () => {
+  try {
+    console.log("En proceso de obtener hoteles");
+    const response = await fetch(
+      `${URL}/v1/mia/hoteles/hotelesWithTarifa`,
       {
         method: "GET",
         headers: {

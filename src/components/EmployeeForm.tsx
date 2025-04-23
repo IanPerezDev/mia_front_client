@@ -51,6 +51,7 @@ export function EmployeeForm({
       numero_empleado: formData.get('numero_empleado') as string,
       numero_pasaporte: formData.get('numero_pasaporte') as string,
       nacionalidad: formData.get('nacionalidad') as string,
+      id_viajero: initialData?.id_viajero,
     };
 
     onSubmit(data);
@@ -95,7 +96,7 @@ export function EmployeeForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Segundo nombre
+            Segundo Nombre
           </label>
           <input
             type="text"
@@ -130,7 +131,7 @@ export function EmployeeForm({
         </div>
         <div className='md:col-span-2'>
           <label className="block text-sm font-medium text-gray-700">
-            Correo electronico
+            Correo Electronico
           </label>
           <input
             type="email"
@@ -154,18 +155,22 @@ export function EmployeeForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Fecha de nacimiento
+            Fecha de Nacimiento
           </label>
           <input
             type="date"
             name="fecha_nacimiento"
-            defaultValue={initialData?.fecha_nacimiento}
+            defaultValue={
+              initialData?.fecha_nacimiento 
+                ? new Date(initialData.fecha_nacimiento).toISOString().split('T')[0] 
+                : ''
+            }
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Número de pasaporte
+            Número de Pasaporte
           </label>
           <input
             type="text"
@@ -177,7 +182,7 @@ export function EmployeeForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Número de empleado
+            Número de Empleado
           </label>
           <input
             type="text"
