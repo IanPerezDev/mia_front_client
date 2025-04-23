@@ -30,9 +30,11 @@ import {
   BookOpenText,
 } from 'lucide-react';
 import type { UserPreferences, PaymentHistory } from '../types';
-import { fetchPaymentMethods, fetchPagosAgent } from "../hooks/useFetch";
+import { fetchPaymentMethods, fetchPagosAgent, fetchCreditAgent, fetchPendientesAgent } from "../hooks/useFetch";
 import type { PaymentMethod } from "../types";
 import { loadStripe } from "@stripe/stripe-js";
+import PendingPaymentsTable from '../components/PendingPaymentsTable';
+import { Payment, PaymentFormData } from '../types';
 import {
   Elements,
   useStripe,
@@ -162,18 +164,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
   const [companyProfile, setCompanyProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
+  const [paymentsPendientes, setPaymentsPendientes] = useState<PaymentHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [editedPreferences, setEditedPreferences] = useState<Partial<UserPreferences>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'payments' | 'payments-history'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'payments' | 'payments-history' | 'payments-pendientes'>('profile');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [trigger, setTrigger] = useState(0);
   const [message, setMessage] = useState("");
+  const [creditoValue, setCreditoValue] = useState([]);
 
+  const fetchCredit = async () => {
+    const data = await fetchCreditAgent();
+    console.log("Credito del agente", data);
+    setCreditoValue(data);
+  };
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -219,6 +228,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
 
     fetchUserData();
+    fetchCredit();
   }, []);
 
   useEffect(() => {
@@ -228,6 +238,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       setPaymentMethods(data);
       const paymentsData = await fetchPagosAgent();
       setPayments(paymentsData);
+      const pendientesData = await fetchPendientesAgent();
+      console.log(pendientesData)
+      setPaymentsPendientes(pendientesData);
     };
     fetchData();
   }, [trigger])
@@ -350,6 +363,35 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
     }
   };
 
+  const handleMakePayment = (paymentId: string, formData: PaymentFormData) => {
+    // Find the payment
+    const paymentIndex = payments.findIndex(p => p.id === paymentId);
+
+    if (paymentIndex === -1) return;
+
+    // Parse amount to number
+    const amountPaid = parseFloat(formData.amount);
+
+    // Clone the payments array
+    const updatedPayments = [...payments];
+
+    // Update the payment
+    updatedPayments[paymentIndex] = {
+      ...updatedPayments[paymentIndex],
+      remainingBalance: Math.max(0, updatedPayments[paymentIndex].remainingBalance - amountPaid),
+      // If payment is fully paid, you might want to update status
+      status: amountPaid >= updatedPayments[paymentIndex].remainingBalance
+        ? 'Processing'
+        : updatedPayments[paymentIndex].status
+    };
+
+    // Update state
+    setPayments(updatedPayments);
+
+    // In a real app, you would call an API to process the payment
+    console.log(`Payment of ${amountPaid} made for ${paymentId} using ${formData.paymentMethod}`);
+  };
+
   const handleAddMethod = () => {
     setShowAddPaymentForm(true);
   };
@@ -440,6 +482,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
             <BookOpenText className="w-5 h-5" />
             <span>Historial de pagos</span>
           </button>
+
+          {creditoValue[0]?.tiene_credito_consolidado == 1 && (<button
+            onClick={() => setActiveTab('payments-pendientes')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments-pendientes'
+              ? 'bg-white text-blue-600'
+              : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+          >
+            <Clock className="w-5 h-5" />
+            <span>Pagos pendientes</span>
+          </button>)}
         </div>
 
         {/* Content Sections */}
@@ -823,6 +876,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         )}
                       </div>
                     ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500">No hay pagos registrados</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === 'payments-pendientes' && (
+              <div className="bg-white rounded-xl shadow-lg p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Pagos pendientes
+                  </h2>
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <Clock className="w-5 h-5" />
+                    <span>Últimas transacciones</span>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {payments.length > 0 ? (
+                    <PendingPaymentsTable
+                      payments={paymentsPendientes}
+                      onMakePayment={handleMakePayment}
+                    />
                   ) : (
                     <div className="text-center py-12">
                       <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />

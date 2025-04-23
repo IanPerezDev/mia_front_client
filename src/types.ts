@@ -149,3 +149,50 @@ export interface PaymentMethod {
 export type PolicyType = 'budget' | 'schedule' | 'benefits' | 'other';
 export type PolicyStatus = 'active' | 'inactive' | 'draft' | 'expired';
 export type FormMode = 'create' | 'edit';
+export type PaymentStatus = 'pending' | 'complete' | 'canceled';
+
+export type PaymentMethodd = 'Credit Card' | 'Bank Transfer' | 'PayPal' | 'Crypto';
+
+export interface Payment {
+  id_credito: string;
+  id_servicio: string;
+  monto_a_credito: number;
+  responsable_pago_agente: string;
+  fecha_credito: Date | string;
+  pago_por_credito: number;
+  pendiente_por_cobrar: number;
+  total_credito: number;
+  subtotal_credito: number;
+  impuestos_credito: number;
+  concepto: string;
+  currency: string;
+  tipo_de_pago: string;
+
+  // Campos de servicios
+  total_servicio: number;
+  subtotal_servicio: number;
+  impuestos_servicio?: number | null;
+  fecha_limite_pago?: Date | string | null;
+  is_credito?: boolean;
+
+  // Campos de solicitudes
+  id_solicitud: string;
+  confirmation_code: string;
+  id_viajero: string;
+  hotel?: string | null;
+  check_in: Date | string;
+  check_out: Date | string;
+  room?: string | null;
+  estado_solicitud: 'pending' | 'complete' | 'canceled';
+  id_usuario_generador: string;
+
+  // Campos calculados (opcionales si los incluyes en la vista)
+  saldo_pendiente?: number;
+  dias_para_limite_pago?: number;
+  noches_reservadas?: number;
+}
+
+export interface PaymentFormData {
+  amount: string;
+  paymentMethod: PaymentMethodd;
+}

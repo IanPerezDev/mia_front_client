@@ -23,6 +23,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
   const [calle, setCalle] = useState(initialData?.empresa_direccion || '');
   const [colonia, setColonia] = useState(initialData?.empresa_colonia || '');
   const [codigoPostal, setCodigoPostal] = useState(initialData?.empresa_cp || '');
+  const [idEmpresa, setIdEmpresa] = useState(initialData?.id_empresa || '');
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
@@ -61,6 +62,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
       empresa_estado: estado,
       empresa_municipio: municipio,
       empresa_cp: formData.get('codigo_postal') as string,
+      id_empresa: idEmpresa,
     };
 
     onSubmit(data);

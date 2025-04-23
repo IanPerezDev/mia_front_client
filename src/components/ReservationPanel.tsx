@@ -469,6 +469,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
         },
         body: JSON.stringify({
           id_servicio: idServicio,
+          monto_a_credito: bookingData.room?.totalPrice,
           responsable_pago_agente: id_agente,
           fecha_creacion: new Date().toISOString().split('T')[0],
           pago_por_credito: bookingData.room?.totalPrice,
@@ -476,10 +477,10 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
           total: bookingData.room?.totalPrice,
           subtotal: bookingData.room?.totalPrice * 0.84,
           impuestos: bookingData.room?.totalPrice * 0.16,
+          concepto: "Reservacion en " + bookingData.hotel?.name,
+          currency: "mxn",
           tipo_de_pago: "credito",
           credito_restante: creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice,
-          concepto: "Reservacion en " + bookingData.hotel?.name,
-          monto_a_credito: bookingData.room?.totalPrice
         }),
       });
       console.log(response);
@@ -580,7 +581,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                       ) : (
                         <>
                           <ul className="space-y-3 mb-6">
-                            {paymentMethods.map((method) => (
+                            {paymentMethods.length > 0 && (paymentMethods.map((method) => (
                               <li
                                 key={method.id}
                                 onClick={() => setSelectedMethod(method.id)}
@@ -628,7 +629,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                                   </button>
                                 </div>
                               </li>
-                            ))}
+                            )))}
                             <li
                               onClick={handleAddMethod}
                               className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"

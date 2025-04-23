@@ -1,5 +1,5 @@
 import { supabase } from "../services/supabaseClient";
-import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales, getPaymentMethods, getCreditAgent, getPagosAgente } from "./useDatabase";
+import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales, getPaymentMethods, getCreditAgent, getPagosAgente, getHoteles, getPendientesAgente } from "./useDatabase";
 
 export const fetchCompaniesAgent = async () => {
   try {
@@ -76,9 +76,8 @@ export const fetchPagosAgent = async () => {
     const { data: user, error: userError } = await supabase.auth.getUser();
     if (userError) throw userError;
     if (!user) throw new Error("No hay usuario autenticado");
-    console.log("fsfasfas")
     const paymentData = await getPagosAgente(user.user.id);
-    
+
     console.log(paymentData);
     return paymentData || [];
   } catch (error) {
@@ -86,3 +85,30 @@ export const fetchPagosAgent = async () => {
     return [];
   }
 };
+
+export const fetchPendientesAgent = async () => {
+  try {
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error("No hay usuario autenticado");
+    const paymentData = await getPendientesAgente(user.user.id);
+
+    console.log(paymentData);
+    return paymentData || [];
+  } catch (error) {
+    console.error("Error fetching credit:", error);
+    return [];
+  }
+};
+
+export const fetchHoteles = async () => {
+  try {
+    const hotelsData = await getHoteles();
+
+    console.log(hotelsData);
+    return hotelsData || [];
+  } catch (error) {
+    console.error("Error fetching hoteles:", error);
+    return [];
+  }
+}

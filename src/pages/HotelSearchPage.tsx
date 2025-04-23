@@ -2,19 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { Search, MapPin, Hotel, Coffee, Users, ArrowLeft, Filter, CreditCard, ChevronDown, ChevronUp, Bed, Shield as Child } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { fetchHoteles } from '../hooks/useFetch';
 
 interface Hotel {
-  id_interno: number;
-  ID: number;
-  "TIPO DE NEGOCIACION": string;
-  MARCA: string;
-  ESTADO: string;
-  "CIUDAD / ZONA": string;
-  "TARIFA HAB SENCILLA Q": number;
-  "TARIFA HAB DOBLE QQ": number;
-  "MENORES DE EDAD": string;
-  Desayuno: string;
-  IMAGES: string;
+  id_hotel: string;
+  hotel: string;
+  direccion?: string;
+  latitud?: string;
+  longitud?: string;
+  estado: string;
+  ciudad: string;
+  menores_de_edad?: string;
+  precio_persona_extra?: string;
+  desayuno_incluido?: string;
+  desayuno_comentarios?: string;
+  transportacion?: string;
+  URLImagenHotel?: string;
+  URLImagenHotelQ?: string;
+  URLImagenHotelQQ?: string;
+  activo?: number;
+  codigo_postal?: string;
+  Colonia?: string;
+  precio_sencillo?: number;
+  precio_doble?: number;
+  precio_triple?: number;
+  precio_cuadruple?: number;
 }
 
 interface HotelSearchPageProps {
@@ -44,27 +56,27 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
   const fetchHotels = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('hoteles')
-        .select('*')
-        .order('MARCA', { ascending: true });
+
+      const { data, error } = await fetchHoteles();
+      console.log("Hotels data:", data);
+      setHotels(data);
 
       if (error) throw error;
 
       setHotels(data || []);
-      
+
       // Initially show only 3 random hotels
       const randomHotels = [...(data || [])]
         .sort(() => 0.5 - Math.random())
         .slice(0, 3);
-      
+
       setFilteredHotels(data || []);
       setDisplayedHotels(randomHotels);
 
       // Extract unique values for filters
-      const uniqueStates = [...new Set(data?.map(hotel => hotel.ESTADO) || [])];
-      const uniqueCities = [...new Set(data?.map(hotel => hotel["CIUDAD / ZONA"]) || [])];
-      const uniqueBrands = [...new Set(data?.map(hotel => hotel.MARCA) || [])];
+      const uniqueStates = [...new Set(data?.map(hotel => hotel.estado) || [])];
+      const uniqueCities = [...new Set(data?.map(hotel => hotel.ciudad) || [])];
+      const uniqueBrands = [...new Set(data?.map(hotel => hotel.hotel) || [])];
 
       setStates(uniqueStates.sort());
       setCities(uniqueCities.sort());
@@ -89,26 +101,26 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
     // Search term filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(hotel => 
-        hotel.MARCA.toLowerCase().includes(searchLower) ||
-        hotel["CIUDAD / ZONA"].toLowerCase().includes(searchLower) ||
-        hotel.ESTADO.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(hotel =>
+        hotel.hotel.toLowerCase().includes(searchLower) ||
+        hotel.ciudad.toLowerCase().includes(searchLower) ||
+        hotel.estado.toLowerCase().includes(searchLower)
       );
     }
 
     // State filter
     if (selectedState) {
-      filtered = filtered.filter(hotel => hotel.ESTADO === selectedState);
+      filtered = filtered.filter(hotel => hotel.estado === selectedState);
     }
 
     // City filter
     if (selectedCity) {
-      filtered = filtered.filter(hotel => hotel["CIUDAD / ZONA"] === selectedCity);
+      filtered = filtered.filter(hotel => hotel.ciudad === selectedCity);
     }
 
     // Brand filter
     if (selectedBrand) {
-      filtered = filtered.filter(hotel => hotel.MARCA === selectedBrand);
+      filtered = filtered.filter(hotel => hotel.hotel === selectedBrand);
     }
 
     setDisplayedHotels(filtered);
@@ -275,14 +287,14 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedHotels.map((hotel) => (
                 <div
-                  key={hotel.id_interno}
+                  key={hotel.id_hotel}
                   className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
                 >
                   {/* Hotel Image */}
                   <div className="relative h-48">
                     <img
-                      src={hotel.IMAGES || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
-                      alt={hotel.MARCA}
+                      src={hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
+                      alt={hotel.hotel}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-4 right-4">
@@ -295,22 +307,22 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                   {/* Hotel Info */}
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {hotel.MARCA}
+                      {hotel.hotel}
                     </h3>
                     <div className="flex items-center text-gray-500 mb-4">
                       <MapPin className="w-4 h-4 mr-1" />
-                      <span>{hotel["CIUDAD / ZONA"]}, {hotel.ESTADO}</span>
+                      <span>{hotel.ciudad}, {hotel.estado}</span>
                     </div>
 
                     {/* Amenities */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div className="flex items-center text-gray-600">
                         <Coffee className="w-4 h-4 mr-2" />
-                        <span>{hotel.Desayuno === 'SI' ? 'Incluye desayuno' : 'Sin desayuno'}</span>
+                        <span>{hotel.desayuno_incluido === 'SI' ? 'Incluye desayuno' : 'Sin desayuno'}</span>
                       </div>
                       <div className="flex items-center text-gray-600">
                         <Child className="w-4 h-4 mr-2" />
-                        <span>{hotel["MENORES DE EDAD"]}</span>
+                        <span>{hotel.menores_de_edad}</span>
                       </div>
                     </div>
 
@@ -322,7 +334,7 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                           <span>Habitación Sencilla</span>
                         </div>
                         <span className="font-bold text-gray-900">
-                          {formatPrice(hotel["TARIFA HAB SENCILLA Q"])}
+                          {formatPrice(hotel.precio_sencillo)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -331,7 +343,7 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                           <span>Habitación Doble</span>
                         </div>
                         <span className="font-bold text-gray-900">
-                          {formatPrice(hotel["TARIFA HAB DOBLE QQ"])}
+                          {formatPrice(hotel.precio_doble)}
                         </span>
                       </div>
                     </div>

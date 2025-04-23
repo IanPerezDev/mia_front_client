@@ -73,17 +73,28 @@ const formatDate = (dateStr: string | null) => {
 };
 
 interface Hotel {
-  id_interno: number;
-  ID: number;
-  "TIPO DE NEGOCIACION": string;
-  MARCA: string;
-  ESTADO: string;
-  "CIUDAD / ZONA": string;
-  "TARIFA HAB SENCILLA Q": number;
-  "TARIFA HAB DOBLE QQ": number;
-  "MENORES DE EDAD": string;
-  Desayuno: string;
-  IMAGES: string;
+  id_hotel: string;
+  hotel: string;
+  direccion?: string;
+  latitud?: string;
+  longitud?: string;
+  estado: string;
+  ciudad: string;
+  menores_de_edad?: string;
+  precio_persona_extra?: string;
+  desayuno_incluido?: string;
+  desayuno_comentarios?: string;
+  transportacion?: string;
+  URLImagenHotel?: string;
+  URLImagenHotelQ?: string;
+  URLImagenHotelQQ?: string;
+  activo?: number;
+  codigo_postal?: string;
+  Colonia?: string;
+  precio_sencillo?: number;
+  precio_doble?: number;
+  precio_triple?: number;
+  precio_cuadruple?: number;
 }
 
 interface ReservationData {
@@ -194,7 +205,7 @@ const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
 
 
   const payment_metadata = {
-    hotel_name: hotel.MARCA,
+    hotel_name: hotel.hotel,
     check_in: reservationData.checkIn,
     check_out: reservationData.checkOut,
     room_type: reservationData.roomType,
@@ -209,11 +220,11 @@ const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
         price_data: {
           currency: "mxn",
           product_data: {
-            name: hotel.MARCA,
-            description: `Reservación en ${hotel.MARCA} - ${reservationData.roomType === 'single' ? 'Habitación Sencilla' : 'Habitación Doble'
+            name: hotel.hotel,
+            description: `Reservación en ${hotel.hotel} - ${reservationData.roomType === 'single' ? 'Habitación Sencilla' : 'Habitación Doble'
               }`,
             images: [
-              hotel.IMAGES || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+              hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
             ],
           },
           unit_amount: Math.round(reservationData.totalPrice * 100),
@@ -289,7 +300,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         if (user?.user_metadata?.full_name) {
           setReservationData(prev => ({
             ...prev,
-            mainGuest: user.user_metadata.full_name
+            mainGuest: reservationData.mainGuest
           }));
         }
       });
@@ -316,8 +327,8 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
     const pricePerNight = roomType === 'single'
-      ? hotel["TARIFA HAB SENCILLA Q"]
-      : hotel["TARIFA HAB DOBLE QQ"];
+      ? hotel.precio_sencillo
+      : hotel.precio_doble;
 
     return {
       nights,
@@ -360,13 +371,13 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
 
       // Get the first image URL from additionalImages
       const imageUrl =
-        hotel?.IMAGES ||
+        hotel?.URLImagenHotel ||
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
       const numerosAleatorios = Math.floor(100000 + Math.random() * 900000); // Genera un número de 6 dígitos
       const responseSolicitud = await crearSolicitud(
         {
           confirmation_code: `RES-${numerosAleatorios}`,
-          hotel_name: hotel?.MARCA,
+          hotel_name: hotel?.hotel,
           dates: {
             checkIn: reservationData.checkIn,
             checkOut: reservationData.checkOut,
@@ -479,7 +490,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         method?.card.last4,
         method?.card?.funding || "xddd",
         "tarjeta",
-        "Reservacion en " + hotel?.MARCA,
+        "Reservacion en " + hotel?.hotel,
         responsePayment.paymentIntent.client_secret,
         responsePayment.paymentIntent.currency
       );
@@ -504,8 +515,10 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
       if (!idServicio) {
         throw new Error("No se pudo obtener el idServicio para el pago");
       }
+
       const { data } = await supabase.auth.getUser();
       const id_agente = data.user?.id;
+
       const response = await fetch(`${URL}/v1/mia/pagos/credito`, {
         method: "POST",
         headers: {
@@ -514,6 +527,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         },
         body: JSON.stringify({
           id_servicio: idServicio,
+          monto_a_credito: reservationData.totalPrice,
           responsable_pago_agente: id_agente,
           fecha_creacion: new Date().toISOString().split('T')[0],
           pago_por_credito: reservationData.totalPrice,
@@ -521,12 +535,15 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           total: reservationData.totalPrice,
           subtotal: reservationData.totalPrice * 0.84,
           impuestos: reservationData.totalPrice * 0.16,
+          concepto: "Reservacion en " + hotel?.hotel,
+          // Campos adicionales según la tabla
+          currency: "mxn",
           tipo_de_pago: "credito",
-          credito_restante: creditoValue[0]?.monto_credito_agente - reservationData.totalPrice,
-          concepto: "Reservacion en " + hotel?.MARCA,
-          monto_a_credito: reservationData.totalPrice
+          // Para actualizar el crédito del agente
+          credito_restante: creditoValue[0]?.monto_credito_agente - reservationData.totalPrice
         }),
       });
+
       console.log(response);
       if (!response.ok) {
         throw new Error("Error al procesar el pago por credito");
@@ -578,14 +595,14 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
           <div className="relative h-64">
             <img
-              src={hotel.IMAGES || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
-              alt={hotel.MARCA}
+              src={hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
+              alt={hotel.hotel}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h1 className="text-3xl font-bold mb-2">{hotel.MARCA}</h1>
-              <p className="text-white/90">{hotel["CIUDAD / ZONA"]}, {hotel.ESTADO}</p>
+              <h1 className="text-3xl font-bold mb-2">{hotel.hotel}</h1>
+              <p className="text-white/90">{hotel.ciudad}, {hotel.estado}</p>
             </div>
           </div>
         </div>
@@ -600,23 +617,23 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
                     <Hotel className="w-5 h-5 text-blue-600 mt-1" />
-                    <div>
+                    {/* <div>
                       <p className="font-medium text-gray-900">Tipo de Negociación</p>
                       <p className="text-gray-600">{hotel["TIPO DE NEGOCIACION"]}</p>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="flex items-start space-x-3">
                     <Users className="w-5 h-5 text-blue-600 mt-1" />
                     <div>
                       <p className="font-medium text-gray-900">Menores de Edad</p>
-                      <p className="text-gray-600">{hotel["MENORES DE EDAD"]}</p>
+                      <p className="text-gray-600">{hotel.menores_de_edad}</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <Coffee className="w-5 h-5 text-blue-600 mt-1" />
                     <div>
                       <p className="font-medium text-gray-900">Desayuno</p>
-                      <p className="text-gray-600">{hotel.Desayuno === 'SI' ? 'Incluido' : 'No incluido'}</p>
+                      <p className="text-gray-600">{hotel.desayuno_incluido === 'SI' ? 'Incluido' : 'No incluido'}</p>
                     </div>
                   </div>
                 </div>
@@ -633,7 +650,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                         <span className="font-medium text-gray-900">Habitación Sencilla</span>
                       </div>
                       <span className="text-lg font-bold text-blue-600">
-                        {formatPrice(hotel["TARIFA HAB SENCILLA Q"])}
+                        {formatPrice(hotel.precio_sencillo)}
                       </span>
                     </div>
                     <p className="text-sm text-blue-600">Capacidad máxima: 2 personas</p>
@@ -646,7 +663,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                         <span className="font-medium text-gray-900">Habitación Doble</span>
                       </div>
                       <span className="text-lg font-bold text-indigo-600">
-                        {formatPrice(hotel["TARIFA HAB DOBLE QQ"])}
+                        {formatPrice(hotel.precio_doble)}
                       </span>
                     </div>
                     <p className="text-sm text-indigo-600">Capacidad máxima: 4 personas</p>
@@ -885,7 +902,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     ) : (
                       <>
                         <ul className="space-y-3 mb-6">
-                          {paymentMethods.map((method) => (
+                          {paymentMethods.length > 0 && (paymentMethods.map((method) => (
                             <li
                               key={method.id}
                               onClick={() => setSelectedMethod(method.id)}
@@ -933,7 +950,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                                 </button>
                               </div>
                             </li>
-                          ))}
+                          )))}
                           <li
                             onClick={handleAddMethod}
                             className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"

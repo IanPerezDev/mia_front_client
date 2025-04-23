@@ -7,7 +7,7 @@ import { TagForm } from '../components/TagForm';
 import { PolicyForm } from '../components/PolicyForm';
 import { DatosFiscalesForm } from '../components/DatosFiscalesForm';
 import { FiscalDataModal } from '../components/FiscalDataModal';
-import { createNewEmpresa, createNewViajero, createNewDatosFiscales } from '../hooks/useDatabase';
+import { createNewEmpresa, createNewViajero, createNewDatosFiscales, updateEmpresa, updateViajero } from '../hooks/useDatabase';
 import { fetchCompaniesAgent, fetchViajerosCompanies, fetchEmpresasDatosFiscales } from '../hooks/useFetch';
 import {
   Building2,
@@ -153,7 +153,7 @@ export const Configuration = () => {
   const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy' | 'taxInfo', data: any) => {
     const id = formMode === 'create' ? crypto.randomUUID() : selectedItem.id;
     const newData = { ...data, id };
-
+    console.log(data)
     switch (type) {
       case 'company':
         if (formMode === 'create') {
@@ -174,12 +174,26 @@ export const Configuration = () => {
             console.error("Error creando nueva empresa", error);
           }
         } else {
-          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await updateEmpresa(data, data.id_empresa, user.user.id);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo actualizar a la empresa");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error actualizando la empresa", error);
+          }
         }
         break;
       case 'employee':
         if (formMode === 'create') {
-          console.log(data);
           try {
             const { data: user, error: userError } = await supabase.auth.getUser();
             if (userError) {
@@ -197,7 +211,22 @@ export const Configuration = () => {
             console.error("Error creando al nuevo viajero", error);
           }
         } else {
-          setEmployees(employees.map((e) => (e.id_viajero === id ? newData : e)));
+          try {
+            const { data: user, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseCompany = await updateViajero(data, data.id_empresas, data.id_viajero);
+            if (!responseCompany.success) {
+              throw new Error("No se pudo actualizar al viajero");
+            }
+            console.log(responseCompany);
+          } catch (error) {
+            console.error("Error actualizando viajero", error);
+          }
         }
         break;
 
@@ -361,7 +390,7 @@ export const Configuration = () => {
                 <BookOpenText className="mr-2 h-5 w-5" />
                 Datos fiscales
               </button> */}
-              <button
+              {/*<button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
                   ? 'border-blue-500 text-blue-600'
@@ -370,8 +399,8 @@ export const Configuration = () => {
               >
                 <Tags className="mr-2 h-5 w-5" />
                 Etiquetas
-              </button>
-              <button
+              </button>*/}
+              {/*<button
                 onClick={() => setActiveTab('policies')}
                 className={`${activeTab === 'policies'
                   ? 'border-blue-500 text-blue-600'
@@ -380,7 +409,7 @@ export const Configuration = () => {
               >
                 <BookOpen className="mr-2 h-5 w-5" />
                 Politicas
-              </button>
+              </button>*/}
               <button
                 onClick={() => setActiveTab('notifications')}
                 className={`${activeTab === 'notifications'
@@ -619,7 +648,7 @@ export const Configuration = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                               {employee.fecha_nacimiento ? new Date(employee.fecha_nacimiento).toLocaleDateString():""}
+                              {employee.fecha_nacimiento ? new Date(employee.fecha_nacimiento).toLocaleDateString() : ""}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {employee.correo}
