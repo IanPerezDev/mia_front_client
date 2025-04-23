@@ -205,10 +205,12 @@ const GraphContainer = ({
         .filter((obj) => obj.mes.includes(`${selectedMonth}`))
         .map((obj, index) => ({
           name: obj.hotel,
-          amount: obj.total_gastado,
+          amount: Number(obj.total_gastado),
           color: `bg-cyan-${index + 1}00`,
         })),
     },
+  ];
+  let summary1 = [
     {
       name: "Noches",
       data: data
@@ -224,8 +226,9 @@ const GraphContainer = ({
   console.log(summary);
 
   return (
-    <div className="col-span-2">
+    <div className="col-span-4 flex gap-4">
       {data.length > 0 && <Donut summary={summary}></Donut>}
+      {data.length > 0 && <Donut summary={summary1}></Donut>}
     </div>
   );
 };
@@ -269,7 +272,8 @@ const DashboardGrid: React.FC<{
       title: "Gasto Mensual",
       value: `$${(
         monthlyStats.reduce(
-          (accumulator, currentValue) => accumulator + currentValue.total,
+          (accumulator, currentValue) =>
+            accumulator + Number(currentValue.total),
           0
         ) || 0
       ).toLocaleString("es-MX")}`,

@@ -413,7 +413,7 @@ const ResponsiveChat = () => {
                         <br />
                         para Viajes Corporativos.
                       </h2>
-                      <div className="fixed bottom-10 right-10 flex flex-row items-center gap-x-3 text-lg">
+                      {/* <div className="fixed bottom-10 right-10 flex flex-row items-center gap-x-3 text-lg">
                         MIA Ahora en WhatsApp!
                         <a
                           href="https://wa.me/525520951970?text=Hola,%20necesito%20que%20me%20ayudes%20a%20realizar%20una%20reserva"
@@ -422,38 +422,38 @@ const ResponsiveChat = () => {
                         >
                           <Phone />
                         </a>
-                      </div>
+                      </div> */}
                       <div className="grid grid-cols-4 gap-3 mb-12">
-                        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-300">
+                        <div className=" rounded-lg p-1 transform hover:scale-105 transition-all duration-300">
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-white" />
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                              <Building2 className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-sm font-medium">
                               Empresas
                             </span>
                           </div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-300">
+                        <div className=" rounded-lg p-1 transform hover:scale-105 transition-all duration-300">
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                              <Plane className="w-5 h-5 text-white" />
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                              <Plane className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-sm font-medium">Vuelos</span>
                           </div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-300">
+                        <div className=" rounded-lg p-1 transform hover:scale-105 transition-all duration-300">
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                              <Hotel className="w-5 h-5 text-white" />
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                              <Hotel className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-sm font-medium">Hoteles</span>
                           </div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-300">
+                        <div className=" rounded-lg p-1 transform hover:scale-105 transition-all duration-300">
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                              <Calendar className="w-5 h-5 text-white" />
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                              <Calendar className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-sm font-medium">
                               Reservas
@@ -485,13 +485,13 @@ const ResponsiveChat = () => {
                           />
                           <MapPin className="absolute right-6 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white/50" />
                         </div>
-                        <button
+                        {/* <button
                           onClick={handleSendMessage}
                           className="w-full flex items-center justify-center space-x-3 bg-white text-blue-600 px-8 py-6 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 text-lg shadow-lg transform hover:-translate-y-1 hover:shadow-xl"
                         >
                           <span>Comenzar mi Viaje</span>
                           <ArrowRight className="w-6 h-6" />
-                        </button>
+                        </button> */}
                       </div>
                     </div>
 
