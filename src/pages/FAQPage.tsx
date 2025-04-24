@@ -1,5 +1,20 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus, Minus, Building2, Briefcase, CreditCard, MessageSquare, Globe, Rocket, Shield, DollarSign, Users, Sparkles } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  Building2,
+  Briefcase,
+  CreditCard,
+  MessageSquare,
+  Globe,
+  Rocket,
+  Shield,
+  DollarSign,
+  Users,
+  Sparkles,
+} from "lucide-react";
+import { SupportModal } from "../components/SupportModal";
 
 interface FAQSection {
   title: string;
@@ -15,8 +30,13 @@ interface FAQPageProps {
 }
 
 export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-  const [openQuestions, setOpenQuestions] = useState<{ [key: string]: boolean }>({});
+  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  const [openQuestions, setOpenQuestions] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [support, setSupport] = useState(false);
 
   const sections: FAQSection[] = [
     {
@@ -25,13 +45,15 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
       questions: [
         {
           question: "¿Qué es Noktos?",
-          answer: "Noktos es una empresa de tecnología enfocada en la industria de los viajes corporativos (TravelTech). Su objetivo principal es simplificar, optimizar y hacer más accesible la gestión de viajes para pequeñas y medianas empresas (PyMEs). Ofrece herramientas y modelos de precios que eliminan la incertidumbre y los procesos complicados, permitiendo que las empresas ahorren tiempo y dinero."
+          answer:
+            "Noktos es una empresa de tecnología enfocada en la industria de los viajes corporativos (TravelTech). Su objetivo principal es simplificar, optimizar y hacer más accesible la gestión de viajes para pequeñas y medianas empresas (PyMEs). Ofrece herramientas y modelos de precios que eliminan la incertidumbre y los procesos complicados, permitiendo que las empresas ahorren tiempo y dinero.",
         },
         {
           question: "¿Cuál es la visión de Noktos?",
-          answer: "Convertirse en el líder en la gestión de viajes corporativos en América Latina, ofreciendo herramientas accesibles, innovadoras y altamente personalizadas que permitan a las PyMEs crecer y operar con mayor eficiencia."
-        }
-      ]
+          answer:
+            "Convertirse en el líder en la gestión de viajes corporativos en América Latina, ofreciendo herramientas accesibles, innovadoras y altamente personalizadas que permitan a las PyMEs crecer y operar con mayor eficiencia.",
+        },
+      ],
     },
     {
       title: "Servicios y Soluciones",
@@ -43,8 +65,8 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "La Canasta de Precios Fijos es un modelo exclusivo de Noktos que:",
             "• Ofrece tarifas pre-negociadas con precios fijos",
             "• Elimina la volatilidad en los costos de hospedaje",
-            "• Optimiza la planificación de presupuestos de viaje"
-          ]
+            "• Optimiza la planificación de presupuestos de viaje",
+          ],
         },
         {
           question: "¿Cuáles son los productos clave de Noktos?",
@@ -52,10 +74,10 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "1. Canasta de Precios Fijos: Hoteles con tarifas pre-negociadas",
             "2. Productos Tradicionales: Reservas estándar",
             "3. Planes de Financiamiento: Flexibilidad para pagar en cuotas",
-            "4. Futuro: Integración de vuelos y autos de renta"
-          ]
-        }
-      ]
+            "4. Futuro: Integración de vuelos y autos de renta",
+          ],
+        },
+      ],
     },
     {
       title: "Asistente Virtual Mia",
@@ -68,8 +90,8 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "• Simplificar la gestión de viajes corporativos",
             "• Responder a solicitudes como reservas y reportes",
             "• Ofrecer sugerencias personalizadas",
-            "• Integrar múltiples funciones en una sola plataforma"
-          ]
+            "• Integrar múltiples funciones en una sola plataforma",
+          ],
         },
         {
           question: "¿Cómo Mia ayuda a las PyMEs?",
@@ -79,10 +101,10 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "• Control de Gastos en tiempo real",
             "• Reportes Automatizados",
             "• Opciones de Pago Flexibles",
-            "• Ahorro de Tiempo en reservas"
-          ]
-        }
-      ]
+            "• Ahorro de Tiempo en reservas",
+          ],
+        },
+      ],
     },
     {
       title: "Tecnología e Innovación",
@@ -94,10 +116,10 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "TravelTech es un sector que utiliza tecnología avanzada para transformar la industria de los viajes. Noktos se destaca porque:",
             "• Aplica Innovación en modelos de precios y asistentes virtuales",
             "• Facilita la Gestión integrando procesos complejos",
-            "• Se enfoca en resolver necesidades específicas de PyMEs"
-          ]
-        }
-      ]
+            "• Se enfoca en resolver necesidades específicas de PyMEs",
+          ],
+        },
+      ],
     },
     {
       title: "Seguridad y Privacidad",
@@ -110,24 +132,24 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             "• Encriptación de datos sensibles",
             "• Autenticación segura",
             "• Monitoreo continuo",
-            "• Cumplimiento con regulaciones de privacidad"
-          ]
-        }
-      ]
-    }
+            "• Cumplimiento con regulaciones de privacidad",
+          ],
+        },
+      ],
+    },
   ];
 
   const toggleSection = (title: string) => {
-    setOpenSections(prev => ({
+    setOpenSections((prev) => ({
       ...prev,
-      [title]: !prev[title]
+      [title]: !prev[title],
     }));
   };
 
   const toggleQuestion = (id: string) => {
-    setOpenQuestions(prev => ({
+    setOpenQuestions((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
@@ -136,7 +158,9 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
       return (
         <ul className="space-y-2">
           {answer.map((item, index) => (
-            <li key={index} className="text-gray-600">{item}</li>
+            <li key={index} className="text-gray-600">
+              {item}
+            </li>
           ))}
         </ul>
       );
@@ -164,27 +188,12 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             Preguntas Frecuentes
           </h1>
           <p className="text-xl text-white/80 max-w-3xl mx-auto">
-            Encuentra respuestas a las preguntas más comunes sobre Noktos y nuestros servicios
+            Encuentra respuestas a las preguntas más comunes sobre Noktos y
+            nuestros servicios
           </p>
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {[
-            { icon: Building2, text: "Sobre Noktos" },
-            { icon: CreditCard, text: "Pagos y Facturación" },
-            { icon: Users, text: "Servicio al Cliente" },
-            { icon: Sparkles, text: "Características" }
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/20 transition-all duration-300 cursor-pointer"
-            >
-              <item.icon className="w-8 h-8 text-white mx-auto mb-3" />
-              <p className="text-white font-medium">{item.text}</p>
-            </div>
-          ))}
-        </div>
 
         {/* FAQ Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -217,10 +226,15 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
               {openSections[section.title] && (
                 <div className="border-t border-gray-100">
                   {section.questions.map((q, index) => (
-                    <div key={index} className="border-b border-gray-100 last:border-b-0">
+                    <div
+                      key={index}
+                      className="border-b border-gray-100 last:border-b-0"
+                    >
                       <div
                         className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => toggleQuestion(`${section.title}-${index}`)}
+                        onClick={() =>
+                          toggleQuestion(`${section.title}-${index}`)
+                        }
                       >
                         <div className="flex items-center justify-between">
                           <h4 className="text-lg font-medium text-gray-900">
@@ -233,9 +247,7 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
                           )}
                         </div>
                         {openQuestions[`${section.title}-${index}`] && (
-                          <div className="mt-4">
-                            {renderAnswer(q.answer)}
-                          </div>
+                          <div className="mt-4">{renderAnswer(q.answer)}</div>
                         )}
                       </div>
                     </div>
@@ -252,13 +264,20 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBack }) => {
             ¿No encontraste lo que buscabas?
           </h2>
           <p className="text-white/80 mb-6">
-            Nuestro equipo está aquí para ayudarte con cualquier pregunta adicional
+            Nuestro equipo está aquí para ayudarte con cualquier pregunta
+            adicional
           </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+          <button
+            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+            onClick={() => {
+              setSupport(true);
+            }}
+          >
             Contactar Soporte
           </button>
         </div>
       </div>
+      <SupportModal isOpen={support} onClose={() => setSupport(false)} />
     </div>
   );
 };

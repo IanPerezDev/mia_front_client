@@ -522,7 +522,7 @@ const ResponsiveChat = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col h-full bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
+              <div className="flex flex-col h-full bg-gradient-to-br from-blue-500 via-blue-400 to-blue-600">
                 {/* Manual Reservation Button */}
                 <div className="p-4 bg-white/10 backdrop-blur-sm">
                   <button
