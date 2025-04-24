@@ -7,7 +7,7 @@ import { HEADERS_API, URL } from "../constants/apiConstant";
 import { useUser } from "../context/authContext";
 import Donut from "../components/Donut";
 
-// Stat Card Component
+// Componente de Tarjeta de Estadísticas
 const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
@@ -27,7 +27,7 @@ const StatCard: React.FC<StatCardProps> = ({
     </div>
   </div>
 );
-// Navigation Component
+// Componente de Navegación
 const Navigation: React.FC<{
   buttons: NavButton[];
   // selectedDashboard: number;
@@ -107,24 +107,24 @@ const Navigation: React.FC<{
     </div>
   </nav>
 );
-// Month Selector Component
+// Componente Selector de Mes
 const MonthSelector: React.FC<{
   selectedMonth: number;
   onChange: (month: string) => void;
 }> = ({ selectedMonth, onChange }) => {
   const months = [
-    { value: 1, month: "January" },
-    { value: 2, month: "February" },
-    { value: 3, month: "March" },
-    { value: 4, month: "April" },
-    { value: 5, month: "May" },
-    { value: 6, month: "June" },
-    { value: 7, month: "July" },
-    { value: 8, month: "August" },
-    { value: 9, month: "September" },
-    { value: 10, month: "October" },
-    { value: 11, month: "November" },
-    { value: 12, month: "December" },
+    { value: 1, month: "Enero" },
+    { value: 2, month: "Febrero" },
+    { value: 3, month: "Marzo" },
+    { value: 4, month: "Abril" },
+    { value: 5, month: "Mayo" },
+    { value: 6, month: "Junio" },
+    { value: 7, month: "Julio" },
+    { value: 8, month: "Agosto" },
+    { value: 9, month: "Septiembre" },
+    { value: 10, month: "Octubre" },
+    { value: 11, month: "Noviembre" },
+    { value: 12, month: "Diciembre" },
   ];
 
   return (
@@ -143,7 +143,7 @@ const MonthSelector: React.FC<{
     </div>
   );
 };
-// Year Selector Component
+// Componente Selector de Año
 const YearSelector: React.FC<{
   selectedYear: number;
   onChange: (year: number) => void;
@@ -191,7 +191,7 @@ const GraphContainer = ({
         console.log(json);
         setData(json);
       } catch (error) {
-        console.error("Error fetching monthly stats:", error);
+        console.error("Error al obtener estadísticas mensuales:", error);
       }
     };
 
@@ -294,7 +294,7 @@ const DashboardGrid: React.FC<{
         const json = await response.json();
         setMonthlyStats(json.data);
       } catch (error) {
-        console.error("Error fetching monthly stats:", error);
+        console.error("Error al obtener estadísticas mensuales:", error);
       }
     };
 
@@ -303,10 +303,10 @@ const DashboardGrid: React.FC<{
 
   return (
     <div className="flex-1 p-6">
-      {/* Monthly Stats Section */}
+      {/* Sección de Estadísticas Mensuales */}
       <div className="mb-8">
         {cards && (
-          <SectionStats title="Monthly Overview" subtitle="Statics per month">
+          <SectionStats title="Resumen Mensual" subtitle="Estadísticas por mes">
             {cards.map((card) => (
               <StatCard
                 key={card.title}
@@ -318,7 +318,7 @@ const DashboardGrid: React.FC<{
             ))}
           </SectionStats>
         )}
-        <SectionStats title="Yearly Overview" subtitle="Statics per year">
+        <SectionStats title="Resumen Anual" subtitle="Estadísticas por año">
           <GraphContainer
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
@@ -347,7 +347,7 @@ const SectionStats: React.FC<{
   );
 };
 
-// Main App Component
+// Componente Principal de la Aplicación
 export function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -356,7 +356,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Main Content */}
+      {/* Contenido Principal */}
       <div className="flex-1 flex flex-col">
         <Navigation
           buttons={navButtons}
@@ -374,7 +374,7 @@ export function Dashboard() {
             selectedYear={selectedYear}
           />
         ) : (
-          <p>User not found</p>
+          <p>Usuario no encontrado</p>
         )}
       </div>
     </div>
@@ -410,8 +410,8 @@ interface StatCardProps {
   subtitle?: string;
 }
 
-// Constants
+// Constantes
 const navButtons: NavButton[] = [
-  { id: 0, label: "Dashboard", icon: BarChart },
+  { id: 0, label: "Panel", icon: BarChart },
   { id: 1, label: "Proximamente...", icon: Clock },
 ];

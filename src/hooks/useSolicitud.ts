@@ -32,47 +32,30 @@ async function getSolicitudViajero(
         headers: HEADERS_API,
       }
     );
-    const jsondata = await response.json();
-    const viajero = jsondata[jsondata.length - 1];
-    const {
-      primer_nombre,
-      segundo_nombre,
-      apellido_paterno,
-      apellido_materno,
-    } = viajero;
-    const nombre_completo = [
-      primer_nombre,
-      segundo_nombre,
-      apellido_paterno,
-      apellido_materno,
-    ]
-      .filter((obj) => !!obj)
-      .join(" ");
+    const json = await response.json();
+    console.log(json);
 
-    const res = await fetch(`${URL}/v1/mia/solicitud/client?user_id=${user}`, {
-      method: "GET",
-      headers: HEADERS_API,
-    });
-    const json = await res.json();
     console.log("Esto es lo que esta sucediendo: ", json);
     const data = json.map((reservaDB) => {
       return {
         id: reservaDB.id_solicitud,
-        confirmation_code: reservaDB.confirmation_code,
+        confirmation_code: reservaDB.codigo_reservacion_hotel,
         hotel_name: reservaDB.hotel,
         check_in: reservaDB.check_in,
         check_out: reservaDB.check_out,
         room_type: reservaDB.room,
         total_price: reservaDB.total,
         status: reservaDB.status,
-        traveler_id: nombre_completo,
+        traveler_id: [reservaDB.primer_nombre, reservaDB.apellido_paterno]
+          .filter((obj) => !!obj)
+          .join(" "),
         created_at: reservaDB.created_at,
         image_url: "",
-        is_booking: Boolean(reservaDB.is_booking),
+        is_booking: !!reservaDB.id_booking,
         factura: reservaDB.id_facturama,
         pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
         id_pago: reservaDB.id_pago,
-        solicitud_total: reservaDB.solicitud_total
+        solicitud_total: reservaDB.total,
       };
     });
     callback(data);
