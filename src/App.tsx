@@ -31,6 +31,7 @@ import { ManualReservationPage } from "./pages/ManualReservationPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Admin } from "./pages/Admin";
 import { Configuration } from "./pages/Configuration";
+import { SupportModal } from "./components/SupportModal";
 
 const ResponsiveChat = () => {
   const [currentPage, setCurrentPage] = useState<
@@ -55,6 +56,8 @@ const ResponsiveChat = () => {
   const [showPaymentPage, setShowPaymentPage] = useState(false);
   const [showRegistrationPage, setShowRegistrationPage] = useState(false);
   const { authState, setAuthState } = useUser();
+
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   useEffect(() => {
     // Check URL for manual-reservation route
@@ -360,6 +363,12 @@ const ResponsiveChat = () => {
           onFAQClick={handleFAQClick}
           onAdminClick={handleAdminClick}
           onConfigurationClick={handleConfigurationClick}
+          onSupportClick={() => setIsSupportModalOpen(true)}
+        />
+
+        <SupportModal
+          isOpen={isSupportModalOpen}
+          onClose={() => setIsSupportModalOpen(false)}
         />
       </div>
 

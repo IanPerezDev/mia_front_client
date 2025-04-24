@@ -28,6 +28,7 @@ interface NavigationProps {
   onFAQClick: () => void;
   onAdminClick: () => void;
   onConfigurationClick: () => void;
+  onSupportClick: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -41,6 +42,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onFAQClick,
   onConfigurationClick,
   onAdminClick,
+  onSupportClick,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -72,7 +74,10 @@ export const Navigation: React.FC<NavigationProps> = ({
           <span>Mejora tu Viaje</span>
         </a> */}
 
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2">
+        <button
+          onClick={onSupportClick}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2"
+        >
           <LifeBuoy className="w-4 h-4" />
           <span>Contactar a Soporte</span>
         </button>
@@ -88,8 +93,9 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
             <span>{user?.name || "Usuario"}</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? "transform rotate-180" : ""
-                }`}
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isDropdownOpen ? "transform rotate-180" : ""
+              }`}
             />
           </button>
 
@@ -97,14 +103,20 @@ export const Navigation: React.FC<NavigationProps> = ({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
               <button
-                onClick={() => { onProfileClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onProfileClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <User2 className="w-4 h-4" />
                 <span>Mi Perfil</span>
               </button>
               <button
-                onClick={() => { onAdminClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onAdminClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <BookOpen className="w-4 h-4" />
@@ -118,7 +130,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <span>Dashboard</span>
               </Link>
               <button
-                onClick={() => { onConfigurationClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onConfigurationClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
@@ -126,7 +141,10 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
               <div className="border-t border-gray-100 my-1"></div>
               <button
-                onClick={() => { onLogout(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onLogout();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
               >
                 <LogOut className="w-4 h-4" />
@@ -260,7 +278,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <Sparkles className="w-4 h-4" />
                   <span>Mejora tu Viaje</span>
                 </a> */}
-                <button className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2">
+                <button
+                  onClick={onSupportClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
                   <LifeBuoy className="w-4 h-4" />
                   <span>Contactar a Soporte</span>
                 </button>

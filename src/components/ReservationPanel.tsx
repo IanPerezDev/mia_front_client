@@ -83,10 +83,11 @@ const getPaymentData = (bookingData: BookingData) => {
           currency: "mxn",
           product_data: {
             name: bookingData.hotel.name,
-            description: `Reservación en ${bookingData.hotel.name} - ${bookingData.room?.type === "single"
-              ? "Habitación Sencilla"
-              : "Habitación Doble"
-              }`,
+            description: `Reservación en ${bookingData.hotel.name} - ${
+              bookingData.room?.type === "single"
+                ? "Habitación Sencilla"
+                : "Habitación Doble"
+            }`,
             images: [imageToUse],
           },
           unit_amount: Math.round((bookingData.room?.totalPrice || 0) * 100),
@@ -154,8 +155,7 @@ const CheckOutForm = ({
           body: JSON.stringify({
             paymentMethodId: paymentMethod.id,
             id_agente: id_agente,
-          })
-          ,
+          }),
         });
 
         const data = await response.json();
@@ -163,8 +163,7 @@ const CheckOutForm = ({
           setMessage(data.message || "Metodo de pago guardado");
           setSuccess(false);
           handleEndSubmit();
-        }
-        else {
+        } else {
           setMessage("Ocurrio un error");
         }
       }
@@ -269,8 +268,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
     const opt = {
       margin: 1,
-      filename: `reservacion-${bookingData?.confirmationCode || "borrador"
-        }.pdf`,
+      filename: `reservacion-${
+        bookingData?.confirmationCode || "borrador"
+      }.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
@@ -353,10 +353,39 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   if (!bookingData) {
     return (
       <div className="h-full bg-white p-6 rounded-lg shadow-lg flex items-center justify-center">
-        <div className="text-center text-[#10244c]">
-          <p className="text-lg mb-2">Aún no hay detalles de la reservación</p>
-          <p className="text-sm opacity-80">
-            Los detalles se mostrarán aquí conforme avance la conversación
+        <div className="text-center text-[#10244c93]">
+          <p className="text-3xl mb-2">Aún no hay detalles de la reservación</p>
+          <p className="text-sm opacity-80 flex justify-center">
+            <span>
+              <svg
+                version="1.1"
+                id="Capa_1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                viewBox="0 0 493 539"
+                className="w-[300px] h-[300px] -rotate-12 transform text-sky-950"
+              >
+                <path
+                  fill="currentColor"
+                  d="M205.1,500.5C205.1,500.5,205,500.6,205.1,500.5C140.5,436.1,71.7,369.1,71.7,291.1 c0-86.6,84.2-157.1,187.6-157.1S447,204.4,447,291.1c0,74.8-63.4,139.6-150.8,154.1c0,0,0,0,0,0l-8.8-53.1 c61.3-10.2,105.8-52.6,105.8-100.9c0-56.9-60-103.2-133.7-103.2s-133.7,46.3-133.7,103.2c0,49.8,48,93.6,111.7,101.8c0,0,0,0,0,0 L205.1,500.5L205.1,500.5z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M341,125.5c-2.9,0-5.8-0.7-8.6-2.1c-70.3-37.3-135.9-1.7-138.7-0.2c-8.8,4.9-20,1.8-24.9-7.1 c-4.9-8.8-1.8-20,7-24.9c3.4-1.9,85.4-47.1,173.8-0.2c9,4.8,12.4,15.9,7.6,24.8C353.9,122,347.6,125.5,341,125.5z"
+                ></path>
+                <g>
+                  <path
+                    fill="currentColor"
+                    d="M248.8,263.8c-38.1-26-73.7-0.8-75.2,0.2c-6.4,4.6-8.7,14-5.3,21.8c1.9,4.5,5.5,7.7,9.8,8.9 c4,1.1,8.2,0.3,11.6-2.1c0.9-0.6,21.4-14.9,43.5,0.2c2.2,1.5,4.6,2.3,7.1,2.4c0.2,0,0.4,0,0.6,0c0,0,0,0,0,0 c5.9,0,11.1-3.7,13.5-9.7C257.8,277.6,255.4,268.3,248.8,263.8z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M348.8,263.8c-38.1-26-73.7-0.8-75.2,0.2c-6.4,4.6-8.7,14-5.3,21.8c1.9,4.5,5.5,7.7,9.8,8.9 c4,1.1,8.2,0.3,11.6-2.1c0.9-0.6,21.4-14.9,43.5,0.2c2.2,1.5,4.6,2.3,7.1,2.4c0.2,0,0.4,0,0.6,0c0,0,0,0,0,0 c5.9,0,11.1-3.7,13.5-9.7C357.8,277.6,355.4,268.3,348.8,263.8z"
+                  ></path>
+                </g>
+              </svg>
+            </span>
           </p>
         </div>
       </div>
@@ -372,10 +401,39 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   if (!hasAnyData) {
     return (
       <div className="h-full bg-white p-6 rounded-lg shadow-lg flex items-center justify-center">
-        <div className="text-center text-[#10244c]">
-          <p className="text-lg mb-2">Aún no hay detalles de la reservación</p>
-          <p className="text-sm opacity-80">
-            Los detalles se mostrarán aquí conforme avance la conversación
+        <div className="text-center text-[#10244c93]">
+          <p className="text-3xl mb-2">Aún no hay detalles de la reservación</p>
+          <p className="text-sm opacity-80 flex justify-center">
+            <span>
+              <svg
+                version="1.1"
+                id="Capa_1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                viewBox="0 0 493 539"
+                className="w-[300px] h-[300px] -rotate-12 transform text-sky-950"
+              >
+                <path
+                  fill="currentColor"
+                  d="M205.1,500.5C205.1,500.5,205,500.6,205.1,500.5C140.5,436.1,71.7,369.1,71.7,291.1 c0-86.6,84.2-157.1,187.6-157.1S447,204.4,447,291.1c0,74.8-63.4,139.6-150.8,154.1c0,0,0,0,0,0l-8.8-53.1 c61.3-10.2,105.8-52.6,105.8-100.9c0-56.9-60-103.2-133.7-103.2s-133.7,46.3-133.7,103.2c0,49.8,48,93.6,111.7,101.8c0,0,0,0,0,0 L205.1,500.5L205.1,500.5z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M341,125.5c-2.9,0-5.8-0.7-8.6-2.1c-70.3-37.3-135.9-1.7-138.7-0.2c-8.8,4.9-20,1.8-24.9-7.1 c-4.9-8.8-1.8-20,7-24.9c3.4-1.9,85.4-47.1,173.8-0.2c9,4.8,12.4,15.9,7.6,24.8C353.9,122,347.6,125.5,341,125.5z"
+                ></path>
+                <g>
+                  <path
+                    fill="currentColor"
+                    d="M248.8,263.8c-38.1-26-73.7-0.8-75.2,0.2c-6.4,4.6-8.7,14-5.3,21.8c1.9,4.5,5.5,7.7,9.8,8.9 c4,1.1,8.2,0.3,11.6-2.1c0.9-0.6,21.4-14.9,43.5,0.2c2.2,1.5,4.6,2.3,7.1,2.4c0.2,0,0.4,0,0.6,0c0,0,0,0,0,0 c5.9,0,11.1-3.7,13.5-9.7C257.8,277.6,255.4,268.3,248.8,263.8z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M348.8,263.8c-38.1-26-73.7-0.8-75.2,0.2c-6.4,4.6-8.7,14-5.3,21.8c1.9,4.5,5.5,7.7,9.8,8.9 c4,1.1,8.2,0.3,11.6-2.1c0.9-0.6,21.4-14.9,43.5,0.2c2.2,1.5,4.6,2.3,7.1,2.4c0.2,0,0.4,0,0.6,0c0,0,0,0,0,0 c5.9,0,11.1-3.7,13.5-9.7C357.8,277.6,355.4,268.3,348.8,263.8z"
+                  ></path>
+                </g>
+              </svg>
+            </span>
           </p>
         </div>
       </div>
@@ -471,7 +529,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
           id_servicio: idServicio,
           monto_a_credito: bookingData.room?.totalPrice,
           responsable_pago_agente: id_agente,
-          fecha_creacion: new Date().toISOString().split('T')[0],
+          fecha_creacion: new Date().toISOString().split("T")[0],
           pago_por_credito: bookingData.room?.totalPrice,
           pendiente_por_cobrar: bookingData.room?.totalPrice,
           total: bookingData.room?.totalPrice,
@@ -480,7 +538,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
           concepto: "Reservacion en " + bookingData.hotel?.name,
           currency: "mxn",
           tipo_de_pago: "credito",
-          credito_restante: creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice,
+          credito_restante:
+            creditoValue[0]?.monto_credito_agente -
+            bookingData.room?.totalPrice,
         }),
       });
       console.log(response);
@@ -492,7 +552,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       console.log(error);
       setSaveError("Hubo un error al procesar el pago");
     }
-  }
+  };
 
   const checkInDate = formatDate(bookingData.dates?.checkIn);
   const checkOutDate = formatDate(bookingData.dates?.checkOut);
@@ -530,10 +590,11 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
 
                       <button
                         onClick={() => window.location.reload()}
-                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                          }`}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                          selectedMethod
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
                       >
                         Continuar con MIA
                       </button>
@@ -581,55 +642,57 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                       ) : (
                         <>
                           <ul className="space-y-3 mb-6">
-                            {paymentMethods.length > 0 && (paymentMethods.map((method) => (
-                              <li
-                                key={method.id}
-                                onClick={() => setSelectedMethod(method.id)}
-                                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === method.id
-                                  ? "bg-blue-50 border-2 border-blue-500"
-                                  : "bg-gray-50 hover:bg-gray-100"
+                            {paymentMethods.length > 0 &&
+                              paymentMethods.map((method) => (
+                                <li
+                                  key={method.id}
+                                  onClick={() => setSelectedMethod(method.id)}
+                                  className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${
+                                    selectedMethod === method.id
+                                      ? "bg-blue-50 border-2 border-blue-500"
+                                      : "bg-gray-50 hover:bg-gray-100"
                                   }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <CreditCard
-                                    className={
-                                      selectedMethod === method.id
-                                        ? "text-blue-600"
-                                        : "text-gray-600"
-                                    }
-                                    size={20}
-                                  />
-                                  <div>
-                                    <p className="font-medium text-gray-800">
-                                      {method.card.brand.toUpperCase()} ••••{" "}
-                                      {method.card.last4}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      Vence {method.card.exp_month}/
-                                      {method.card.exp_year}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {selectedMethod === method.id && (
-                                    <CheckCircle2
-                                      className="text-blue-600"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <CreditCard
+                                      className={
+                                        selectedMethod === method.id
+                                          ? "text-blue-600"
+                                          : "text-gray-600"
+                                      }
                                       size={20}
                                     />
-                                  )}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteMethod(method.id);
-                                    }}
-                                    className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
-                                    aria-label="Delete payment method"
-                                  >
-                                    <Trash2 size={18} />
-                                  </button>
-                                </div>
-                              </li>
-                            )))}
+                                    <div>
+                                      <p className="font-medium text-gray-800">
+                                        {method.card.brand.toUpperCase()} ••••{" "}
+                                        {method.card.last4}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        Vence {method.card.exp_month}/
+                                        {method.card.exp_year}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {selectedMethod === method.id && (
+                                      <CheckCircle2
+                                        className="text-blue-600"
+                                        size={20}
+                                      />
+                                    )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteMethod(method.id);
+                                      }}
+                                      className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                      aria-label="Delete payment method"
+                                    >
+                                      <Trash2 size={18} />
+                                    </button>
+                                  </div>
+                                </li>
+                              ))}
                             <li
                               onClick={handleAddMethod}
                               className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
@@ -645,10 +708,11 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                           <button
                             onClick={handlePayment}
                             disabled={!selectedMethod}
-                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              }`}
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                              selectedMethod
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
                           >
                             Pagar
                           </button>
@@ -674,8 +738,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     // </Elements>
                   )}
                 </>
-              ) : creditoPayment ?
-                (<>
+              ) : creditoPayment ? (
+                <>
                   {successCreditPayment ? (
                     <>
                       <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
@@ -697,35 +761,46 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                       <h3 className="text-xl font-semibold text-gray-800 mb-6">
                         Pago con credito
                       </h3>
-                      {creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice > 0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (<div className="space-y-4">
-                        <p className="text-xl font-medium text-gray-700">
-                          Crédito Disponible:
-                          <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente}</span>
-                        </p>
+                      {creditoValue[0]?.monto_credito_agente -
+                        bookingData.room?.totalPrice >
+                        0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (
+                        <div className="space-y-4">
+                          <p className="text-xl font-medium text-gray-700">
+                            Crédito Disponible:
+                            <span className="text-2xl font-bold text-gray-900 ml-2">
+                              ${creditoValue[0]?.monto_credito_agente}
+                            </span>
+                          </p>
 
-                        <p className="text-xl font-medium text-gray-700">
-                          Monto a Pagar:
-                          <span className="text-2xl font-bold text-gray-900 ml-2">${bookingData.room?.totalPrice}</span>
-                        </p>
+                          <p className="text-xl font-medium text-gray-700">
+                            Monto a Pagar:
+                            <span className="text-2xl font-bold text-gray-900 ml-2">
+                              ${bookingData.room?.totalPrice}
+                            </span>
+                          </p>
 
-                        <p className="text-xl font-medium text-gray-700">
-                          Crédito Restante:
-                          <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente - bookingData.room?.totalPrice}</span>
-                        </p>
-                        <button
-                          onClick={handlePaymentCredito}
-                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
+                          <p className="text-xl font-medium text-gray-700">
+                            Crédito Restante:
+                            <span className="text-2xl font-bold text-gray-900 ml-2">
+                              $
+                              {creditoValue[0]?.monto_credito_agente -
+                                bookingData.room?.totalPrice}
+                            </span>
+                          </p>
+                          <button
+                            onClick={handlePaymentCredito}
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
                           bg-green-600 text-white hover:bg-green-700
                             `}
-                        >
-                          Pagar
-                        </button>
-                      </div>
-
+                          >
+                            Pagar
+                          </button>
+                        </div>
                       ) : (
                         <div className="space-y-4">
                           <p className="text-xl font-medium text-gray-700">
-                            No cuentas con crédito suficiente para pagar esta reservación
+                            No cuentas con crédito suficiente para pagar esta
+                            reservación
                           </p>
                         </div>
                       )}
@@ -750,23 +825,23 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     // </Elements>
                   )}
                 </>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      onClick={() => setCardPayment(true)}
-                    >
-                      <PaymentIcon className="w-4 h-4" />
-                      <span className="font-medium">Pagar por Stripe</span>
-                    </button>
-                    <button
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      onClick={() => setCreditoPayment(true)}
-                    >
-                      <BanknoteIcon className="w-4 h-4" />
-                      <span className="font-medium">Pagar por Crédito</span>
-                    </button>
-                    {/* <CallToBackend
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    onClick={() => setCardPayment(true)}
+                  >
+                    <PaymentIcon className="w-4 h-4" />
+                    <span className="font-medium">Pagar por Stripe</span>
+                  </button>
+                  <button
+                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    onClick={() => setCreditoPayment(true)}
+                  >
+                    <BanknoteIcon className="w-4 h-4" />
+                    <span className="font-medium">Pagar por Crédito</span>
+                  </button>
+                  {/* <CallToBackend
                     paymentData={getPaymentData(bookingData)}
                     className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     bookingData={bookingData}
@@ -774,21 +849,21 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                     <BanknoteIcon className="w-4 h-4" />
                     <span className="font-medium">Pagar por Crédito</span>
                   </CallToBackend> */}
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span className="font-medium">Descargar</span>
-                    </button>
-                  </div>
-                )}
+                  {/* <button
+                    onClick={handleDownloadPDF}
+                    className="flex items-center  justify-center space-x-2 px-4 py-3 bg-[#10244c] text-white rounded-xl hover:bg-[#10244c]/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="font-medium">Descargar</span>
+                  </button> */}
+                </div>
+              )}
 
-              {saveError && (
+              {/* {saveError && (
                 <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
                   {saveError}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
