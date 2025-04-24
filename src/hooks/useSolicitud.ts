@@ -64,7 +64,7 @@ async function getSolicitudViajero(
         check_out: reservaDB.check_out,
         room_type: reservaDB.room,
         total_price: reservaDB.total,
-        status: "completed",
+        status: reservaDB.status,
         traveler_id: nombre_completo,
         created_at: reservaDB.created_at,
         image_url: "",
@@ -72,6 +72,7 @@ async function getSolicitudViajero(
         factura: reservaDB.id_facturama,
         pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
         id_pago: reservaDB.id_pago,
+        solicitud_total: reservaDB.solicitud_total
       };
     });
     callback(data);

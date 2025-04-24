@@ -491,7 +491,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
               }`}
           >
             <Clock className="w-5 h-5" />
-            <span>Pagos pendientes</span>
+            <span>Cuentas por pagar</span>
           </button>)}
         </div>
 

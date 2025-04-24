@@ -32,7 +32,16 @@ import {
   Coins,
   Trophy,
   ArrowRight,
+  Mail,
+  User,
+  UserMinus,
+  UserCircle,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
+import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
+import { useSolicitud } from "../hooks/useSolicitud";
+import type { UserPreferences, PaymentHistory } from '../types';
 
 interface DashboardStats {
   totalUsers: number;
@@ -50,27 +59,58 @@ interface DashboardStats {
 interface Booking {
   id: string;
   confirmation_code: string;
-  user_id: string;
   hotel_name: string;
   check_in: string;
   check_out: string;
   room_type: string;
   total_price: number;
   status: string;
-  image_url?: string;
   created_at: string;
-  company_profiles?: {
-    company_name: string;
-  };
+  image_url?: string;
+  traveler_name?: string;
+  traveler_id?: string;
+  payment_method?: string;
+  booking_stage?: string;
+  id_pago: string;
+  pendiente_por_cobrar: number;
+  is_booking?: boolean;
+  factura: string | null;
+  solicitud_total: number;
+}
+
+interface Employee {
+  id_viajero: string;
+  id_agente: string;
+  primer_nombre: string;
+  segundo_nombre?: string | null;
+  apellido_paterno: string;
+  apellido_materno?: string | null;
+  correo: string;
+  genero: string;
+  telefono: string;
+  fecha_nacimiento?: string | null;
+  nacionalidad: string;
+  numero_pasaporte: string;
+  numero_empleado: string;
+  empresas: {
+    id_empresa: string;
+    razon_social: string;
+  }[];
 }
 
 interface User {
-  id: string;
-  company_name: string;
-  rfc: string;
-  industry: string;
-  city: string;
-  created_at: string;
+  id_viajero: string;
+  primer_nombre: string;
+  segundo_nombre?: string | null;
+  apellido_paterno: string;
+  apellido_materno?: string | null;
+  empresas: {
+    id_empresa: string;
+    razon_social: string;
+  }[];
+  fecha_nacimiento?: string | null;
+  correo: string;
+  genero: string;
 }
 
 interface Payment {
@@ -108,7 +148,7 @@ export const Admin = () => {
     monthlyRevenue: []
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'overview' | 'users' | 'bookings' | 'payments' | 'facturas' | 'rewards'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'users' | 'bookings' | 'payments' | 'facturas' | 'rewards'>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchTermUser, setSearchTermUser] = useState('')
   const [dateStart, setDateStart] = useState('');
@@ -120,7 +160,7 @@ export const Admin = () => {
   const [filteredFactura, setFilteredFactura] = useState<Factura[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [filteredPaymets, setFilteredPayments] = useState<Payment[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   //columnas reservaciones
@@ -143,6 +183,8 @@ export const Admin = () => {
   //mostrar exportaciones
   const [exportUsers, setExportUsers] = useState(false);
   const [exportBookings, setExportBookings] = useState(false);
+
+  const { obtenerSolicitudesWithViajero } = useSolicitud();
 
   useEffect(() => {
     fetchDashboardData();
@@ -217,10 +259,10 @@ export const Admin = () => {
     if (searchTermUser) {
       const searchLower = searchTermUser.toLowerCase();
       filtered = filtered.filter(user =>
-        user.company_name.toLowerCase().includes(searchLower) ||
-        user.industry?.toLowerCase().includes(searchLower) ||
-        user.city?.toLowerCase().includes(searchLower) ||
-        user.rfc?.toLowerCase().includes(searchLower)
+
+        user.primer_nombre?.toLowerCase().includes(searchLower) ||
+        //user.empresas?.toLowerCase().includes(searchLower) ||
+        user.correo?.toLowerCase().includes(searchLower)
       );
     }
 
@@ -257,14 +299,11 @@ export const Admin = () => {
       if (!user) {
         throw new Error("No hay usuario autenticado.");
       }
-      const { data: bookingsData, error } = await supabase
-        .from('bookings')
-        .select("*, company_profiles(company_name)").eq("user_id", user.user.id);
+      obtenerSolicitudesWithViajero((json) => {
+        setBookings([...json]);
+        setFilteredBookings([...json]);
+      }, user.user.id);
 
-      if (error) throw error;
-
-      setBookings(bookingsData || []);
-      setFilteredBookings(bookingsData || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
     }
@@ -295,20 +334,10 @@ export const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        throw userError;
-      }
-      if (!user) {
-        throw new Error("No hay usuario autenticado");
-      }
-      const { data: userData, error } = await supabase
-        .from('company_profiles')
-        .select("*, viajeros(*)");
-      if (error) throw error;
-      setUsers(userData || []);
-      setFilteredUsers(userData || []);
-      console.log(userData);
+      const data = await fetchViajerosCompanies();
+      setUsers(data || []);
+      setFilteredUsers(data || []);
+      console.log(data);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -323,12 +352,9 @@ export const Admin = () => {
       if (!user) {
         throw new Error("No hay usuario autenticado");
       }
-      const { data: payments, error } = await supabase
-        .from('payments')
-        .select("*, bookings(hotel_name)").eq("user_id", user.user.id);
-      if (error) throw error;
-      setPayments(payments || []);
-      setFilteredPayments(payments || []);
+      const paymentsData = await fetchPagosAgent();
+      setPayments(paymentsData || []);
+      setFilteredPayments(paymentsData || []);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -435,6 +461,15 @@ export const Admin = () => {
     return Promise.resolve(data)
   }
 
+  const getPaymentStatusIcon = (status: number) => {
+    if (status == 0)
+      return <CheckCircle2 className="w-4 h-4" />;
+    else if (status != 0)
+      return <Clock className="w-4 h-4" />;
+    else
+      return <AlertTriangle className="w-4 h-4" />;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -447,7 +482,7 @@ export const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 mt-20">
+    <div className="min-h-screen bg-gray-100 mt-14">
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -472,7 +507,7 @@ export const Admin = () => {
       {/* Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-4 mb-8">
-          <button
+          {/* <button
             onClick={() => setActiveView('overview')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'overview'
               ? 'bg-blue-600 text-white'
@@ -481,7 +516,7 @@ export const Admin = () => {
           >
             <BarChart3 className="w-5 h-5" />
             <span>Vista General</span>
-          </button>
+          </button> */}
           <button
             onClick={() => setActiveView('users')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'users'
@@ -512,7 +547,7 @@ export const Admin = () => {
             <CreditCard className="w-5 h-5" />
             <span>Pagos</span>
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveView('facturas')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'facturas'
               ? 'bg-blue-600 text-white'
@@ -521,8 +556,8 @@ export const Admin = () => {
           >
             <WalletCards className="w-5 h-5" />
             <span>Facturas</span>
-          </button>
-          <button
+          </button> */}
+          {/* <button
             onClick={() => setActiveView('rewards')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'rewards'
               ? 'bg-blue-600 text-white'
@@ -531,7 +566,7 @@ export const Admin = () => {
           >
             <Gift className="w-5 h-5" />
             <span>Mia Rewards</span>
-          </button>
+          </button> */}
         </div>
 
         {/* Overview */}
@@ -767,8 +802,8 @@ export const Admin = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                      <Building2 className="w-5 h-5" />
-                      <span>Compañia</span>
+                      <User className="w-5 h-5" />
+                      <span>Nombres</span>
                     </button>
                     <button
                       onClick={() => setActiveColDateUsers(!activeColDateUsers)}
@@ -777,8 +812,8 @@ export const Admin = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                      <Calendar className="w-5 h-5" />
-                      <span>Fecha Registro</span>
+                      <Building2 className="w-5 h-5" />
+                      <span>Compañia</span>
                     </button>
                     <button
                       onClick={() => setActiveColIndustryUsers(!activeColIndustryUsers)}
@@ -787,8 +822,8 @@ export const Admin = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                      <Factory className="w-5 h-5" />
-                      <span>Industria</span>
+                      <Calendar className="w-5 h-5" />
+                      <span>Fecha de Nacimiento</span>
                     </button>
                     <button
                       onClick={() => setActiveColRFCUsers(!activeColRFCUsers)}
@@ -797,8 +832,8 @@ export const Admin = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                      <FileSignature className="w-5 h-5" />
-                      <span>RFC</span>
+                      <Mail className="w-5 h-5" />
+                      <span>Correo</span>
                     </button>
                     <button
                       onClick={() => setActiveColCityUsers(!activeColCityUsers)}
@@ -807,8 +842,8 @@ export const Admin = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                      <MapPinned className="w-5 h-5" />
-                      <span>Ciudad</span>
+                      <UserCircle className="w-5 h-5" />
+                      <span>Genero</span>
                     </button>
                   </div>
                 </>}
@@ -819,48 +854,44 @@ export const Admin = () => {
                 <table className="w-full" id='users'>
                   <thead>
                     <tr className="text-left border-b border-gray-200">
-                      {activeColCompUsers && <th className="pb-3 font-semibold text-gray-600">Compañia</th>}
-                      {activeColDateUsers && <th className="pb-3 font-semibold text-gray-600">Fecha Registro</th>}
-                      {activeColIndustryUsers && <th className="pb-3 font-semibold text-gray-600">Industria</th>}
-                      {activeColRFCUsers && <th className="pb-3 font-semibold text-gray-600">RFC</th>}
-                      {activeColCityUsers && <th className="pb-3 font-semibold text-gray-600">Ciudad</th>}
+
+                      {activeColCompUsers && <th className="pb-3 font-semibold text-gray-600">Nombre</th>}
+                      {activeColDateUsers && <th className="pb-3 font-semibold text-gray-600">Compañia</th>}
+                      {activeColIndustryUsers && <th className="pb-3 font-semibold text-gray-600">Fecha de nacimiento</th>}
+                      {activeColRFCUsers && <th className="pb-3 font-semibold text-gray-600">Correo</th>}
+                      {activeColCityUsers && <th className="pb-3 font-semibold text-gray-600">Genero</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
+                      <tr key={user.id_viajero} className="hover:bg-gray-50">
                         {activeColCompUsers &&
                           <td className="py-4 px-1">
                             <div className="flex items-center space-x-2">
-                              <Building2 className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{user.company_name}</span>
+                              <span className="font-medium">{user.primer_nombre} {user.segundo_nombre} {user.apellido_paterno} {user.apellido_materno}</span>
                             </div>
                           </td>}
                         {activeColDateUsers &&
                           <td className="py-4 px-1">
                             <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{user.created_at}</span>
+                              <span className="font-medium">{user.empresas?.map(emp => emp.razon_social).join(', ')}</span>
                             </div>
                           </td>}
                         {activeColIndustryUsers &&
                           <td className="py-4 px-1">
                             <div className="flex items-center space-x-2">
-                              <Factory className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{user.industry}</span>
+                              <span className="font-medium">{user.fecha_nacimiento ? new Date(user.fecha_nacimiento).toLocaleDateString() : ""}</span>
                             </div>
                           </td>}
                         {activeColRFCUsers &&
                           <td className="py-4 px-1">
                             <div className="flex items-center space-x-2">
-                              <FileSignature className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{user.rfc}</span>
+                              <span className="font-medium">{user.correo}</span>
                             </div>
                           </td>}
                         {activeColCityUsers && <td className="py-4 px-1">
                           <div className="flex items-center space-x-2">
-                            <MapPinned className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{user.city}</span>
+                            <span className="font-medium">{user.genero}</span>
                           </div>
                         </td>}
                       </tr>
@@ -943,8 +974,8 @@ export const Admin = () => {
                     >
                       <option value="all">Todos los estados</option>
                       <option value="pending">Pendientes</option>
-                      <option value="completed">Completadas</option>
-                      <option value="cancelled">Canceladas</option>
+                      <option value="complete">Completadas</option>
+                      <option value="canceled">Canceladas</option>
                     </select>
                   </div>
                   <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
@@ -1031,28 +1062,24 @@ export const Admin = () => {
                         {activeColCodeBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <Tag className="w-4 h-4 text-gray-400" />
                               <span className="font-medium">{booking.confirmation_code}</span>
                             </div>
                           </td>}
                         {activeColHotelBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <Hotel className="w-4 h-4 text-gray-400" />
                               <span>{booking.hotel_name}</span>
                             </div>
                           </td>}
                         {activeColUsersBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <Users className="w-4 h-4 text-gray-400" />
-                              <span>{booking.company_profiles?.company_name}</span>
+                              <span>{booking.traveler_id}</span>
                             </div>
                           </td>}
                         {activeColDateBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4 text-gray-400" />
                               <span>
                                 {new Date(booking.check_in).toLocaleDateString()} -
                                 {new Date(booking.check_out).toLocaleDateString()}
@@ -1062,20 +1089,19 @@ export const Admin = () => {
                         {activeColPriceBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <DollarSign className="w-4 h-4 text-gray-400" />
                               <span className="font-medium">
-                                ${booking.total_price.toLocaleString()}
+                                ${booking.solicitud_total}
                               </span>
                             </div>
                           </td>}
                         {activeColStatusBookings && <td className="py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'completed'
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'complete'
                             ? 'bg-green-100 text-green-800'
                             : booking.status === 'pending'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                             }`}>
-                            {booking.status === 'completed' ? (
+                            {booking.status === 'complete' ? (
                               <CheckCircle className="w-4 h-4 mr-1" />
                             ) : booking.status === 'pending' ? (
                               <Clock className="w-4 h-4 mr-1" />
@@ -1127,25 +1153,25 @@ export const Admin = () => {
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <DollarSign className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{payment.amount}</span>
+                            <span className="font-medium">${payment.booking_total}</span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{payment.bookings?.hotel_name}</span>
+                            <span className="font-medium">{payment.hotel_name}</span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{payment.status}</span>
+                            {getPaymentStatusIcon(payment.pendiente_por_cobrar)}
+                            <span className="capitalize">
+                              {payment.pendiente_por_cobrar === 0 ? 'Completado' :
+                                payment.pendiente_por_cobrar != 0 ? 'Pendiente' : 'Fallido'}
+                            </span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
                             <span className="font-medium">{payment.currency}</span>
                           </div>
                         </td>
