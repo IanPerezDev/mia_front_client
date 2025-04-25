@@ -24,6 +24,7 @@ import { Root } from "../types/billing";
 import { useUser } from "../context/authContext";
 
 const cfdiUseOptions = [
+  { value: "P01", label: "Por definir" },
   { value: "G01", label: "Adquisición de mercancías" },
   { value: "G02", label: "Devoluciones, descuentos o bonificaciones" },
   { value: "G03", label: "Gastos en general" },
@@ -149,6 +150,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
             headers: HEADERS_API,
           }
         );
+        console.log(data_solicitud);
         setSolicitud(data_solicitud);
         const jsonfiscal = await responsefiscal.json();
         const data_fiscal = jsonfiscal[0];
@@ -204,8 +206,11 @@ export const BillingPage: React.FC<BillingPageProps> = ({
             Name: data_fiscal.razon_social,
             CfdiUse: selectedCfdiUse,
             Rfc: data_fiscal.rfc,
-            FiscalRegime: data_fiscal.regimen_fiscal || "606",
-            TaxZipCode: data_fiscal.codigo_postal_fiscal,
+            FiscalRegime: data_fiscal.regimen_fiscal || "612",
+            TaxZipCode:
+              data_fiscal.codigo_postal_fiscal.length < 5
+                ? data_fiscal.empresa_cp
+                : data_fiscal.codigo_postal_fiscal,
           },
           CfdiType: "I",
           NameId: "1",
@@ -226,20 +231,20 @@ export const BillingPage: React.FC<BillingPageProps> = ({
               Unit: "Unidad de servicio",
               Description: "Servicio de administración y Gestión de Reservas",
               IdentificationNumber: "EDL",
-              UnitPrice: (data_solicitud.solicitud_total * 0.84).toFixed(2),
-              Subtotal: (data_solicitud.solicitud_total * 0.84).toFixed(2),
+              UnitPrice: (data_solicitud.total * 0.84).toFixed(2),
+              Subtotal: (data_solicitud.total * 0.84).toFixed(2),
               TaxObject: "02",
               Taxes: [
                 {
                   Name: "IVA",
                   Rate: "0.16",
-                  Total: (data_solicitud.solicitud_total * 0.16).toFixed(2),
-                  Base: data_solicitud.solicitud_total,
+                  Total: (data_solicitud.total * 0.16).toFixed(2),
+                  Base: data_solicitud.total,
                   IsRetention: "false",
                   IsFederalTax: "true",
                 },
               ],
-              Total: data_solicitud.solicitud_total,
+              Total: data_solicitud.total,
             },
           ],
         });
@@ -275,6 +280,9 @@ export const BillingPage: React.FC<BillingPageProps> = ({
   };
 
   const validateInvoiceData = () => {
+    console.log(cfdi.Receiver);
+    console.log(selectedCfdiUse);
+    console.log(selectedPaymentForm);
     if (
       !cfdi.Receiver.Rfc ||
       !cfdi.Receiver.TaxZipCode ||
@@ -340,13 +348,13 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 py-4">
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={onBack}
+          <a
+            href="/"
             className="flex items-center text-white hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span>Volver</span>
-          </button>
+          </a>
         </div>
 
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">

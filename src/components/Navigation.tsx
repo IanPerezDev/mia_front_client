@@ -28,6 +28,7 @@ interface NavigationProps {
   onFAQClick: () => void;
   onAdminClick: () => void;
   onConfigurationClick: () => void;
+  onSupportClick: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -41,6 +42,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onFAQClick,
   onConfigurationClick,
   onAdminClick,
+  onSupportClick,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -54,7 +56,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           className="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
         >
           <MessageSquare className="w-4 h-4" />
-          <span>Habla con Mía</span>
+          <span>Habla con MIA</span>
         </button>
         <button
           onClick={onBookingsClick}
@@ -72,7 +74,10 @@ export const Navigation: React.FC<NavigationProps> = ({
           <span>Mejora tu Viaje</span>
         </a> */}
 
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2">
+        <button
+          onClick={onSupportClick}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 space-x-2"
+        >
           <LifeBuoy className="w-4 h-4" />
           <span>Contactar a Soporte</span>
         </button>
@@ -88,8 +93,9 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
             <span>{user?.name || "Usuario"}</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? "transform rotate-180" : ""
-                }`}
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isDropdownOpen ? "transform rotate-180" : ""
+              }`}
             />
           </button>
 
@@ -97,14 +103,20 @@ export const Navigation: React.FC<NavigationProps> = ({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
               <button
-                onClick={() => { onProfileClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onProfileClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <User2 className="w-4 h-4" />
                 <span>Mi Perfil</span>
               </button>
               <button
-                onClick={() => { onAdminClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onAdminClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <BookOpen className="w-4 h-4" />
@@ -118,7 +130,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <span>Dashboard</span>
               </Link>
               <button
-                onClick={() => { onConfigurationClick(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onConfigurationClick();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
@@ -126,7 +141,10 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
               <div className="border-t border-gray-100 my-1"></div>
               <button
-                onClick={() => { onLogout(); setIsDropdownOpen(!isDropdownOpen) }}
+                onClick={() => {
+                  onLogout();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
               >
                 <LogOut className="w-4 h-4" />
@@ -178,37 +196,39 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <svg
-                className="h-8 w-auto"
-                viewBox="0 0 1152 539"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g>
-                  <path
-                    className="fill-blue-600"
-                    d="M209.06,500.55s-.04.03-.06.02c-64.5-64.5-133.27-131.46-133.27-209.51,0-86.62,84.17-157.09,187.63-157.09s187.63,70.47,187.63,157.09c0,74.79-63.42,139.58-150.8,154.08-.02,0-.05-.01-.05-.04l-8.8-53.12c61.28-10.16,105.76-52.6,105.76-100.92,0-56.91-60-103.2-133.74-103.2s-133.74,46.3-133.74,103.2c0,49.8,48,93.56,111.66,101.79,0,0,.01,0,.01.02l-32.23,107.69Z"
-                  />
-                  <ellipse
-                    className="fill-gray-800"
-                    cx="215.01"
-                    cy="277.85"
-                    rx="28.37"
-                    ry="37.7"
-                  />
-                  <ellipse
-                    className="fill-gray-800"
-                    cx="317.34"
-                    cy="277.85"
-                    rx="28.37"
-                    ry="37.7"
-                  />
-                  <path
-                    className="fill-blue-600"
-                    d="M344.98,125.54c-2.9,0-5.84-.69-8.58-2.14-70.29-37.27-135.91-1.73-138.67-.2-8.84,4.91-20.01,1.76-24.95-7.07-4.94-8.82-1.84-19.96,6.96-24.93,3.45-1.95,85.44-47.12,173.85-.23,8.95,4.75,12.36,15.86,7.62,24.81-3.29,6.21-9.65,9.76-16.23,9.76Z"
-                  />
-                </g>
-              </svg>
+              <a href="/">
+                <svg
+                  className="h-8 w-auto"
+                  viewBox="0 0 1152 539"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g>
+                    <path
+                      className="fill-blue-600"
+                      d="M209.06,500.55s-.04.03-.06.02c-64.5-64.5-133.27-131.46-133.27-209.51,0-86.62,84.17-157.09,187.63-157.09s187.63,70.47,187.63,157.09c0,74.79-63.42,139.58-150.8,154.08-.02,0-.05-.01-.05-.04l-8.8-53.12c61.28-10.16,105.76-52.6,105.76-100.92,0-56.91-60-103.2-133.74-103.2s-133.74,46.3-133.74,103.2c0,49.8,48,93.56,111.66,101.79,0,0,.01,0,.01.02l-32.23,107.69Z"
+                    />
+                    <ellipse
+                      className="fill-gray-800"
+                      cx="215.01"
+                      cy="277.85"
+                      rx="28.37"
+                      ry="37.7"
+                    />
+                    <ellipse
+                      className="fill-gray-800"
+                      cx="317.34"
+                      cy="277.85"
+                      rx="28.37"
+                      ry="37.7"
+                    />
+                    <path
+                      className="fill-blue-600"
+                      d="M344.98,125.54c-2.9,0-5.84-.69-8.58-2.14-70.29-37.27-135.91-1.73-138.67-.2-8.84,4.91-20.01,1.76-24.95-7.07-4.94-8.82-1.84-19.96,6.96-24.93,3.45-1.95,85.44-47.12,173.85-.23,8.95,4.75,12.36,15.86,7.62,24.81-3.29,6.21-9.65,9.76-16.23,9.76Z"
+                    />
+                  </g>
+                </svg>
+              </a>
             </div>
           </div>
 
@@ -260,7 +280,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <Sparkles className="w-4 h-4" />
                   <span>Mejora tu Viaje</span>
                 </a> */}
-                <button className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2">
+                <button
+                  onClick={onSupportClick}
+                  className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                >
                   <LifeBuoy className="w-4 h-4" />
                   <span>Contactar a Soporte</span>
                 </button>

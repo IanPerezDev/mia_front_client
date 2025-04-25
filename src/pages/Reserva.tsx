@@ -5,7 +5,7 @@ import { useRoute } from "wouter";
 
 // Types for our reservation data
 interface Reservation {
-  id: string;
+  id: string | null;
   viajero: string;
   nombre_hotel: string;
   check_in: string;
@@ -69,7 +69,7 @@ export function Reserva() {
   // const { id } = useParams();
   const [match, params] = useRoute("/reserva/:id");
   const [mockReservation, setMockReservation] = useState<Reservation>({
-    id: params?.id || "hola",
+    id: null,
     viajero: "",
     nombre_hotel: "",
     check_in: "",
@@ -89,21 +89,11 @@ export function Reserva() {
         );
         const json = await response.json();
         const data = json[0];
-        const responseviajero = await fetch(
-          `${URL}/v1/mia/solicitud/viajero?id=${data.id_viajero}`,
-          {
-            method: "GET",
-            headers: HEADERS_API,
-          }
-        );
-        const jsonviajero = await responseviajero.json();
-        const dataviajero = jsonviajero[0];
-        const { primer_nombre, apellido_paterno } = dataviajero;
-        console.log(jsonviajero);
-        console.log(data);
         setMockReservation({
-          id: data.id_solicitud,
-          viajero: `${primer_nombre} ${apellido_paterno}`,
+          id: data.codigo_reservacion_hotel,
+          viajero: [data.primer_nombre, data.apellido_paterno]
+            .filter((item) => item)
+            .join(" "),
           nombre_hotel: data.hotel,
           check_in: data.check_in.split("T")[0],
           check_out: data.check_out.split("T")[0],
@@ -111,7 +101,7 @@ export function Reserva() {
         });
       } else {
         setMockReservation({
-          id: "",
+          id: null,
           viajero: "",
           nombre_hotel: "",
           check_in: "",
@@ -131,9 +121,11 @@ export function Reserva() {
           <h1 className="text-3xl font-bold text-blue-900">
             Detalles de la Reservación
           </h1>
-          <p className="text-blue-600 mt-2">
-            Confirmación #{mockReservation.id}
-          </p>
+          {mockReservation.id && (
+            <p className="text-blue-600 mt-2">
+              Confirmación #{mockReservation.id}
+            </p>
+          )}
         </div>
 
         {/* Main Content */}

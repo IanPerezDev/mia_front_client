@@ -127,48 +127,50 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
       : "bg-red-100 text-red-800";
   };
 
-  const filteredBookings = bookings.filter((booking) => {
-    const searchLower = searchTerm.toLowerCase();
-    let matches = true;
+  const filteredBookings = bookings
+    .filter((booking) => {
+      const searchLower = searchTerm.toLowerCase();
+      let matches = true;
 
-    switch (filterType) {
-      case "hotel":
-        matches =
-          matches && booking.hotel_name.toLowerCase().includes(searchLower);
-        break;
-      case "traveler":
-        matches =
-          matches &&
-          (booking.traveler_name?.toLowerCase().includes(searchLower) ||
-            false ||
-            booking.traveler_id?.toLowerCase().includes(searchLower) ||
-            false);
-        break;
-      case "date":
-        matches =
-          matches &&
-          (booking.check_in.includes(searchLower) ||
-            booking.check_out.includes(searchLower));
-        break;
-    }
+      switch (filterType) {
+        case "hotel":
+          matches =
+            matches && booking.hotel_name.toLowerCase().includes(searchLower);
+          break;
+        case "traveler":
+          matches =
+            matches &&
+            (booking.traveler_name?.toLowerCase().includes(searchLower) ||
+              false ||
+              booking.traveler_id?.toLowerCase().includes(searchLower) ||
+              false);
+          break;
+        case "date":
+          matches =
+            matches &&
+            (booking.check_in.includes(searchLower) ||
+              booking.check_out.includes(searchLower));
+          break;
+      }
 
-    if (selectedPaymentMethod !== "all") {
-      matches = matches && booking.payment_method === selectedPaymentMethod;
-    }
+      if (selectedPaymentMethod !== "all") {
+        matches = matches && booking.payment_method === selectedPaymentMethod;
+      }
 
-    if (selectedStage !== "all") {
-      matches = matches && booking.booking_stage === selectedStage;
-    }
+      if (selectedStage !== "all") {
+        matches = matches && booking.booking_stage === selectedStage;
+      }
 
-    if (startDate && endDate) {
-      const bookingDate = new Date(booking.check_in);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      matches = matches && bookingDate >= start && bookingDate <= end;
-    }
+      if (startDate && endDate) {
+        const bookingDate = new Date(booking.check_in);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        matches = matches && bookingDate >= start && bookingDate <= end;
+      }
 
-    return matches;
-  });
+      return matches;
+    })
+    .filter((item) => !!item.id_pago);
 
   const downloadReport = () => {
     const element = document.getElementById("bookings-report");
@@ -384,11 +386,13 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                               {booking.hotel_name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
-                              <span>Código: {booking.confirmation_code}</span>
-                              {booking.traveler_id && (
+                              <span>ID Viajero: {booking.traveler_id}</span>
+                              {booking.confirmation_code && (
                                 <>
                                   <span>•</span>
-                                  <span>ID Viajero: {booking.traveler_id}</span>
+                                  <span>
+                                    Código: {booking.confirmation_code}
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -398,19 +402,12 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                                 {formatDate(booking.check_in)} -{" "}
                                 {formatDate(booking.check_out)}
                               </span>
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                                  booking.status
-                                )}`}
-                              >
-                                {booking.status}
-                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {booking.factura && (
+                        {booking.factura ? (
                           <>
                             <button
                               onClick={() => {
@@ -430,24 +427,25 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                               factura
                             </button>
                           </>
-                        )}
-                        {booking.is_booking && (
-                          <Link
-                            href={`/factura/${booking.id}`}
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                          >
-                            <Receipt className="w-4 h-4" /> Facturar
-                          </Link>
-                        )}
-                        {booking.pendiente_por_cobrar == 0 &&
-                        booking.id_pago != null ? (
-                          <></>
                         ) : (
-                          <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
-                            <CreditCard className="w-4 h-4" />
-                            <span>Pagar</span>
-                          </button>
+                          <>
+                            {booking.pendiente_por_cobrar == 0 ? (
+                              <Link
+                                href={`/factura/${booking.id}`}
+                                className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                              >
+                                <Receipt className="w-4 h-4" /> Facturar
+                              </Link>
+                            ) : (
+                              <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                <CreditCard className="w-4 h-4" />
+                                <span>Pagar</span>
+                              </button>
+                            )}
+                          </>
                         )}
+                        {/* {booking.is_booking && } */}
+
                         <Link
                           to={`/reserva/${booking.id}`}
                           className="flex items-center gap-1 text-blue-600 hover:text-blue-700"

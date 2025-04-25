@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabaseClient';
+import React, { useEffect, useState } from "react";
+import { supabase } from "../services/supabaseClient";
 import {
   ArrowLeft,
   User2,
@@ -28,21 +28,25 @@ import {
   Plus,
   CreditCard as PaymentIcon,
   BookOpenText,
-} from 'lucide-react';
-import type { UserPreferences, PaymentHistory } from '../types';
-import { fetchPaymentMethods, fetchPagosAgent, fetchCreditAgent, fetchPendientesAgent } from "../hooks/useFetch";
+} from "lucide-react";
+import type { UserPreferences, PaymentHistory } from "../types";
+import {
+  fetchPaymentMethods,
+  fetchPagosAgent,
+  fetchCreditAgent,
+  fetchPendientesAgent,
+} from "../hooks/useFetch";
 import type { PaymentMethod } from "../types";
 import { loadStripe } from "@stripe/stripe-js";
-import PendingPaymentsTable from '../components/PendingPaymentsTable';
-import { Payment, PaymentFormData } from '../types';
+import PendingPaymentsTable from "../components/PendingPaymentsTable";
+import { Payment, PaymentFormData } from "../types";
 import {
   Elements,
   useStripe,
   useElements,
   CardElement,
 } from "@stripe/react-stripe-js";
-import { URL } from '../constants/apiConstant';
-
+import { URL } from "../constants/apiConstant";
 
 interface ProfilePageProps {
   onBack: () => void;
@@ -77,11 +81,7 @@ const cardStyle = {
   },
 };
 
-
-const CheckOutForm = ({
-  setSuccess,
-  setTrigger,
-}: any) => {
+const CheckOutForm = ({ setSuccess, setTrigger }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
@@ -91,7 +91,7 @@ const CheckOutForm = ({
 
     const { data } = await supabase.auth.getUser();
     const id_agente = data.user?.id;
-    const cardElement = elements.getElement(CardElement)
+    const cardElement = elements.getElement(CardElement);
     //crear metodo de pago
     const { error, paymentMethod } = await stripe.createPaymentMethod({
       type: "card",
@@ -100,8 +100,7 @@ const CheckOutForm = ({
     console.log("Se creo payment method");
     if (error) {
       setMessage(error.message);
-    }
-    else {
+    } else {
       const response = await fetch(`${URL}/v1/stripe/save-payment-method`, {
         method: "POST",
         headers: {
@@ -111,7 +110,7 @@ const CheckOutForm = ({
         body: JSON.stringify({
           paymentMethodId: paymentMethod.id,
           id_agente: id_agente,
-        })
+        }),
       });
 
       const data = await response.json();
@@ -119,8 +118,7 @@ const CheckOutForm = ({
         setMessage(data.message || "Metodo de pago guardado");
         setSuccess(false);
         setTrigger((prev) => prev + 1);
-      }
-      else {
+      } else {
         setMessage("Ocurrio un error");
       }
     }
@@ -158,20 +156,29 @@ const CheckOutForm = ({
   );
 };
 
-
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
   const [user, setUser] = useState<any>(null);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
-  const [paymentsPendientes, setPaymentsPendientes] = useState<PaymentHistory[]>([]);
+  const [paymentsPendientes, setPaymentsPendientes] = useState<
+    PaymentHistory[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
-  const [editedPreferences, setEditedPreferences] = useState<Partial<UserPreferences>>({});
+  const [editedPreferences, setEditedPreferences] = useState<
+    Partial<UserPreferences>
+  >({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'payments' | 'payments-history' | 'payments-pendientes'>('profile');
+  const [activeTab, setActiveTab] = useState<
+    | "profile"
+    | "preferences"
+    | "payments"
+    | "payments-history"
+    | "payments-pendientes"
+  >("profile");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [trigger, setTrigger] = useState(0);
@@ -189,43 +196,43 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
         setIsLoading(true);
 
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('No user found');
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user found");
         setUser(user);
 
         // Get company profile
         const { data: companyData, error: companyError } = await supabase
-          .from('company_profiles')
-          .select('*')
-          .eq('user_id', user.id)
+          .from("company_profiles")
+          .select("*")
+          .eq("user_id", user.id)
           .single();
 
         if (companyError) throw companyError;
         setCompanyProfile(companyData);
 
         // Get user preferences
-        const { data: preferencesData, error: preferencesError } = await supabase
-          .from('user_preferences')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+        const { data: preferencesData, error: preferencesError } =
+          await supabase
+            .from("user_preferences")
+            .select("*")
+            .eq("user_id", user.id)
+            .single();
 
-        if (preferencesError && preferencesError.code !== 'PGRST116') {
+        if (preferencesError && preferencesError.code !== "PGRST116") {
           throw preferencesError;
         }
         setPreferences(preferencesData);
         setEditedPreferences(preferencesData || {});
 
         // Get payment history
-
-
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
 
     fetchUserData();
     fetchCredit();
@@ -239,13 +246,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       const paymentsData = await fetchPagosAgent();
       setPayments(paymentsData);
       const pendientesData = await fetchPendientesAgent();
-      console.log(pendientesData)
+      console.log(pendientesData);
       setPaymentsPendientes(pendientesData);
     };
     fetchData();
-  }, [trigger])
-
-
+  }, [trigger]);
 
   const handleSavePreferences = async () => {
     if (!user) return;
@@ -259,7 +264,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
         user_id: user.id,
         preferred_hotel: editedPreferences.preferred_hotel,
         frequent_changes: editedPreferences.frequent_changes,
-        avoid_locations: editedPreferences.avoid_locations
+        avoid_locations: editedPreferences.avoid_locations,
       };
 
       let response;
@@ -267,13 +272,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       if (preferences?.id) {
         // Update existing preferences
         response = await supabase
-          .from('user_preferences')
+          .from("user_preferences")
           .update(preferenceData)
-          .eq('id', preferences.id);
+          .eq("id", preferences.id);
       } else {
         // Insert new preferences
         response = await supabase
-          .from('user_preferences')
+          .from("user_preferences")
           .insert([preferenceData]);
       }
 
@@ -281,7 +286,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
       setPreferences({
         ...preferences,
-        ...preferenceData
+        ...preferenceData,
       } as UserPreferences);
       setIsEditingPreferences(false);
       setSaveSuccess(true);
@@ -289,8 +294,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error: any) {
-      console.error('Error saving preferences:', error);
-      setSaveError(error.message || 'Error al guardar las preferencias');
+      console.error("Error saving preferences:", error);
+      setSaveError(error.message || "Error al guardar las preferencias");
     } finally {
       setIsSaving(false);
     }
@@ -312,33 +317,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("es-MX", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const getPaymentStatusColor = (status: number) => {
-    if (status == 0)
-      return 'text-green-600 bg-green-100';
-    else if (status != 0)
-      return 'text-yellow-600 bg-yellow-100';
-    else
-      return 'text-red-600 bg-red-100';
+    if (status == 0) return "text-green-600 bg-green-100";
+    else if (status != 0) return "text-yellow-600 bg-yellow-100";
+    else return "text-red-600 bg-red-100";
   };
 
   const getPaymentStatusIcon = (status: number) => {
-    if (status == 0)
-      return <CheckCircle2 className="w-4 h-4" />;
-    else if (status != 0)
-      return <Clock className="w-4 h-4" />;
-    else
-      return <AlertTriangle className="w-4 h-4" />;
+    if (status == 0) return <CheckCircle2 className="w-4 h-4" />;
+    else if (status != 0) return <Clock className="w-4 h-4" />;
+    else return <AlertTriangle className="w-4 h-4" />;
   };
 
   const handleDeleteMethod = async (id: string) => {
-    console.log('Delete payment method:', id);
+    console.log("Delete payment method:", id);
     const { data } = await supabase.auth.getUser();
     const id_agente = data.user?.id;
     const response = await fetch(`${URL}/v1/stripe/delete-payment-method`, {
@@ -350,22 +349,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
       body: JSON.stringify({
         paymentMethodId: id,
         id_agente: id_agente,
-      })
+      }),
     });
 
     const datos = await response.json();
     if (datos.success) {
       setMessage(datos.message || "Metodo de pago eliminado");
       setTrigger((prev) => prev + 1);
-    }
-    else {
+    } else {
       setMessage("Ocurrio un error");
     }
   };
 
   const handleMakePayment = (paymentId: string, formData: PaymentFormData) => {
     // Find the payment
-    const paymentIndex = payments.findIndex(p => p.id === paymentId);
+    const paymentIndex = payments.findIndex((p) => p.id === paymentId);
 
     if (paymentIndex === -1) return;
 
@@ -378,18 +376,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
     // Update the payment
     updatedPayments[paymentIndex] = {
       ...updatedPayments[paymentIndex],
-      remainingBalance: Math.max(0, updatedPayments[paymentIndex].remainingBalance - amountPaid),
+      remainingBalance: Math.max(
+        0,
+        updatedPayments[paymentIndex].remainingBalance - amountPaid
+      ),
       // If payment is fully paid, you might want to update status
-      status: amountPaid >= updatedPayments[paymentIndex].remainingBalance
-        ? 'Processing'
-        : updatedPayments[paymentIndex].status
+      status:
+        amountPaid >= updatedPayments[paymentIndex].remainingBalance
+          ? "Processing"
+          : updatedPayments[paymentIndex].status,
     };
 
     // Update state
     setPayments(updatedPayments);
 
     // In a real app, you would call an API to process the payment
-    console.log(`Payment of ${amountPaid} made for ${paymentId} using ${formData.paymentMethod}`);
+    console.log(
+      `Payment of ${amountPaid} made for ${paymentId} using ${formData.paymentMethod}`
+    );
   };
 
   const handleAddMethod = () => {
@@ -418,7 +422,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
             </div>
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {user?.user_metadata?.full_name || 'Usuario'}
+                {user?.user_metadata?.full_name || "Usuario"}
               </h1>
               <p className="text-gray-500 mb-4">{user?.email}</p>
               {/* <div className="flex flex-wrap gap-4 justify-center md:justify-start">
@@ -442,11 +446,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
         {/* Navigation Tabs */}
         <div className="flex space-x-4 mb-8">
           <button
-            onClick={() => setActiveTab('profile')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'profile'
-              ? 'bg-white text-blue-600'
-              : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+            onClick={() => setActiveTab("profile")}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+              activeTab === "profile"
+                ? "bg-white text-blue-600"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
           >
             <User2 className="w-5 h-5" />
             <span>Perfil</span>
@@ -462,44 +467,49 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
             <span>Preferencias</span>
           </button> */}
           <button
-            onClick={() => setActiveTab('payments')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments'
-              ? 'bg-white text-blue-600'
-              : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+            onClick={() => setActiveTab("payments")}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+              activeTab === "payments"
+                ? "bg-white text-blue-600"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
           >
             <CreditCard className="w-5 h-5" />
             <span>Metodos de pago</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('payments-history')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments-history'
-              ? 'bg-white text-blue-600'
-              : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+            onClick={() => setActiveTab("payments-history")}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+              activeTab === "payments-history"
+                ? "bg-white text-blue-600"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
           >
             <BookOpenText className="w-5 h-5" />
             <span>Historial de pagos</span>
           </button>
 
-          {creditoValue[0]?.tiene_credito_consolidado == 1 && (<button
-            onClick={() => setActiveTab('payments-pendientes')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === 'payments-pendientes'
-              ? 'bg-white text-blue-600'
-              : 'bg-white/10 text-white hover:bg-white/20'
+          {creditoValue[0]?.tiene_credito_consolidado == 1 && (
+            <button
+              onClick={() => setActiveTab("payments-pendientes")}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                activeTab === "payments-pendientes"
+                  ? "bg-white text-blue-600"
+                  : "bg-white/10 text-white hover:bg-white/20"
               }`}
-          >
-            <Clock className="w-5 h-5" />
-            <span>Cuentas por pagar</span>
-          </button>)}
+            >
+              <Clock className="w-5 h-5" />
+              <span>Cuentas por pagar</span>
+            </button>
+          )}
         </div>
 
         {/* Content Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {activeTab === 'profile' && (
+          <div className="lg:col-span-3 space-y-8">
+            {activeTab === "profile" && (
               <>
                 {/* Personal Information */}
                 <div className="bg-white rounded-xl shadow-lg p-8">
@@ -507,36 +517,44 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                     <h2 className="text-2xl font-bold text-gray-900">
                       Información Personal
                     </h2>
-                    <button className="text-blue-600 hover:text-blue-700 flex items-center space-x-2">
+                    {/* <button className="text-blue-600 hover:text-blue-700 flex items-center space-x-2">
                       <Edit2 className="w-5 h-5" />
                       <span>Editar</span>
-                    </button>
+                    </button> */}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-gray-500">Nombre Completo</label>
+                        <label className="text-sm text-gray-500">
+                          Nombre Completo
+                        </label>
                         <p className="text-lg font-medium text-gray-900">
-                          {user?.user_metadata?.full_name || 'No especificado'}
+                          {user?.user_metadata?.full_name || "No especificado"}
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-500">Correo Electrónico</label>
-                        <p className="text-lg font-medium text-gray-900">{user?.email}</p>
+                        <label className="text-sm text-gray-500">
+                          Correo Electrónico
+                        </label>
+                        <p className="text-lg font-medium text-gray-900">
+                          {user?.email}
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-gray-500">Teléfono</label>
+                        <label className="text-sm text-gray-500">
+                          Teléfono
+                        </label>
                         <p className="text-lg font-medium text-gray-900">
-                          {user?.user_metadata?.phone || 'No especificado'}
+                          {user?.user_metadata?.phone || "No especificado"}
                         </p>
                       </div>
                       <div>
                         <label className="text-sm text-gray-500">RFC</label>
                         <p className="text-lg font-medium text-gray-900">
-                          {companyProfile?.rfc || 'No especificado'}
+                          {companyProfile?.rfc || "No especificado"}
                         </p>
                       </div>
                     </div>
@@ -589,7 +607,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
               </>
             )}
 
-            {activeTab === 'preferences' && (
+            {activeTab === "preferences" && (
               <>
                 <div className="bg-white rounded-xl shadow-lg p-8">
                   <div className="flex items-center justify-between mb-6">
@@ -619,7 +637,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                           className="text-blue-600 hover:text-blue-700 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Save className="w-5 h-5" />
-                          <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
+                          <span>{isSaving ? "Guardando..." : "Guardar"}</span>
                         </button>
                       </div>
                     )}
@@ -651,17 +669,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         {isEditingPreferences ? (
                           <input
                             type="text"
-                            value={editedPreferences.preferred_hotel || ''}
-                            onChange={(e) => setEditedPreferences(prev => ({
-                              ...prev,
-                              preferred_hotel: e.target.value
-                            }))}
+                            value={editedPreferences.preferred_hotel || ""}
+                            onChange={(e) =>
+                              setEditedPreferences((prev) => ({
+                                ...prev,
+                                preferred_hotel: e.target.value,
+                              }))
+                            }
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                             placeholder="Ej: Marriott, Hilton, etc."
                           />
                         ) : (
                           <p className="text-lg text-gray-900">
-                            {preferences?.preferred_hotel || 'No especificado'}
+                            {preferences?.preferred_hotel || "No especificado"}
                           </p>
                         )}
                       </div>
@@ -675,11 +695,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         </div>
                         {isEditingPreferences ? (
                           <select
-                            value={editedPreferences.frequent_changes ? 'true' : 'false'}
-                            onChange={(e) => setEditedPreferences(prev => ({
-                              ...prev,
-                              frequent_changes: e.target.value === 'true'
-                            }))}
+                            value={
+                              editedPreferences.frequent_changes
+                                ? "true"
+                                : "false"
+                            }
+                            onChange={(e) =>
+                              setEditedPreferences((prev) => ({
+                                ...prev,
+                                frequent_changes: e.target.value === "true",
+                              }))
+                            }
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                           >
                             <option value="true">Sí</option>
@@ -687,7 +713,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                           </select>
                         ) : (
                           <p className="text-lg text-gray-900">
-                            {preferences?.frequent_changes ? 'Sí' : 'No'}
+                            {preferences?.frequent_changes ? "Sí" : "No"}
                           </p>
                         )}
                       </div>
@@ -703,18 +729,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         </div>
                         {isEditingPreferences ? (
                           <textarea
-                            value={editedPreferences.avoid_locations || ''}
-                            onChange={(e) => setEditedPreferences(prev => ({
-                              ...prev,
-                              avoid_locations: e.target.value
-                            }))}
+                            value={editedPreferences.avoid_locations || ""}
+                            onChange={(e) =>
+                              setEditedPreferences((prev) => ({
+                                ...prev,
+                                avoid_locations: e.target.value,
+                              }))
+                            }
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                             rows={3}
                             placeholder="Especifica lugares que prefieres evitar"
                           />
                         ) : (
                           <p className="text-lg text-gray-900">
-                            {preferences?.avoid_locations || 'No especificado'}
+                            {preferences?.avoid_locations || "No especificado"}
                           </p>
                         )}
                       </div>
@@ -724,7 +752,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
               </>
             )}
 
-            {activeTab === 'payments' && (
+            {activeTab === "payments" && (
               <>
                 {/* Metodos de pago */}
                 <div className="bg-white rounded-xl shadow-lg p-8">
@@ -741,75 +769,82 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         setTrigger={setTrigger}
                         onCancel={() => setShowAddPaymentForm(false)}
                       />
-                    </Elements>)
-                    : (paymentMethods.length === 0 ? (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg">
-                        <CreditCard className="mx-auto text-gray-400 mb-3" size={32} />
-                        <p className="text-gray-500">No se han guardado metodos de pago</p>
-                        <ul className="space-y-3 mb-6">
+                    </Elements>
+                  ) : paymentMethods.length === 0 ? (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <CreditCard
+                        className="mx-auto text-gray-400 mb-3"
+                        size={32}
+                      />
+                      <p className="text-gray-500">
+                        No se han guardado metodos de pago
+                      </p>
+                      <ul className="space-y-3 mb-6">
+                        <li
+                          onClick={handleAddMethod}
+                          className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 mt-5"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Plus className="text-gray-600" size={20} />
+                            <p className="font-medium text-gray-800">
+                              Agregar nuevo metodo de pago
+                            </p>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <>
+                      <ul className="space-y-3 mb-6">
+                        {paymentMethods.map((method) => (
                           <li
-                            onClick={handleAddMethod}
-                            className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 mt-5"
+                            key={method.id}
+                            className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${"bg-gray-50 hover:bg-gray-100"}`}
                           >
                             <div className="flex items-center gap-3">
-                              <Plus className="text-gray-600" size={20} />
-                              <p className="font-medium text-gray-800">Agregar nuevo metodo de pago</p>
+                              <CreditCard
+                                className={"text-gray-600"}
+                                size={20}
+                              />
+                              <div>
+                                <p className="font-medium text-gray-800">
+                                  {method.card.brand.toUpperCase()} ••••{" "}
+                                  {method.card.last4}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Vence {method.card.exp_month}/
+                                  {method.card.exp_year}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteMethod(method.id);
+                                }}
+                                className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                aria-label="Delete payment method"
+                              >
+                                <Trash2 size={18} />
+                              </button>
                             </div>
                           </li>
-                        </ul>
-                      </div>
-                    ) : (
-                      <>
-                        <ul className="space-y-3 mb-6">
-                          {paymentMethods.map((method) => (
-                            <li
-                              key={method.id}
-                              className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${'bg-gray-50 hover:bg-gray-100'
-                                }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <CreditCard
-                                  className={'text-gray-600'}
-                                  size={20}
-                                />
-                                <div>
-                                  <p className="font-medium text-gray-800">
-                                    {method.card.brand.toUpperCase()} •••• {method.card.last4}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Vence {method.card.exp_month}/{method.card.exp_year}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteMethod(method.id);
-                                  }}
-                                  className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
-                                  aria-label="Delete payment method"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
-                              </div>
-                            </li>
-                          ))}
-                          <li
-                            onClick={handleAddMethod}
-                            className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Plus className="text-gray-600" size={20} />
-                              <p className="font-medium text-gray-800">Agregar nuevo metodo de pago</p>
-                            </div>
-                          </li>
-                        </ul>
-                      </>
-                    ))
-
-
-                  }
+                        ))}
+                        <li
+                          onClick={handleAddMethod}
+                          className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Plus className="text-gray-600" size={20} />
+                            <p className="font-medium text-gray-800">
+                              Agregar nuevo metodo de pago
+                            </p>
+                          </div>
+                        </li>
+                      </ul>
+                    </>
+                  )}
                   {message && (
                     <div className="h-auto p-3 bg-red-300 border-4 mt-5 rounded-xl">
                       <p className="text-base text-center">{message}</p>
@@ -819,7 +854,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
               </>
             )}
 
-            {activeTab === 'payments-history' && (
+            {activeTab === "payments-history" && (
               <div className="bg-white rounded-xl shadow-lg p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -841,7 +876,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {payment.hotel_name || 'Hotel'}
+                              {payment.hotel_name || "Hotel"}
                             </h3>
                             <p className="text-gray-500 text-sm">
                               {payment.confirmation_code}
@@ -849,13 +884,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-gray-900">
-                              ${payment.booking_total.toLocaleString('es-MX')} {payment.currency.toUpperCase()}
+                              ${payment.booking_total.toLocaleString("es-MX")}{" "}
+                              {payment.currency.toUpperCase()}
                             </p>
-                            <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(payment.pendiente_por_cobrar)}`}>
-                              {getPaymentStatusIcon(payment.pendiente_por_cobrar)}
+                            <div
+                              className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(
+                                payment.pendiente_por_cobrar
+                              )}`}
+                            >
+                              {getPaymentStatusIcon(
+                                payment.pendiente_por_cobrar
+                              )}
                               <span className="capitalize">
-                                {payment.pendiente_por_cobrar === 0 ? 'Completado' :
-                                  payment.pendiente_por_cobrar != 0 ? 'Pendiente' : 'Fallido'}
+                                {payment.pendiente_por_cobrar === 0
+                                  ? "Completado"
+                                  : payment.pendiente_por_cobrar != 0
+                                  ? "Pendiente"
+                                  : "Fallido"}
                               </span>
                             </div>
                           </div>
@@ -885,7 +930,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                 </div>
               </div>
             )}
-            {activeTab === 'payments-pendientes' && (
+            {activeTab === "payments-pendientes" && (
               <div className="bg-white rounded-xl shadow-lg p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -959,7 +1004,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
             </div> */}
 
             {/* Account Security */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            {/* <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Seguridad de la Cuenta
@@ -980,7 +1025,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                   <Settings className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
