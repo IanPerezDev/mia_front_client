@@ -4,6 +4,9 @@ export const useSolicitud = () => {
   const crearSolicitud = async (solicitud: any, id_usuario: any) =>
     await postSolicitud(solicitud, id_usuario);
 
+  const crearSolicitudChat = async (solicitud: any, id_usuario: any) =>
+    await postChatSolicitud(solicitud, id_usuario);
+
   const obtenerSolicitudes = async (
     callback: (json: PostBodyParams) => any,
     user
@@ -17,6 +20,7 @@ export const useSolicitud = () => {
     crearSolicitud,
     obtenerSolicitudes,
     obtenerSolicitudesWithViajero,
+    crearSolicitudChat,
   };
 };
 
@@ -112,9 +116,61 @@ async function getSolicitud(
   }
 }
 
+async function postChatSolicitud(solicitud: any, id_usuario: string) {
+  // Si ya existe un `user_id`, asignamos `id_viajero` desde el `id_usuario`
+  //solicitud.id_viajero = id_usuario;
+  const responseviajero = await fetch(
+    `${URL}/v1/mia/solicitud/viajeroAgente?id=${id_usuario}`,
+    {
+      method: "GET",
+      headers: HEADERS_API,
+    }
+  );
+  const jsonviajero = await responseviajero.json();
+  const dataviajero = jsonviajero[0];
+  const { id_viajero } = dataviajero;
+  // Generamos un `confirmation_code` si no existe
+  if (!solicitud.confirmation_code) {
+    solicitud.confirmation_code = Math.round(
+      Math.random() * 999999999
+    ).toString();
+  }
+
+  // Aseguramos que los datos necesarios estén presentes
+  const datosSolicitud = {
+    solicitudes: [
+      {
+        confirmation_code: solicitud.confirmation_code,
+        id_viajero: id_viajero, // Usamos el `id_usuario` como `id_viajero`
+        hotel: solicitud.hotel_name || "Sin nombre", // Si no se encuentra el nombre del hotel, usamos un valor por defecto
+        check_in: solicitud.dates.checkIn,
+        check_out: solicitud.dates.checkOut,
+        room: solicitud.room.type,
+        total: solicitud.room.totalPrice,
+        status: "pending",
+        id_agente: id_usuario,
+      },
+    ], // Establecemos el estado por defecto como "pending"
+  };
+
+  // Enviamos los datos a la API
+  try {
+    const res = await fetch(`${URL}/v1/mia/solicitud`, {
+      method: "POST",
+      headers: HEADERS_API,
+      body: JSON.stringify(datosSolicitud),
+    });
+    const json = await res.json();
+    console.log(json);
+    return json; // Muestra la respuesta del servidor
+  } catch (error) {
+    console.log(error); // Manejo de errores
+  }
+}
+
 async function postSolicitud(solicitud: any, id_usuario: string) {
   // Si ya existe un `user_id`, asignamos `id_viajero` desde el `id_usuario`
-  solicitud.id_viajero = id_usuario;
+  //solicitud.id_viajero = id_usuario;
 
   // Generamos un `confirmation_code` si no existe
   if (!solicitud.confirmation_code) {
@@ -135,6 +191,7 @@ async function postSolicitud(solicitud: any, id_usuario: string) {
         room: solicitud.room.type,
         total: solicitud.room.totalPrice,
         status: "pending",
+        id_agente: id_usuario,
       },
     ], // Establecemos el estado por defecto como "pending"
   };
