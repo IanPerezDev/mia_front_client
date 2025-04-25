@@ -680,7 +680,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                                         size={20}
                                       />
                                     )}
-                                    <button
+                                    {/* <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleDeleteMethod(method.id);
@@ -689,7 +689,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                                       aria-label="Delete payment method"
                                     >
                                       <Trash2 size={18} />
-                                    </button>
+                                    </button> */}
                                   </div>
                                 </li>
                               ))}
