@@ -588,8 +588,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                         <CheckCircle className="w-10 h-10 text-green-800" />
                       </div>
 
-                      <button
-                        onClick={() => window.location.reload()}
+                      <a
+                        href="/"
                         className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                           selectedMethod
                             ? "bg-green-600 text-white hover:bg-green-700"
@@ -597,7 +597,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                         }`}
                       >
                         Continuar con MIA
-                      </button>
+                      </a>
                     </>
                   ) : showAddPaymentForm ? (
                     <Elements stripe={stripePromise}>
