@@ -26,9 +26,9 @@ import {
 } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { createLogPayment, createNewPago } from "../hooks/useDatabase";
-import { fetchPaymentMethods, fetchCreditAgent } from "../hooks/useFetch";
+import { fetchPaymentMethods, fetchCreditAgent, fetchViajerosCompanies } from "../hooks/useFetch";
 import { URL } from "../constants/apiConstant";
-import type { BookingData, PaymentMethod } from "../types";
+import type { BookingData, Employee, PaymentMethod } from "../types";
 
 const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
 const API_KEY =
@@ -251,6 +251,8 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     pricePerNight: 0,
     totalPrice: 0
   });
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isBookingSaved, setIsBookingSaved] = useState(false);
@@ -305,6 +307,11 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         }
       });
     }
+    const fetchViajero = async () => {
+      const data = await fetchViajerosCompanies();
+      setEmployees(data);
+    }
+    fetchViajero();
   }, []);
 
   const formatPrice = (price: number) => {
@@ -386,6 +393,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
             type: reservationData.roomType,
             totalPrice: reservationData.totalPrice,
           },
+          id_viajero: reservationData.mainGuest,
         },
         user.id
       );
@@ -795,16 +803,21 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
               </label>
               <div className="relative">
                 <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
+                <select
                   value={reservationData.mainGuest}
                   onChange={(e) => setReservationData(prev => ({
                     ...prev,
                     mainGuest: e.target.value
                   }))}
-                  placeholder="Nombre del huésped principal"
                   className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                />
+                >
+                  <option value="">Selecciona un huésped</option>
+                  {employees.map((empleado) => (
+                    <option key={empleado.id_viajero} value={empleado.id_viajero}>
+                      {empleado.primer_nombre} {empleado.segundo_nombre} {empleado.apellido_paterno} {empleado.apellido_materno}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -838,7 +851,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           </div>
 
           {/* Reservation Summary */}
-          {reservationData.totalNights > 0 &&
+          {reservationData.totalNights > 0 && reservationData.mainGuest != "" &&
             (cardPayment ? (
               <>
                 {successPayment ? (
