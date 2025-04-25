@@ -348,13 +348,13 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 py-4">
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={onBack}
+          <a
+            href="/"
             className="flex items-center text-white hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span>Volver</span>
-          </button>
+          </a>
         </div>
 
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
