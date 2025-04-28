@@ -1047,6 +1047,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
                                 </div>
                               </li>
                             ))}
+
                           <li
                             onClick={handleAddMethod}
                             className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
