@@ -1,14 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { Company, Employee, Assignment, FormMode, Tag, Policy, TaxInfo, CompanyWithTaxInfo } from '../types';
-import { CompanyForm } from '../components/CompanyForm';
-import { EmployeeForm } from '../components/EmployeeForm';
-import { AssignmentForm } from '../components/AssignmentForm';
-import { TagForm } from '../components/TagForm';
-import { PolicyForm } from '../components/PolicyForm';
-import { DatosFiscalesForm } from '../components/DatosFiscalesForm';
-import { FiscalDataModal } from '../components/FiscalDataModal';
-import { createNewEmpresa, createNewViajero, createNewDatosFiscales, updateEmpresa, updateViajero } from '../hooks/useDatabase';
-import { fetchCompaniesAgent, fetchViajerosCompanies, fetchEmpresasDatosFiscales } from '../hooks/useFetch';
+import React, { useEffect, useState } from "react";
+import {
+  Company,
+  Employee,
+  Assignment,
+  FormMode,
+  Tag,
+  Policy,
+  TaxInfo,
+  CompanyWithTaxInfo,
+} from "../types";
+import { CompanyForm } from "../components/CompanyForm";
+import { EmployeeForm } from "../components/EmployeeForm";
+import { AssignmentForm } from "../components/AssignmentForm";
+import { TagForm } from "../components/TagForm";
+import { PolicyForm } from "../components/PolicyForm";
+import { DatosFiscalesForm } from "../components/DatosFiscalesForm";
+import { FiscalDataModal } from "../components/FiscalDataModal";
+import {
+  createNewEmpresa,
+  createNewViajero,
+  createNewDatosFiscales,
+  updateEmpresa,
+  updateViajero,
+} from "../hooks/useDatabase";
+import {
+  fetchCompaniesAgent,
+  fetchViajerosCompanies,
+  fetchEmpresasDatosFiscales,
+} from "../hooks/useFetch";
 import {
   Building2,
   Users,
@@ -22,43 +41,51 @@ import {
   BookOpenText,
   Bell,
   FileEdit,
-} from 'lucide-react';
-import { supabase } from '../services/supabaseClient';
-
+} from "lucide-react";
+import { supabase } from "../services/supabaseClient";
 
 export const Configuration = () => {
-  const [activeTab, setActiveTab] = useState<'companies' | 'employees' | 'assignments' | 'tags' | 'policies' | 'notifications' | 'taxInfo'>('companies');
+  const [activeTab, setActiveTab] = useState<
+    | "companies"
+    | "employees"
+    | "assignments"
+    | "tags"
+    | "policies"
+    | "notifications"
+    | "taxInfo"
+  >("companies");
   const [companies, setCompanies] = useState<CompanyWithTaxInfo[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [datosFiscales, setDatosFiscales] = useState<TaxInfo[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState<FormMode>('create');
+  const [formMode, setFormMode] = useState<FormMode>("create");
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyWithTaxInfo | null>(null);
+  const [selectedCompany, setSelectedCompany] =
+    useState<CompanyWithTaxInfo | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
   const handleSaveFiscalData = (companyId: string, fiscalData: TaxInfo) => {
-    setCompanies(companies.map(company =>
-      company.id_empresa === companyId
-        ? { ...company, fiscalData }
-        : company
-    ));
+    setCompanies(
+      companies.map((company) =>
+        company.id_empresa === companyId ? { ...company, fiscalData } : company
+      )
+    );
     setShowModal(false);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 3000);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (activeTab === "companies") {
-        const data = await fetchEmpresasDatosFiscales();
-        if (data && Array.isArray(data)) {
-          const formattedCompanies: CompanyWithTaxInfo[] = data.map((company) => ({
+  const fetchData = async () => {
+    if (activeTab === "companies") {
+      const data = await fetchEmpresasDatosFiscales();
+      if (data && Array.isArray(data)) {
+        const formattedCompanies: CompanyWithTaxInfo[] = data.map(
+          (company) => ({
             id_empresa: company.id_empresa,
             razon_social: company.razon_social,
             nombre_comercial: company.nombre_comercial,
@@ -70,41 +97,44 @@ export const Configuration = () => {
             tipo_persona: company.tipo_persona,
             taxInfo: company.id_datos_fiscales
               ? {
-                id_datos_fiscales: company.id_datos_fiscales,
-                id_empresa: company.id_empresa,
-                rfc: company.rfc,
-                calle: company.calle,
-                colonia: company.colonia,
-                municipio: company.municipio,
-                estado: company.estado,
-                codigo_postal_fiscal: company.codigo_postal_fiscal.toString(),
-                regimen_fiscal: company.regimen_fiscal || "",
-              }
+                  id_datos_fiscales: company.id_datos_fiscales,
+                  id_empresa: company.id_empresa,
+                  rfc: company.rfc,
+                  calle: company.calle,
+                  colonia: company.colonia,
+                  municipio: company.municipio,
+                  estado: company.estado,
+                  codigo_postal_fiscal: company.codigo_postal_fiscal.toString(),
+                  regimen_fiscal: company.regimen_fiscal || "",
+                }
               : null,
-          }));
+          })
+        );
 
-          setCompanies(formattedCompanies);
-          console.log(companies);
-        }
-      } else if (activeTab === "employees") {
-        const data = await fetchViajerosCompanies();
-        setEmployees(data);
-      } else if (activeTab === "taxInfo") {
-        const data = await fetchEmpresasDatosFiscales();
-        setDatosFiscales(data);
+        setCompanies(formattedCompanies);
+        console.log(companies);
       }
-    };
+    } else if (activeTab === "employees") {
+      const data = await fetchViajerosCompanies();
+      setEmployees(data);
+    } else if (activeTab === "taxInfo") {
+      const data = await fetchEmpresasDatosFiscales();
+      setDatosFiscales(data);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [activeTab])
+  }, [activeTab]);
 
   // List of departments (could be moved to a separate configuration)
   const departments = [
-    'Ingenieria',
-    'Marketing',
-    'Ventas',
-    'Recursos Humanos',
-    'Finanzas',
-    'Operaciones',
+    "Ingenieria",
+    "Marketing",
+    "Ventas",
+    "Recursos Humanos",
+    "Finanzas",
+    "Operaciones",
   ];
 
   const handleSearch = (items: any[]) => {
@@ -112,21 +142,24 @@ export const Configuration = () => {
     return items.filter((item) =>
       Object.values(item).some(
         (value) =>
-          typeof value === 'string' &&
+          typeof value === "string" &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
   };
 
-  const handleDelete = (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy', id: string) => {
-    if (!confirm('Estas seguro que quieres eliminarlo?')) return;
+  const handleDelete = (
+    type: "company" | "employee" | "assignment" | "tag" | "policy",
+    id: string
+  ) => {
+    if (!confirm("Estas seguro que quieres eliminarlo?")) return;
 
     switch (type) {
-      case 'company':
+      case "company":
         setCompanies(companies.filter((c) => c.id_empresa !== id));
         setAssignments(assignments.filter((a) => a.companyId !== id));
         break;
-      case 'employee':
+      case "employee":
         setEmployees(employees.filter((e) => e.id_viajero !== id));
         /*setAssignments(assignments.filter((a) => a.employeeId !== id));
         setPolicies(policies.map(p => ({
@@ -134,31 +167,37 @@ export const Configuration = () => {
           employeeIds: p.employeeIds.filter(eId => eId !== id)
         })));*/
         break;
-      case 'assignment':
+      case "assignment":
         setAssignments(assignments.filter((a) => a.id !== id));
         break;
-      case 'tag':
+      case "tag":
         setTags(tags.filter((t) => t.id !== id));
-        setEmployees(employees.map(e => ({
-          ...e,
-          tagIds: e.tagIds.filter(tId => tId !== id)
-        })));
+        setEmployees(
+          employees.map((e) => ({
+            ...e,
+            tagIds: e.tagIds.filter((tId) => tId !== id),
+          }))
+        );
         break;
-      case 'policy':
+      case "policy":
         setPolicies(policies.filter((p) => p.id !== id));
         break;
     }
   };
 
-  const handleSubmit = async (type: 'company' | 'employee' | 'assignment' | 'tag' | 'policy' | 'taxInfo', data: any) => {
-    const id = formMode === 'create' ? crypto.randomUUID() : selectedItem.id;
+  const handleSubmit = async (
+    type: "company" | "employee" | "assignment" | "tag" | "policy" | "taxInfo",
+    data: any
+  ) => {
+    const id = formMode === "create" ? crypto.randomUUID() : selectedItem.id;
     const newData = { ...data, id };
-    console.log(data)
+    console.log(data);
     switch (type) {
-      case 'company':
-        if (formMode === 'create') {
+      case "company":
+        if (formMode === "create") {
           try {
-            const { data: user, error: userError } = await supabase.auth.getUser();
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
             if (userError) {
               throw userError;
             }
@@ -175,14 +214,19 @@ export const Configuration = () => {
           }
         } else {
           try {
-            const { data: user, error: userError } = await supabase.auth.getUser();
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
             if (userError) {
               throw userError;
             }
             if (!user) {
               throw new Error("No hay usuario autenticado");
             }
-            const responseCompany = await updateEmpresa(data, data.id_empresa, user.user.id);
+            const responseCompany = await updateEmpresa(
+              data,
+              data.id_empresa,
+              user.user.id
+            );
             if (!responseCompany.success) {
               throw new Error("No se pudo actualizar a la empresa");
             }
@@ -192,17 +236,21 @@ export const Configuration = () => {
           }
         }
         break;
-      case 'employee':
-        if (formMode === 'create') {
+      case "employee":
+        if (formMode === "create") {
           try {
-            const { data: user, error: userError } = await supabase.auth.getUser();
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
             if (userError) {
               throw userError;
             }
             if (!user) {
               throw new Error("No hay usuario autenticado");
             }
-            const responseCompany = await createNewViajero(data, data.id_empresas);
+            const responseCompany = await createNewViajero(
+              data,
+              data.id_empresas
+            );
             if (!responseCompany.success) {
               throw new Error("No se pudo registrar al viajero");
             }
@@ -212,14 +260,19 @@ export const Configuration = () => {
           }
         } else {
           try {
-            const { data: user, error: userError } = await supabase.auth.getUser();
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
             if (userError) {
               throw userError;
             }
             if (!user) {
               throw new Error("No hay usuario autenticado");
             }
-            const responseCompany = await updateViajero(data, data.id_empresas, data.id_viajero);
+            const responseCompany = await updateViajero(
+              data,
+              data.id_empresas,
+              data.id_viajero
+            );
             if (!responseCompany.success) {
               throw new Error("No se pudo actualizar al viajero");
             }
@@ -230,11 +283,12 @@ export const Configuration = () => {
         }
         break;
 
-      case 'taxInfo':
-        if (formMode === 'create') {
+      case "taxInfo":
+        if (formMode === "create") {
           console.log(data);
           try {
-            const { data: user, error: userError } = await supabase.auth.getUser();
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
             if (userError) {
               throw userError;
             }
@@ -250,62 +304,64 @@ export const Configuration = () => {
             console.error("Error creando nuevis datos fiscales", error);
           }
         } else {
-          setCompanies(companies.map((c) => (c.id_empresa === id ? newData : c)));
+          setCompanies(
+            companies.map((c) => (c.id_empresa === id ? newData : c))
+          );
         }
         break;
-      case 'assignment':
-        if (formMode === 'create') {
+      case "assignment":
+        if (formMode === "create") {
           setAssignments([...assignments, newData]);
         } else {
           setAssignments(assignments.map((a) => (a.id === id ? newData : a)));
         }
         break;
-      case 'tag':
-        if (formMode === 'create') {
+      case "tag":
+        if (formMode === "create") {
           setTags([...tags, newData]);
         } else {
           setTags(tags.map((t) => (t.id === id ? newData : t)));
         }
         break;
-      case 'policy':
-        if (formMode === 'create') {
+      case "policy":
+        if (formMode === "create") {
           setPolicies([...policies, newData]);
         } else {
           setPolicies(policies.map((p) => (p.id === id ? newData : p)));
         }
         break;
     }
-
+    fetchData();
     setShowForm(false);
     setSelectedItem(null);
   };
 
   const renderForm = () => {
     switch (activeTab) {
-      case 'companies':
+      case "companies":
         return (
           <CompanyForm
-            onSubmit={(data) => handleSubmit('company', data)}
+            onSubmit={(data) => handleSubmit("company", data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
           />
         );
-      case 'employees':
+      case "employees":
         return (
           <EmployeeForm
-            onSubmit={(data) => handleSubmit('employee', data)}
+            onSubmit={(data) => handleSubmit("employee", data)}
             onCancel={() => setShowForm(false)}
             // tags={tags}
             // departments={departments}
             initialData={selectedItem}
           />
         );
-      case 'assignments':
+      case "assignments":
         return (
           <AssignmentForm
             companies={companies}
             employees={employees}
-            onSubmit={(data) => handleSubmit('assignment', data)}
+            onSubmit={(data) => handleSubmit("assignment", data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
           />
@@ -313,24 +369,24 @@ export const Configuration = () => {
       case "taxInfo":
         return (
           <DatosFiscalesForm
-            onSubmit={(data) => handleSubmit('taxInfo', data)}
+            onSubmit={(data) => handleSubmit("taxInfo", data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
           />
-        )
-      case 'tags':
+        );
+      case "tags":
         return (
           <TagForm
-            onSubmit={(data) => handleSubmit('tag', data)}
+            onSubmit={(data) => handleSubmit("tag", data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
             employees={employees}
           />
         );
-      case 'policies':
+      case "policies":
         return (
           <PolicyForm
-            onSubmit={(data) => handleSubmit('policy', data)}
+            onSubmit={(data) => handleSubmit("policy", data)}
             onCancel={() => setShowForm(false)}
             departments={departments}
             employees={employees}
@@ -344,27 +400,31 @@ export const Configuration = () => {
   return (
     <div className="min-h-screen bg-gray-50 mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Configuración de la cuenta</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Configuración de la cuenta
+        </h1>
 
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex flex-wrap">
               <button
-                onClick={() => setActiveTab('companies')}
-                className={`${activeTab === 'companies'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => setActiveTab("companies")}
+                className={`${
+                  activeTab === "companies"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Building2 className="mr-2 h-5 w-5" />
                 Compañias
               </button>
               <button
-                onClick={() => setActiveTab('employees')}
-                className={`${activeTab === 'employees'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => setActiveTab("employees")}
+                className={`${
+                  activeTab === "employees"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Users className="mr-2 h-5 w-5" />
                 Viajeros
@@ -411,11 +471,12 @@ export const Configuration = () => {
                 Politicas
               </button>*/}
               <button
-                onClick={() => setActiveTab('notifications')}
-                className={`${activeTab === 'notifications'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => setActiveTab("notifications")}
+                className={`${
+                  activeTab === "notifications"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Bell className="mr-2 h-5 w-5" />
                 Notificaciones
@@ -441,7 +502,7 @@ export const Configuration = () => {
                   </div>
                   <button
                     onClick={() => {
-                      setFormMode('create');
+                      setFormMode("create");
                       setSelectedItem(null);
                       setShowForm(true);
                     }}
@@ -456,7 +517,7 @@ export const Configuration = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
                       <tr>
-                        {activeTab === 'companies' && (
+                        {activeTab === "companies" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Nombre de la empresa
@@ -472,7 +533,7 @@ export const Configuration = () => {
                             </th>
                           </>
                         )}
-                        {activeTab === 'employees' && (
+                        {activeTab === "employees" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Viajero
@@ -488,7 +549,7 @@ export const Configuration = () => {
                             </th>
                           </>
                         )}
-                        {activeTab === 'taxInfo' && (
+                        {activeTab === "taxInfo" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Empresa
@@ -511,7 +572,7 @@ export const Configuration = () => {
                           </>
                         )}
 
-                        {activeTab === 'assignments' && (
+                        {activeTab === "assignments" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Compañia
@@ -524,7 +585,7 @@ export const Configuration = () => {
                             </th>
                           </>
                         )}
-                        {activeTab === 'tags' && (
+                        {activeTab === "tags" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Nombre de la etiqueta
@@ -537,7 +598,7 @@ export const Configuration = () => {
                             </th>
                           </>
                         )}
-                        {activeTab === 'policies' && (
+                        {activeTab === "policies" && (
                           <>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Nombre de politica
@@ -559,7 +620,7 @@ export const Configuration = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {activeTab === 'companies' &&
+                      {activeTab === "companies" &&
                         handleSearch(companies).map((company) => (
                           <tr key={company.id_empresa}>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -589,10 +650,13 @@ export const Configuration = () => {
                               {company.phone}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => {
-                                setSelectedCompany(company);
-                                setShowModal(true);
-                              }}>
+                              <button
+                                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                onClick={() => {
+                                  setSelectedCompany(company);
+                                  setShowModal(true);
+                                }}
+                              >
                                 <FileEdit size={16} className="mr-2" />
                                 Datos fiscales
                               </button>
@@ -600,7 +664,7 @@ export const Configuration = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
-                                  setFormMode('edit');
+                                  setFormMode("edit");
                                   setSelectedItem(company);
                                   setShowForm(true);
                                 }}
@@ -609,16 +673,17 @@ export const Configuration = () => {
                                 <Pencil className="h-5 w-5" />
                               </button>
                               <button
-                                onClick={() => handleDelete('company', company.id)}
+                                onClick={() =>
+                                  handleDelete("company", company.id)
+                                }
                                 className="text-red-600 hover:text-red-900"
                               >
                                 <Trash2 className="h-5 w-5" />
                               </button>
                             </td>
-
                           </tr>
                         ))}
-                      {activeTab === 'employees' &&
+                      {activeTab === "employees" &&
                         handleSearch(employees).map((employee) => (
                           <tr key={employee.id_viajero}>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -636,19 +701,27 @@ export const Configuration = () => {
                                 )}
                                 <div>
                                   <div className="text-sm font-medium text-gray-900">
-                                    {employee.primer_nombre} {employee.segundo_nombre} {employee.apellido_paterno} {employee.apellido_materno}
+                                    {employee.primer_nombre}{" "}
+                                    {employee.segundo_nombre}{" "}
+                                    {employee.apellido_paterno}{" "}
+                                    {employee.apellido_materno}
                                   </div>
-
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-900">
-                                {employee.empresas?.map(emp => emp.razon_social).join(', ')}
+                                {employee.empresas
+                                  ?.map((emp) => emp.razon_social)
+                                  .join(", ")}
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              {employee.fecha_nacimiento ? new Date(employee.fecha_nacimiento).toLocaleDateString() : ""}
+                              {employee.fecha_nacimiento
+                                ? new Date(
+                                    employee.fecha_nacimiento
+                                  ).toLocaleDateString()
+                                : ""}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {employee.correo}
@@ -658,7 +731,7 @@ export const Configuration = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
-                                  setFormMode('edit');
+                                  setFormMode("edit");
                                   setSelectedItem(employee);
                                   setShowForm(true);
                                 }}
@@ -667,7 +740,9 @@ export const Configuration = () => {
                                 <Pencil className="h-5 w-5" />
                               </button>
                               <button
-                                onClick={() => handleDelete('employee', employee.id)}
+                                onClick={() =>
+                                  handleDelete("employee", employee.id)
+                                }
                                 className="text-red-600 hover:text-red-900"
                               >
                                 <Trash2 className="h-5 w-5" />
@@ -675,38 +750,44 @@ export const Configuration = () => {
                             </td>
                           </tr>
                         ))}
-                      {activeTab === 'taxInfo' &&
+                      {activeTab === "taxInfo" &&
                         datosFiscales.map((datosFiscal) => {
-                          const empresa = companies.find((c) => c.id_empresa === datosFiscal.id_empresa); // Suponiendo que 'companies' contiene las empresas relacionadas
+                          const empresa = companies.find(
+                            (c) => c.id_empresa === datosFiscal.id_empresa
+                          ); // Suponiendo que 'companies' contiene las empresas relacionadas
                           return (
                             <tr key={datosFiscal.id_datos_fiscales}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   {/* Aquí puedes mostrar algo relacionado con la empresa o el ID */}
                                   <div className="text-sm font-medium text-gray-900">
-                                    {empresa ? empresa.razon_social : 'Empresa no encontrada'}
+                                    {empresa
+                                      ? empresa.razon_social
+                                      : "Empresa no encontrada"}
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {datosFiscal.rfc || '-'}
+                                {datosFiscal.rfc || "-"}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {datosFiscal.calle || '-'}, {datosFiscal.colonia || '-'}
+                                {datosFiscal.calle || "-"},{" "}
+                                {datosFiscal.colonia || "-"}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {datosFiscal.estado || '-'}, {datosFiscal.municipio || '-'}
+                                {datosFiscal.estado || "-"},{" "}
+                                {datosFiscal.municipio || "-"}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {datosFiscal.codigo_postal_fiscal || '-'}
+                                {datosFiscal.codigo_postal_fiscal || "-"}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {datosFiscal.regimen_fiscal || '-'}
+                                {datosFiscal.regimen_fiscal || "-"}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   onClick={() => {
-                                    setFormMode('edit');
+                                    setFormMode("edit");
                                     setSelectedItem(datosFiscal);
                                     setShowForm(true);
                                   }}
@@ -715,7 +796,12 @@ export const Configuration = () => {
                                   <Pencil className="h-5 w-5" />
                                 </button>
                                 <button
-                                  onClick={() => handleDelete('datosFiscal', datosFiscal.id_datos_fiscales)}
+                                  onClick={() =>
+                                    handleDelete(
+                                      "datosFiscal",
+                                      datosFiscal.id_datos_fiscales
+                                    )
+                                  }
                                   className="text-red-600 hover:text-red-900"
                                 >
                                   <Trash2 className="h-5 w-5" />
@@ -723,12 +809,13 @@ export const Configuration = () => {
                               </td>
                             </tr>
                           );
-                        })
-                      }
+                        })}
 
-                      {activeTab === 'tags' &&
+                      {activeTab === "tags" &&
                         handleSearch(tags).map((tag) => {
-                          const taggedEmployees = employees.filter((e) => e.tagIds?.includes(tag.id));
+                          const taggedEmployees = employees.filter((e) =>
+                            e.tagIds?.includes(tag.id)
+                          );
                           return (
                             <tr key={tag.id}>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -743,7 +830,7 @@ export const Configuration = () => {
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {tag.description || '-'}
+                                {tag.description || "-"}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {taggedEmployees.length} employees
@@ -751,7 +838,7 @@ export const Configuration = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   onClick={() => {
-                                    setFormMode('edit');
+                                    setFormMode("edit");
                                     setSelectedItem(tag);
                                     setShowForm(true);
                                   }}
@@ -760,7 +847,7 @@ export const Configuration = () => {
                                   <Pencil className="h-5 w-5" />
                                 </button>
                                 <button
-                                  onClick={() => handleDelete('tag', tag.id)}
+                                  onClick={() => handleDelete("tag", tag.id)}
                                   className="text-red-600 hover:text-red-900"
                                 >
                                   <Trash2 className="h-5 w-5" />
@@ -769,7 +856,7 @@ export const Configuration = () => {
                             </tr>
                           );
                         })}
-                      {activeTab === 'policies' &&
+                      {activeTab === "policies" &&
                         handleSearch(policies).map((policy) => (
                           <tr key={policy.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -778,43 +865,52 @@ export const Configuration = () => {
                               </div>
                               <div className="text-xs text-gray-500">
                                 {policy.description.length > 50
-                                  ? policy.description.substring(0, 50) + '...'
+                                  ? policy.description.substring(0, 50) + "..."
                                   : policy.description}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.type === 'budget'
-                                ? 'bg-green-100 text-green-800'
-                                : policy.type === 'schedule'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : policy.type === 'benefits'
-                                    ? 'bg-purple-100 text-purple-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                {policy.type.charAt(0).toUpperCase() + policy.type.slice(1)}
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  policy.type === "budget"
+                                    ? "bg-green-100 text-green-800"
+                                    : policy.type === "schedule"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : policy.type === "benefits"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {policy.type.charAt(0).toUpperCase() +
+                                  policy.type.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : policy.status === 'inactive'
-                                  ? 'bg-gray-100 text-gray-800'
-                                  : policy.status === 'draft'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  policy.status === "active"
+                                    ? "bg-green-100 text-green-800"
+                                    : policy.status === "inactive"
+                                    ? "bg-gray-100 text-gray-800"
+                                    : policy.status === "draft"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {policy.status.charAt(0).toUpperCase() +
+                                  policy.status.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(policy.startDate).toLocaleDateString()} -
+                              {new Date(policy.startDate).toLocaleDateString()}{" "}
+                              -
                               <br />
                               {new Date(policy.endDate).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
-                                  setFormMode('edit');
+                                  setFormMode("edit");
                                   setSelectedItem(policy);
                                   setShowForm(true);
                                 }}
@@ -823,7 +919,9 @@ export const Configuration = () => {
                                 <Pencil className="h-5 w-5" />
                               </button>
                               <button
-                                onClick={() => handleDelete('policy', policy.id)}
+                                onClick={() =>
+                                  handleDelete("policy", policy.id)
+                                }
                                 className="text-red-600 hover:text-red-900"
                               >
                                 <Trash2 className="h-5 w-5" />
@@ -849,4 +947,4 @@ export const Configuration = () => {
       )}
     </div>
   );
-}
+};

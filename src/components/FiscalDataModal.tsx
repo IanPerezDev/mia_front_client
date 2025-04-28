@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { CompanyWithTaxInfo, TaxInfo } from "../types";
-import { createNewDatosFiscales } from "../hooks/useDatabase";
+import {
+  createNewDatosFiscales,
+  updateNewDatosFiscales,
+} from "../hooks/useDatabase";
 import { supabase } from "../services/supabaseClient";
 import { URL } from "../constants/apiConstant";
 
@@ -117,7 +120,7 @@ export function FiscalDataModal({
         return;
       }
 
-      const responseCompany = await createNewDatosFiscales(formData);
+      const responseCompany = await updateNewDatosFiscales(formData);
       if (!responseCompany.success) {
         throw new Error("No se pudo registrar los datos fiscales");
       }
