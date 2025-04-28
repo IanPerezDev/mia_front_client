@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
+import React, { useState, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
 import {
   ArrowLeft,
   Hotel,
@@ -14,9 +14,9 @@ import {
   CreditCard,
   Plus,
   Trash2,
-  CheckCircle2
-} from 'lucide-react';
-import { CallToBackend } from '../components/CallToBackend';
+  CheckCircle2,
+} from "lucide-react";
+import { CallToBackend } from "../components/CallToBackend";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -26,9 +26,14 @@ import {
 } from "@stripe/react-stripe-js";
 import { useSolicitud } from "../hooks/useSolicitud";
 import { createLogPayment, createNewPago } from "../hooks/useDatabase";
-import { fetchPaymentMethods, fetchCreditAgent, fetchViajerosCompanies } from "../hooks/useFetch";
+import {
+  fetchPaymentMethods,
+  fetchCreditAgent,
+  fetchViajerosCompanies,
+} from "../hooks/useFetch";
 import { URL } from "../constants/apiConstant";
 import type { BookingData, Employee, PaymentMethod } from "../types";
+import { SupportModal } from "../components/SupportModal";
 
 const { obtenerSolicitudes, crearSolicitud } = useSolicitud();
 const API_KEY =
@@ -100,7 +105,7 @@ interface Hotel {
 interface ReservationData {
   checkIn: string;
   checkOut: string;
-  roomType: 'single' | 'double';
+  roomType: "single" | "double";
   guests: number;
   mainGuest: string;
   additionalGuests: string[];
@@ -150,8 +155,7 @@ const CheckOutForm = ({
           body: JSON.stringify({
             paymentMethodId: paymentMethod.id,
             id_agente: id_agente,
-          })
-          ,
+          }),
         });
 
         const data = await response.json();
@@ -159,8 +163,7 @@ const CheckOutForm = ({
           setMessage(data.message || "Metodo de pago guardado");
           setSuccess(false);
           handleEndSubmit();
-        }
-        else {
+        } else {
           setMessage("Ocurrio un error");
         }
       }
@@ -202,14 +205,12 @@ const CheckOutForm = ({
 };
 
 const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
-
-
   const payment_metadata = {
     hotel_name: hotel.hotel,
     check_in: reservationData.checkIn,
     check_out: reservationData.checkOut,
     room_type: reservationData.roomType,
-    guests: reservationData.guests
+    guests: reservationData.guests,
   };
 
   const currentUrl = window.location.href;
@@ -221,35 +222,44 @@ const getPaymentData = (hotel: Hotel, reservationData: ReservationData) => {
           currency: "mxn",
           product_data: {
             name: hotel.hotel,
-            description: `Reservación en ${hotel.hotel} - ${reservationData.roomType === 'single' ? 'Habitación Sencilla' : 'Habitación Doble'
-              }`,
+            description: `Reservación en ${hotel.hotel} - ${
+              reservationData.roomType === "single"
+                ? "Habitación Sencilla"
+                : "Habitación Doble"
+            }`,
             images: [
-              hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+              hotel.URLImagenHotel ||
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
             ],
           },
           unit_amount: Math.round(reservationData.totalPrice * 100),
         },
         quantity: 1,
-      }
+      },
     ],
     mode: "payment",
-    success_url: `${DOMAIN}?success=true&session={CHECKOUT_SESSION_ID}&metadata=${JSON.stringify(payment_metadata)}`,
+    success_url: `${DOMAIN}?success=true&session={CHECKOUT_SESSION_ID}&metadata=${JSON.stringify(
+      payment_metadata
+    )}`,
     cancel_url: currentUrl,
   };
 };
 
-export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ onBack }) => {
+export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
+  onBack,
+}) => {
   const [hotel, setHotel] = useState<Hotel | null>(null);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [reservationData, setReservationData] = useState<ReservationData>({
-    checkIn: '',
-    checkOut: '',
-    roomType: 'single',
+    checkIn: "",
+    checkOut: "",
+    roomType: "single",
     guests: 1,
-    mainGuest: '',
+    mainGuest: "",
     additionalGuests: [],
     totalNights: 0,
     pricePerNight: 0,
-    totalPrice: 0
+    totalPrice: 0,
   });
   const [employees, setEmployees] = useState<Employee[]>([]);
 
@@ -292,7 +302,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
   }, [creditoPayment]);
 
   useEffect(() => {
-    const storedHotel = sessionStorage.getItem('selectedHotel');
+    const storedHotel = sessionStorage.getItem("selectedHotel");
     if (storedHotel) {
       const parsedHotel = JSON.parse(storedHotel);
       setHotel(parsedHotel);
@@ -300,9 +310,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
       // Get current user's name
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user?.user_metadata?.full_name) {
-          setReservationData(prev => ({
+          setReservationData((prev) => ({
             ...prev,
-            mainGuest: reservationData.mainGuest
+            mainGuest: reservationData.mainGuest,
           }));
         }
       });
@@ -310,42 +320,44 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     const fetchViajero = async () => {
       const data = await fetchViajerosCompanies();
       setEmployees(data);
-    }
+    };
     fetchViajero();
   }, []);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 2
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      minimumFractionDigits: 2,
     }).format(price);
   };
 
   const calculateTotalPrice = (
     checkIn: string,
     checkOut: string,
-    roomType: 'single' | 'double'
+    roomType: "single" | "double"
   ) => {
-    if (!checkIn || !checkOut || !hotel) return { nights: 0, pricePerNight: 0, total: 0 };
+    if (!checkIn || !checkOut || !hotel)
+      return { nights: 0, pricePerNight: 0, total: 0 };
 
     const start = new Date(checkIn);
     const end = new Date(checkOut);
-    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const nights = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-    const pricePerNight = roomType === 'single'
-      ? hotel.precio_sencillo
-      : hotel.precio_doble;
+    const pricePerNight =
+      roomType === "single" ? hotel.precio_sencillo : hotel.precio_doble;
 
     return {
       nights,
       pricePerNight,
-      total: nights * pricePerNight
+      total: nights * pricePerNight,
     };
   };
 
-  const handleDateChange = (field: 'checkIn' | 'checkOut', value: string) => {
-    setReservationData(prev => {
+  const handleDateChange = (field: "checkIn" | "checkOut", value: string) => {
+    setReservationData((prev) => {
       const newData = { ...prev, [field]: value };
       const { nights, pricePerNight, total } = calculateTotalPrice(
         newData.checkIn,
@@ -356,7 +368,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         ...newData,
         totalNights: nights,
         pricePerNight,
-        totalPrice: total
+        totalPrice: total,
       };
     });
   };
@@ -426,7 +438,6 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
       setIsBookingSaved(true);
 
       return idServicio;
-
     } catch (error: any) {
       console.error("Error saving booking:", error);
       setSaveError(error.message || "Error al guardar la reservación");
@@ -514,7 +525,6 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
     setIsProcessing(false);
   };
 
-
   const handlePaymentCredito = async () => {
     setSaveError(null);
     try {
@@ -537,7 +547,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           id_servicio: idServicio,
           monto_a_credito: reservationData.totalPrice,
           responsable_pago_agente: id_agente,
-          fecha_creacion: new Date().toISOString().split('T')[0],
+          fecha_creacion: new Date().toISOString().split("T")[0],
           pago_por_credito: reservationData.totalPrice,
           pendiente_por_cobrar: reservationData.totalPrice,
           total: reservationData.totalPrice,
@@ -548,7 +558,8 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           currency: "mxn",
           tipo_de_pago: "credito",
           // Para actualizar el crédito del agente
-          credito_restante: creditoValue[0]?.monto_credito_agente - reservationData.totalPrice
+          credito_restante:
+            creditoValue[0]?.monto_credito_agente - reservationData.totalPrice,
         }),
       });
 
@@ -561,7 +572,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
       console.log(error);
       setSaveError("Hubo un error al procesar el pago");
     }
-  }
+  };
 
   const checkInDate = formatDate(reservationData.checkIn);
   const checkOutDate = formatDate(reservationData.checkOut);
@@ -603,14 +614,19 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
           <div className="relative h-64">
             <img
-              src={hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
+              src={
+                hotel.URLImagenHotel ||
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+              }
               alt={hotel.hotel}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h1 className="text-3xl font-bold mb-2">{hotel.hotel}</h1>
-              <p className="text-white/90">{hotel.ciudad}, {hotel.estado}</p>
+              <p className="text-white/90">
+                {hotel.ciudad}, {hotel.estado}
+              </p>
             </div>
           </div>
         </div>
@@ -621,7 +637,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Hotel Information */}
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900">Información del Hotel</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Información del Hotel
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
                     <Hotel className="w-5 h-5 text-blue-600 mt-1" />
@@ -633,7 +651,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                   <div className="flex items-start space-x-3">
                     <Users className="w-5 h-5 text-blue-600 mt-1" />
                     <div>
-                      <p className="font-medium text-gray-900">Menores de Edad</p>
+                      <p className="font-medium text-gray-900">
+                        Menores de Edad
+                      </p>
                       <p className="text-gray-600">{hotel.menores_de_edad}</p>
                     </div>
                   </div>
@@ -641,7 +661,11 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <Coffee className="w-5 h-5 text-blue-600 mt-1" />
                     <div>
                       <p className="font-medium text-gray-900">Desayuno</p>
-                      <p className="text-gray-600">{hotel.desayuno_incluido === 'SI' ? 'Incluido' : 'No incluido'}</p>
+                      <p className="text-gray-600">
+                        {hotel.desayuno_incluido === "SI"
+                          ? "Incluido"
+                          : "No incluido"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -649,32 +673,42 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
 
               {/* Room Pricing */}
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900">Tarifas por Noche</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Tarifas por Noche
+                </h3>
                 <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center space-x-2">
                         <User className="w-5 h-5 text-blue-600" />
-                        <span className="font-medium text-gray-900">Habitación Sencilla</span>
+                        <span className="font-medium text-gray-900">
+                          Habitación Sencilla
+                        </span>
                       </div>
                       <span className="text-lg font-bold text-blue-600">
                         {formatPrice(hotel.precio_sencillo)}
                       </span>
                     </div>
-                    <p className="text-sm text-blue-600">Capacidad máxima: 2 personas</p>
+                    <p className="text-sm text-blue-600">
+                      Capacidad máxima: 1 personas
+                    </p>
                   </div>
 
                   <div className="bg-indigo-50 p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center space-x-2">
                         <Users className="w-5 h-5 text-indigo-600" />
-                        <span className="font-medium text-gray-900">Habitación Doble</span>
+                        <span className="font-medium text-gray-900">
+                          Habitación Doble
+                        </span>
                       </div>
                       <span className="text-lg font-bold text-indigo-600">
                         {formatPrice(hotel.precio_doble)}
                       </span>
                     </div>
-                    <p className="text-sm text-indigo-600">Capacidad máxima: 4 personas</p>
+                    <p className="text-sm text-indigo-600">
+                      Capacidad máxima: 2 personas
+                    </p>
                   </div>
                 </div>
               </div>
@@ -692,7 +726,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Dates Section */}
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Fechas de Estancia</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Fechas de Estancia
+              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -703,8 +739,10 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <input
                       type="date"
                       value={reservationData.checkIn}
-                      onChange={(e) => handleDateChange('checkIn', e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        handleDateChange("checkIn", e.target.value)
+                      }
+                      min={new Date().toISOString().split("T")[0]}
                       className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     />
                   </div>
@@ -719,8 +757,13 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <input
                       type="date"
                       value={reservationData.checkOut}
-                      onChange={(e) => handleDateChange('checkOut', e.target.value)}
-                      min={reservationData.checkIn || new Date().toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        handleDateChange("checkOut", e.target.value)
+                      }
+                      min={
+                        reservationData.checkIn ||
+                        new Date().toISOString().split("T")[0]
+                      }
                       className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     />
                   </div>
@@ -730,7 +773,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
 
             {/* Room and Guests Section */}
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Habitación y Huéspedes</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Habitación y Huéspedes
+              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -741,29 +786,48 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <select
                       value={reservationData.roomType}
                       onChange={(e) => {
-                        const newRoomType = e.target.value as 'single' | 'double';
-                        setReservationData(prev => {
-                          const { nights, pricePerNight, total } = calculateTotalPrice(
-                            prev.checkIn,
-                            prev.checkOut,
-                            newRoomType
-                          );
+                        const newRoomType = e.target.value as
+                          | "single"
+                          | "double";
+                        setReservationData((prev) => {
+                          const { nights, pricePerNight, total } =
+                            calculateTotalPrice(
+                              prev.checkIn,
+                              prev.checkOut,
+                              newRoomType
+                            );
                           return {
                             ...prev,
                             roomType: newRoomType,
                             guests: 1,
                             totalNights: nights,
                             pricePerNight,
-                            totalPrice: total
+                            totalPrice: total,
                           };
                         });
                       }}
                       className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     >
-                      <option value="single">Habitación Sencilla (máx. 2 personas)</option>
-                      <option value="double">Habitación Doble (máx. 4 personas)</option>
+                      <option value="single">
+                        Habitación Sencilla (máx. 1 personas)
+                      </option>
+                      <option value="double">
+                        Habitación Doble (máx. 2 personas)
+                      </option>
                     </select>
                   </div>
+                  <p className="text-sm my-2 text-gray-600">
+                    ¿Necesitas espacio para mas personas? <br />
+                    <span
+                      onClick={() => {
+                        setIsSupportModalOpen(true);
+                      }}
+                      className="hover:underline cursor-pointer text-blue-500"
+                    >
+                      Contacta al soporte de MIA{" "}
+                    </span>{" "}
+                    para ayudarte con cualquier modificación
+                  </p>
                 </div>
 
                 <div>
@@ -775,17 +839,20 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <input
                       type="number"
                       min="1"
-                      max={reservationData.roomType === 'single' ? 2 : 4}
+                      max={reservationData.roomType === "single" ? 2 : 4}
                       value={reservationData.guests}
-                      onChange={(e) => setReservationData(prev => ({
-                        ...prev,
-                        guests: parseInt(e.target.value)
-                      }))}
+                      onChange={(e) =>
+                        setReservationData((prev) => ({
+                          ...prev,
+                          guests: parseInt(e.target.value),
+                        }))
+                      }
                       className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     />
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
-                    Capacidad máxima: {reservationData.roomType === 'single' ? '2' : '4'} personas
+                    Capacidad máxima:{" "}
+                    {reservationData.roomType === "single" ? "2" : "4"} personas
                   </p>
                 </div>
               </div>
@@ -794,7 +861,9 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
 
           {/* Guest Information */}
           <div className="mt-8 space-y-6">
-            <h3 className="text-lg font-medium text-gray-900">Información de Huéspedes</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              Información de Huéspedes
+            </h3>
 
             {/* Main Guest */}
             <div>
@@ -805,16 +874,22 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                 <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <select
                   value={reservationData.mainGuest}
-                  onChange={(e) => setReservationData(prev => ({
-                    ...prev,
-                    mainGuest: e.target.value
-                  }))}
+                  onChange={(e) =>
+                    setReservationData((prev) => ({
+                      ...prev,
+                      mainGuest: e.target.value,
+                    }))
+                  }
                   className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 >
                   <option value="">Selecciona un huésped</option>
                   {employees.map((empleado) => (
-                    <option key={empleado.id_viajero} value={empleado.id_viajero}>
-                      {empleado.primer_nombre} {empleado.segundo_nombre} {empleado.apellido_paterno} {empleado.apellido_materno}
+                    <option
+                      key={empleado.id_viajero}
+                      value={empleado.id_viajero}
+                    >
+                      {empleado.primer_nombre} {empleado.segundo_nombre}{" "}
+                      {empleado.apellido_paterno} {empleado.apellido_materno}
                     </option>
                   ))}
                 </select>
@@ -827,31 +902,36 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                 <label className="block text-sm font-medium text-gray-700">
                   Huéspedes Adicionales
                 </label>
-                {Array.from({ length: reservationData.guests - 1 }).map((_, index) => (
-                  <div key={index} className="relative">
-                    <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={reservationData.additionalGuests[index] || ''}
-                      onChange={(e) => {
-                        const newGuests = [...reservationData.additionalGuests];
-                        newGuests[index] = e.target.value;
-                        setReservationData(prev => ({
-                          ...prev,
-                          additionalGuests: newGuests
-                        }));
-                      }}
-                      placeholder={`Nombre del huésped ${index + 2}`}
-                      className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    />
-                  </div>
-                ))}
+                {Array.from({ length: reservationData.guests - 1 }).map(
+                  (_, index) => (
+                    <div key={index} className="relative">
+                      <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={reservationData.additionalGuests[index] || ""}
+                        onChange={(e) => {
+                          const newGuests = [
+                            ...reservationData.additionalGuests,
+                          ];
+                          newGuests[index] = e.target.value;
+                          setReservationData((prev) => ({
+                            ...prev,
+                            additionalGuests: newGuests,
+                          }));
+                        }}
+                        placeholder={`Nombre del huésped ${index + 2}`}
+                        className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      />
+                    </div>
+                  )
+                )}
               </div>
             )}
           </div>
 
           {/* Reservation Summary */}
-          {reservationData.totalNights > 0 && reservationData.mainGuest != "" &&
+          {reservationData.totalNights > 0 &&
+            reservationData.mainGuest != "" &&
             (cardPayment ? (
               <>
                 {successPayment ? (
@@ -863,15 +943,16 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                       <CheckCircle className="w-10 h-10 text-green-800" />
                     </div>
 
-                    <button
-                      onClick={() => window.location.reload()}
-                      className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        }`}
+                    <a
+                      href="/"
+                      className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                        selectedMethod
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      }`}
                     >
                       Continuar con MIA
-                    </button>
+                    </a>
                   </>
                 ) : showAddPaymentForm ? (
                   <Elements stripe={stripePromise}>
@@ -915,55 +996,57 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     ) : (
                       <>
                         <ul className="space-y-3 mb-6">
-                          {paymentMethods.length > 0 && (paymentMethods.map((method) => (
-                            <li
-                              key={method.id}
-                              onClick={() => setSelectedMethod(method.id)}
-                              className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${selectedMethod === method.id
-                                ? "bg-blue-50 border-2 border-blue-500"
-                                : "bg-gray-50 hover:bg-gray-100"
+                          {paymentMethods.length > 0 &&
+                            paymentMethods.map((method) => (
+                              <li
+                                key={method.id}
+                                onClick={() => setSelectedMethod(method.id)}
+                                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${
+                                  selectedMethod === method.id
+                                    ? "bg-blue-50 border-2 border-blue-500"
+                                    : "bg-gray-50 hover:bg-gray-100"
                                 }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <CreditCard
-                                  className={
-                                    selectedMethod === method.id
-                                      ? "text-blue-600"
-                                      : "text-gray-600"
-                                  }
-                                  size={20}
-                                />
-                                <div>
-                                  <p className="font-medium text-gray-800">
-                                    {method.card.brand.toUpperCase()} ••••{" "}
-                                    {method.card.last4}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Vence {method.card.exp_month}/
-                                    {method.card.exp_year}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {selectedMethod === method.id && (
-                                  <CheckCircle2
-                                    className="text-blue-600"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <CreditCard
+                                    className={
+                                      selectedMethod === method.id
+                                        ? "text-blue-600"
+                                        : "text-gray-600"
+                                    }
                                     size={20}
                                   />
-                                )}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteMethod(method.id);
-                                  }}
-                                  className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
-                                  aria-label="Delete payment method"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
-                              </div>
-                            </li>
-                          )))}
+                                  <div>
+                                    <p className="font-medium text-gray-800">
+                                      {method.card.brand.toUpperCase()} ••••{" "}
+                                      {method.card.last4}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Vence {method.card.exp_month}/
+                                      {method.card.exp_year}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {selectedMethod === method.id && (
+                                    <CheckCircle2
+                                      className="text-blue-600"
+                                      size={20}
+                                    />
+                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteMethod(method.id);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                                    aria-label="Delete payment method"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
                           <li
                             onClick={handleAddMethod}
                             className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300"
@@ -979,10 +1062,11 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                         <button
                           onClick={handlePayment}
                           disabled={!selectedMethod}
-                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${selectedMethod
-                            ? "bg-green-600 text-white hover:bg-green-700"
-                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                            }`}
+                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                            selectedMethod
+                              ? "bg-green-600 text-white hover:bg-green-700"
+                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          }`}
                         >
                           Pagar
                         </button>
@@ -993,9 +1077,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                       onClick={() => setCardPayment(false)}
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      <span className="font-medium">
-                        Cambiar forma de pago
-                      </span>
+                      <span className="font-medium">Cambiar forma de pago</span>
                     </button>
                   </div>
                   // <Elements stripe={stripePromise}>
@@ -1008,8 +1090,8 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                   // </Elements>
                 )}
               </>
-            ) : creditoPayment ?
-              (<>
+            ) : creditoPayment ? (
+              <>
                 {successCreditPayment ? (
                   <>
                     <div className="w-full h-32 bg-green-300 rounded-xl border-4 border-green-500 justify-center items-center flex flex-col gap-y-2">
@@ -1031,35 +1113,46 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                     <h3 className="text-xl font-semibold text-gray-800 mb-6">
                       Pago con credito
                     </h3>
-                    {creditoValue[0]?.monto_credito_agente - reservationData.totalPrice > 0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (<div className="space-y-4">
-                      <p className="text-xl font-medium text-gray-700">
-                        Crédito Disponible:
-                        <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente}</span>
-                      </p>
+                    {creditoValue[0]?.monto_credito_agente -
+                      reservationData.totalPrice >
+                      0 && creditoValue[0]?.tiene_credito_consolidado == 1 ? (
+                      <div className="space-y-4">
+                        <p className="text-xl font-medium text-gray-700">
+                          Crédito Disponible:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">
+                            ${creditoValue[0]?.monto_credito_agente}
+                          </span>
+                        </p>
 
-                      <p className="text-xl font-medium text-gray-700">
-                        Monto a Pagar:
-                        <span className="text-2xl font-bold text-gray-900 ml-2">${reservationData.totalPrice}</span>
-                      </p>
+                        <p className="text-xl font-medium text-gray-700">
+                          Monto a Pagar:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">
+                            ${reservationData.totalPrice}
+                          </span>
+                        </p>
 
-                      <p className="text-xl font-medium text-gray-700">
-                        Crédito Restante:
-                        <span className="text-2xl font-bold text-gray-900 ml-2">${creditoValue[0]?.monto_credito_agente - reservationData.totalPrice}</span>
-                      </p>
-                      <button
-                        onClick={handlePaymentCredito}
-                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
+                        <p className="text-xl font-medium text-gray-700">
+                          Crédito Restante:
+                          <span className="text-2xl font-bold text-gray-900 ml-2">
+                            $
+                            {creditoValue[0]?.monto_credito_agente -
+                              reservationData.totalPrice}
+                          </span>
+                        </p>
+                        <button
+                          onClick={handlePaymentCredito}
+                          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors
                           bg-green-600 text-white hover:bg-green-700
                             `}
-                      >
-                        Pagar
-                      </button>
-                    </div>
-
+                        >
+                          Pagar
+                        </button>
+                      </div>
                     ) : (
                       <div className="space-y-4">
                         <p className="text-xl font-medium text-gray-700">
-                          No cuentas con crédito suficiente para pagar esta reservación
+                          No cuentas con crédito suficiente para pagar esta
+                          reservación
                         </p>
                       </div>
                     )}
@@ -1069,9 +1162,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                       onClick={() => setCreditoPayment(false)}
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      <span className="font-medium">
-                        Cambiar forma de pago
-                      </span>
+                      <span className="font-medium">Cambiar forma de pago</span>
                     </button>
                   </div>
                   // <Elements stripe={stripePromise}>
@@ -1084,46 +1175,46 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
                   // </Elements>
                 )}
               </>
-              ) : (
-                <div className="mt-8 bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Resumen de la Reservación</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Total de Noches:</span>
-                      <span>{reservationData.totalNights}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Precio por Noche:</span>
-                      <span>{formatPrice(reservationData.pricePerNight)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-900 font-bold text-lg pt-3 border-t border-gray-200">
-                      <span>Precio Total:</span>
-                      <span>{formatPrice(reservationData.totalPrice)}</span>
-                    </div>
+            ) : (
+              <div className="mt-8 bg-gray-50 rounded-xl p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Resumen de la Reservación
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Total de Noches:</span>
+                    <span>{reservationData.totalNights}</span>
                   </div>
-
-                  {/* Payment Options */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                    <button
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      onClick={() => setCardPayment(true)}
-                    >
-                      <PaymentIcon className="w-4 h-4" />
-                      <span className="font-medium">Pagar por Stripe</span>
-                    </button>
-
-                    <button
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      onClick={() => setCreditoPayment(true)}
-                    >
-                      <BanknoteIcon className="w-4 h-4" />
-                      <span className="font-medium">Pagar por Crédito</span>
-                    </button>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Precio por Noche:</span>
+                    <span>{formatPrice(reservationData.pricePerNight)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-900 font-bold text-lg pt-3 border-t border-gray-200">
+                    <span>Precio Total:</span>
+                    <span>{formatPrice(reservationData.totalPrice)}</span>
                   </div>
                 </div>
-              )
-            )
-          }
+
+                {/* Payment Options */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  <button
+                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    onClick={() => setCardPayment(true)}
+                  >
+                    <PaymentIcon className="w-4 h-4" />
+                    <span className="font-medium">Pagar por Stripe</span>
+                  </button>
+
+                  <button
+                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    onClick={() => setCreditoPayment(true)}
+                  >
+                    <BanknoteIcon className="w-4 h-4" />
+                    <span className="font-medium">Pagar por Crédito</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           {saveError && (
             <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
               {saveError}
@@ -1131,6 +1222,10 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({ on
           )}
         </div>
       </div>
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+      />
     </div>
   );
 };
