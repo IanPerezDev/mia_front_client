@@ -59,6 +59,7 @@ async function getSolicitudViajero(
         factura: reservaDB.id_facturama,
         pendiente_por_cobrar: reservaDB.pendiente_por_cobrar,
         id_pago: reservaDB.id_pago,
+        id_credito: reservaDB.id_credito,
         solicitud_total: reservaDB.total,
       };
     });

@@ -1,5 +1,14 @@
 import { supabase } from "../services/supabaseClient";
-import { getCompaniesAgent, getCompaniesAgentViajeros, getEmpresasDatosFiscales, getPaymentMethods, getCreditAgent, getPagosAgente, getHoteles, getPendientesAgente } from "./useDatabase";
+import {
+  getCompaniesAgent,
+  getCompaniesAgentViajeros,
+  getEmpresasDatosFiscales,
+  getPaymentMethods,
+  getCreditAgent,
+  getPagosAgente,
+  getHoteles,
+  getPendientesAgente,
+} from "./useDatabase";
 
 export const fetchCompaniesAgent = async () => {
   try {
@@ -50,6 +59,7 @@ export const fetchPaymentMethods = async () => {
     if (!user) throw new Error("No hay usuario autenticado");
 
     const paymentMehtods = await getPaymentMethods(user.user.id);
+    if (paymentMehtods.error) throw paymentMehtods.error;
     return paymentMehtods || [];
   } catch (error) {
     console.error("Error fetching payment methods:", error);
@@ -111,4 +121,4 @@ export const fetchHoteles = async () => {
     console.error("Error fetching hoteles:", error);
     return [];
   }
-}
+};

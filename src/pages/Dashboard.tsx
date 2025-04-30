@@ -227,8 +227,21 @@ const GraphContainer = ({
 
   return (
     <div className="col-span-4 flex gap-4">
-      {data.length > 0 && <Donut summary={summary}></Donut>}
-      {data.length > 0 && <Donut summary={summary1}></Donut>}
+      {data.length > 0 && (
+        <Donut
+          summary={summary}
+          titulo="Grafica por gasto"
+          subtitulo="Aqui veras cuanto es tu gasto por mes"
+          simbol="$"
+        ></Donut>
+      )}
+      {data.length > 0 && (
+        <Donut
+          summary={summary1}
+          titulo="Grafica por noches"
+          subtitulo="Aqui veras cuantas noches por mes reservaron"
+        ></Donut>
+      )}
     </div>
   );
 };
