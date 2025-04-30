@@ -17,27 +17,33 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-const currencyFormatter = (number: number) => {
-  return "$" + Intl.NumberFormat("us").format(number).toString();
+const currencyFormatter = (number: number, simbol: string = "") => {
+  return `${simbol}` + Intl.NumberFormat("us").format(number).toString();
 };
 
 export default function Donut({
   summary,
+  titulo,
+  subtitulo,
+  simbol = "",
 }: {
   summary: {
     name: string;
     data: { name: string; amount: number; href: string; borderColor: string }[];
   }[];
+  titulo: string;
+  subtitulo: string;
+  simbol: string;
 }) {
   return (
     <>
       <Card className="overflow-hidden p-0 sm:mx-auto sm:max-w-lg">
         <div className="px-6 pt-6">
           <h3 className="text-tremor-default font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong">
-            Asset allocation
+            {titulo}
           </h3>
           <p className="mt-1 text-tremor-default leading-6 text-tremor-content dark:text-dark-tremor-content">
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr.
+            {subtitulo}
           </p>
         </div>
         <TabGroup>
@@ -54,7 +60,9 @@ export default function Donut({
                     data={category.data}
                     category="amount"
                     index="name"
-                    valueFormatter={currencyFormatter}
+                    valueFormatter={(number: number) =>
+                      currencyFormatter(number, simbol)
+                    }
                     showTooltip={false}
                     colors={["blue", "indigo", "cyan", "purple", "fuchsia"]}
                   />
@@ -84,15 +92,11 @@ export default function Donut({
                       </div>
                       <div className="flex items-center space-x-1.5">
                         <span className="font-medium tabular-nums text-tremor-content-strong dark:text-dark-tremor-content-strong">
-                          {currencyFormatter(item.amount)}{" "}
+                          {currencyFormatter(item.amount, simbol)}{" "}
                           <span className="font-normal text-tremor-content dark:text-dark-tremor-content">
                             {/* ({item.share}) */}
                           </span>
                         </span>
-                        <RiArrowRightSLine
-                          className="dark:text-darkt-tremor-content-subtle size-4 shrink-0 text-tremor-content-subtle group-hover:text-tremor-content group-hover:dark:text-dark-tremor-content"
-                          aria-hidden={true}
-                        />
                       </div>
                     </ListItem>
                   ))}

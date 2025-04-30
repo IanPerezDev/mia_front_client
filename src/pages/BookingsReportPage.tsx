@@ -170,7 +170,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
 
       return matches;
     })
-    .filter((item) => !!item.id_pago);
+    .filter((item) => !!item.id_pago || !!item.id_credito);
 
   const downloadReport = () => {
     const element = document.getElementById("bookings-report");
@@ -429,7 +429,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                           </>
                         ) : (
                           <>
-                            {booking.pendiente_por_cobrar == 0 ? (
+                            {booking.pendiente_por_cobrar <= 0 ? (
                               <Link
                                 href={`/factura/${booking.id}`}
                                 className="flex items-center gap-1 text-blue-600 hover:text-blue-700"

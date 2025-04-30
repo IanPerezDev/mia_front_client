@@ -628,7 +628,7 @@ const ResponsiveChat = () => {
           )}
 
           <a
-            href="https://wa.me/553976230283"
+            href="https://wa.me/5510445254"
             target="_blank"
             className="fixed bottom-10 right-10 group"
           >

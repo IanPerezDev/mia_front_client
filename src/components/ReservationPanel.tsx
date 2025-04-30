@@ -33,7 +33,8 @@ import { createLogPayment, createNewPago } from "../hooks/useDatabase";
 import { fetchPaymentMethods, fetchCreditAgent } from "../hooks/useFetch";
 import { URL } from "../constants/apiConstant";
 
-const { obtenerSolicitudes, crearSolicitud, crearSolicitudChat } = useSolicitud();
+const { obtenerSolicitudes, crearSolicitud, crearSolicitudChat } =
+  useSolicitud();
 const API_KEY =
   "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
 const AUTH = {
@@ -299,7 +300,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
         bookingData.hotel.additionalImages?.[0] ||
         bookingData.hotel.image ||
         "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
-
+      console.log(bookingData);
       const responseSolicitud = await crearSolicitudChat(
         {
           confirmation_code: bookingData.confirmationCode,
