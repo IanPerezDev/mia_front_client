@@ -64,21 +64,24 @@ const AUTH = {
 const cardStyle = {
   style: {
     base: {
-      color: "#32325d", // Color del texto
-      fontSize: "16px",
+      color: "#32325d",
+      fontSize: "18px",
       fontFamily: "Arial, sans-serif",
       "::placeholder": {
-        color: "#aab7c4", // Color del placeholder
+        color: "#aab7c4",
       },
-
-      backgroundColor: "#f8f8f8", // Fondo del input
-      padding: "20px",
+      backgroundColor: "#f8f8f8",
+      padding: "30px",
       borderRadius: "5px",
     },
     invalid: {
-      color: "#fa755a", // Color cuando hay un error
+      color: "#fa755a",
     },
   },
+  hidePostalCode: true, // Oculta el campo de código postal
+  hideIcon: false, // Oculta el ícono de Stripe (opcional)
+  disabled: false, // Si quieres deshabilitar la edición
+  disableLink: true, 
 };
 
 const CheckOutForm = ({ setSuccess, setTrigger }: any) => {
