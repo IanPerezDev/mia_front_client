@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Calendar, Hotel, User, Bed, ArrowRight } from "lucide-react";
 import { HEADERS_API, URL } from "../constants/apiConstant";
 import { useRoute } from "wouter";
+import { SupportModal } from "../components/SupportModal";
 
 // Types for our reservation data
 interface Reservation {
@@ -68,6 +69,7 @@ export function Reserva() {
   // TODO: Extract ID from URL using React Router
   // const { id } = useParams();
   const [match, params] = useRoute("/reserva/:id");
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [mockReservation, setMockReservation] = useState<Reservation>({
     id: null,
     viajero: "",
@@ -155,19 +157,41 @@ export function Reserva() {
             <InfoCard
               icon={Bed}
               label="Tipo de Habitación"
-              value={mockReservation.room}
+              value={cambiarLenguaje(mockReservation.room)}
             />
           </div>
 
           {/* Additional Info */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p className="text-sm text-blue-700">
-              Para cualquier modificación en su reserva, por favor contacte
-              directamente con el hotel.
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100 text-gray-700">
+            <p>
+              ¿Necesitas hacer cambios en tu reserva? <br />
+              <span
+                onClick={() => {
+                  setIsSupportModalOpen(true);
+                }}
+                className="hover:underline cursor-pointer text-blue-500"
+              >
+                Contacta al soporte de MIA{" "}
+              </span>{" "}
+              para ayudarte con cualquier modificación
             </p>
           </div>
         </div>
       </div>
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+      />
     </div>
   );
 }
+
+const cambiarLenguaje = (room: string) => {
+  let updateRoom = room;
+  if (room.toUpperCase() == "SINGLE") {
+    updateRoom = "SENCILLO";
+  } else if (room.toUpperCase() == "DOUBLE") {
+    updateRoom = "DOBLE";
+  }
+  return updateRoom;
+};
