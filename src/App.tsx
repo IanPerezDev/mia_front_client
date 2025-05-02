@@ -492,7 +492,9 @@ const ResponsiveChat = () => {
                             placeholder="¿A dónde te gustaría viajar?"
                             className="w-full p-6 rounded-xl text-sky-950/90 border-2 border-sky-200/50 bg-white/90 focus:outline-none focus:border-white/40 transition-colors text-lg shadow-lg"
                           />
-                          <MapPin className="text-sky-950/80 absolute right-6 top-1/2 transform -translate-y-1/2 w-6 h-6" />
+                          {inputMessage == "" && (
+                            <MapPin className="text-sky-950/80 absolute right-6 top-1/2 transform -translate-y-1/2 w-6 h-6" />
+                          )}
                         </div>
                         {/* <button
                           onClick={handleSendMessage}
@@ -592,9 +594,11 @@ const ResponsiveChat = () => {
                           disabled={promptLimitReached}
                           className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent disabled:bg-white/5 disabled:text-white/50 transition-all duration-200"
                         />
-                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50">
-                          <MessageSquare className="w-5 h-5" />
-                        </div>
+                        {inputMessage == "" && (
+                          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50">
+                            <MessageSquare className="w-5 h-5" />
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={handleSendMessage}
