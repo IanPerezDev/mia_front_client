@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import html2pdf from "html2pdf.js";
+import ReservationDetailsModal from '../components/ReservationDetailsModal';
 import CsvDownload from 'react-csv-downloader';
 import {
   Users,
@@ -38,10 +39,12 @@ import {
   UserCircle,
   CheckCircle2,
   AlertTriangle,
+  Eye,
 } from 'lucide-react';
 import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import { useSolicitud } from "../hooks/useSolicitud";
 import type { UserPreferences, PaymentHistory } from '../types';
+import { getReservasConsultasAgente } from '../hooks/useDatabase';
 
 interface DashboardStats {
   totalUsers: number;
@@ -184,6 +187,9 @@ export const Admin = () => {
   const [exportUsers, setExportUsers] = useState(false);
   const [exportBookings, setExportBookings] = useState(false);
 
+  const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { obtenerSolicitudesWithViajero } = useSolicitud();
 
   useEffect(() => {
@@ -299,10 +305,13 @@ export const Admin = () => {
       if (!user) {
         throw new Error("No hay usuario autenticado.");
       }
-      obtenerSolicitudesWithViajero((json) => {
-        setBookings([...json]);
-        setFilteredBookings([...json]);
-      }, user.user.id);
+      const data = await getReservasConsultasAgente(user.user.id);
+      setBookings(data || []);
+      setFilteredBookings(data || [])
+      // obtenerSolicitudesWithViajero((json) => {
+      //   setBookings([...json]);
+      //   setFilteredBookings([...json]);
+      // }, user.user.id);
 
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -432,6 +441,7 @@ export const Admin = () => {
     }
   };
 
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -470,6 +480,11 @@ export const Admin = () => {
       return <AlertTriangle className="w-4 h-4" />;
   };
 
+  const handleViewDetails = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setIsModalOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -480,6 +495,7 @@ export const Admin = () => {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-100 mt-14">
@@ -1054,6 +1070,7 @@ export const Admin = () => {
                       {activeColDateBookings && <th className="pb-3 font-semibold text-gray-600">Fechas</th>}
                       {activeColPriceBookings && <th className="pb-3 font-semibold text-gray-600">Precio</th>}
                       {activeColStatusBookings && <th className="pb-3 font-semibold text-gray-600">Estado</th>}
+                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1068,13 +1085,13 @@ export const Admin = () => {
                         {activeColHotelBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <span>{booking.hotel_name}</span>
+                              <span>{booking.hotel}</span>
                             </div>
                           </td>}
                         {activeColUsersBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <span>{booking.traveler_id}</span>
+                              <span>{booking.id_viajero}</span>
                             </div>
                           </td>}
                         {activeColDateBookings &&
@@ -1111,6 +1128,15 @@ export const Admin = () => {
                             {booking.status}
                           </span>
                         </td>}
+                        <td className="py-4">
+                          <button
+                            onClick={() => handleViewDetails(booking)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
+                            aria-label="View Details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1352,5 +1378,11 @@ export const Admin = () => {
             </div>
           </div>)}
       </div>
-    </div>)
+      <ReservationDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        reservation={selectedReservation}
+      />
+    </div>
+  )
 }

@@ -195,6 +195,7 @@ export const createNewDatosFiscales = async (data: any) => {
         municipio: data.municipio,
         codigo_postal_fiscal: data.codigo_postal_fiscal,
         regimen_fiscal: data.regimen_fiscal,
+        razon_social: data.razon_social,
       }),
     });
 
@@ -214,6 +215,7 @@ export const createNewDatosFiscales = async (data: any) => {
   }
 };
 export const updateNewDatosFiscales = async (data: any) => {
+  console.log(data);
   try {
     const response = await fetch(`${URL}/v1/mia/datosFiscales`, {
       method: "PUT",
@@ -230,6 +232,7 @@ export const updateNewDatosFiscales = async (data: any) => {
         municipio: data.municipio,
         codigo_postal_fiscal: data.codigo_postal_fiscal,
         regimen_fiscal: data.regimen_fiscal,
+        razon_social: data.razon_social,
       }),
     });
 
@@ -709,6 +712,29 @@ export const getPendientesAgente = async (agent_id: string) => {
   }
 };
 
+export const getReservasConsultasAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/solicitud/consultas?user_id=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getHoteles = async () => {
   try {
     console.log("En proceso de obtener hoteles");
@@ -724,5 +750,69 @@ export const getHoteles = async () => {
     return json;
   } catch (error) {
     throw error;
+  }
+};
+
+export const deleteTraveler = async (id_viajero: string) => {
+  try {
+    const response = await fetch(`${URL}/v1/mia/viajeros?id_viajero=${id_viajero}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+    });
+
+    const json = await response.json();
+    console.log(json);
+
+    if (json.message === "Viajero eliminado correctamente") {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+        error: json.message || "No se pudo eliminar el viajero",
+      };
+    }
+  } catch (error) {
+    console.error("Error al eliminar viajero:", error);
+    return {
+      success: false,
+      error: "Error de red o del servidor",
+    };
+  }
+};
+
+export const deleteCompany = async (id_empresa: string) => {
+  try {
+    const response = await fetch(`${URL}/v1/mia/empresas?id_empresa=${id_empresa}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+    });
+
+    const json = await response.json();
+    console.log(json);
+
+    if (json.message === "Empresa eliminada correctamente") {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+        error: json.message || "No se pudo eliminar la empresa",
+      };
+    }
+  } catch (error) {
+    console.error("Error al eliminar la empresa:", error);
+    return {
+      success: false,
+      error: "Error de red o del servidor",
+    };
   }
 };

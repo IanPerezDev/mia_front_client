@@ -71,6 +71,7 @@ export interface TaxInfo {
   colonia: string;
   codigo_postal_fiscal: string;
   regimen_fiscal: string;
+  razon_social: string;
 }
 
 export interface Employee {
@@ -195,4 +196,13 @@ export interface Payment {
 export interface PaymentFormData {
   amount: string;
   paymentMethod: PaymentMethodd;
+}
+
+export interface Invoice {
+  id: string;
+  facturamaId: string;
+  issueDate: string;
+  amount: number;
+  currency: string;
+  url?: string;
 }

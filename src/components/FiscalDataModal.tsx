@@ -40,6 +40,7 @@ export function FiscalDataModal({
       estado: "",
       codigo_postal_fiscal: "",
       regimen_fiscal: "",
+      razon_social: "",
     }
   );
 
@@ -56,6 +57,7 @@ export function FiscalDataModal({
           estado: "",
           codigo_postal_fiscal: "",
           regimen_fiscal: "",
+          razon_social: "",
         }
       );
       setIsEditing(!company.taxInfo);
@@ -119,12 +121,19 @@ export function FiscalDataModal({
         setError("El formato del RFC no es válido");
         return;
       }
-
-      const responseCompany = await updateNewDatosFiscales(formData);
-      if (!responseCompany.success) {
-        throw new Error("No se pudo registrar los datos fiscales");
+      let responseCompany;
+      if (formData?.id_datos_fiscales) {
+        responseCompany = await updateNewDatosFiscales(formData);
+        if (!responseCompany.success) {
+          throw new Error("No se pudo registrar los datos fiscales");
+        }
       }
-
+      else {
+        responseCompany = await createNewDatosFiscales(formData);
+        if (!responseCompany.success) {
+          throw new Error("No se pudo registrar los datos fiscales");
+        }
+      }
       console.log("Datos fiscales guardados:", responseCompany);
       //onSave(company.id_empresa, formData);
       setIsEditing(false);
@@ -155,6 +164,20 @@ export function FiscalDataModal({
         <div className="p-6">
           {isEditing ? (
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Razón social
+                </label>
+                <input
+                  type="text"
+                  value={formData.razon_social}
+                  onChange={(e) =>
+                    setFormData({ ...formData, razon_social: e.target.value })
+                  }
+                  className="w-full p-2 border rounded-md"
+                  required
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   RFC
@@ -359,6 +382,7 @@ export function FiscalDataModal({
                         estado: "",
                         codigo_postal_fiscal: "",
                         regimen_fiscal: "",
+                        razon_social: "",
                       }
                     );
                     setIsEditing(false);

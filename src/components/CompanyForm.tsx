@@ -55,7 +55,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
 
     const data: Partial<Company> = {
       nombre_comercial: formData.get('nombre_comercial') as string,
-      razon_social: tipoPersona === "moral" ? formData.get('razon_social') as string : formData.get('nombre_comercial') as string,
+      razon_social: formData.get('nombre_comercial') as string,
       tipo_persona: formData.get('tipo_persona') as string,
       empresa_direccion: calle,
       empresa_colonia: colonia,
@@ -111,7 +111,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           />
         </div>
 
-        {tipoPersona === "moral" && <div>
+        {/* {tipoPersona === "moral" && <div>
           <label className="block text-sm font-medium text-gray-700">Razón Social</label>
           <input
             type="text"
@@ -120,7 +120,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-        </div>}
+        </div>} */}
 
 
 
