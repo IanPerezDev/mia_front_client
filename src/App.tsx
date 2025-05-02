@@ -490,9 +490,9 @@ const ResponsiveChat = () => {
                               e.key === "Enter" && handleSendMessage()
                             }
                             placeholder="¿A dónde te gustaría viajar?"
-                            className="w-full p-6 rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:border-white/40 transition-colors text-lg shadow-lg"
+                            className="w-full p-6 rounded-xl text-sky-950/90 border-2 border-sky-200/50 bg-white/90 focus:outline-none focus:border-white/40 transition-colors text-lg shadow-lg"
                           />
-                          <MapPin className="absolute right-6 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white/50" />
+                          <MapPin className="text-sky-950/80 absolute right-6 top-1/2 transform -translate-y-1/2 w-6 h-6" />
                         </div>
                         {/* <button
                           onClick={handleSendMessage}
