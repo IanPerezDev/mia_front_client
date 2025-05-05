@@ -74,7 +74,7 @@ export const Configuration = () => {
   const handleSaveFiscalData = (companyId: string, fiscalData: TaxInfo) => {
     setCompanies(
       companies.map((company) =>
-        company.id_empresa === companyId ? { ...company, fiscalData } : company
+        company.id_empresa === companyId ? { ...company, taxInfo: fiscalData } : company
       )
     );
     setShowModal(false);
@@ -420,8 +420,8 @@ export const Configuration = () => {
               <button
                 onClick={() => { setActiveTab("companies"); setShowForm(false) }}
                 className={`${activeTab === "companies"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Building2 className="mr-2 h-5 w-5" />
@@ -430,8 +430,8 @@ export const Configuration = () => {
               <button
                 onClick={() => { setActiveTab("employees"); setShowForm(false) }}
                 className={`${activeTab === "employees"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Users className="mr-2 h-5 w-5" />
@@ -481,8 +481,8 @@ export const Configuration = () => {
               <button
                 onClick={() => { setActiveTab("notifications"); setShowForm(false) }}
                 className={`${activeTab === "notifications"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Bell className="mr-2 h-5 w-5" />
@@ -879,12 +879,12 @@ export const Configuration = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.type === "budget"
-                                    ? "bg-green-100 text-green-800"
-                                    : policy.type === "schedule"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : policy.type === "benefits"
-                                        ? "bg-purple-100 text-purple-800"
-                                        : "bg-gray-100 text-gray-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : policy.type === "schedule"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : policy.type === "benefits"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : "bg-gray-100 text-gray-800"
                                   }`}
                               >
                                 {policy.type.charAt(0).toUpperCase() +
@@ -894,12 +894,12 @@ export const Configuration = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.status === "active"
-                                    ? "bg-green-100 text-green-800"
-                                    : policy.status === "inactive"
-                                      ? "bg-gray-100 text-gray-800"
-                                      : policy.status === "draft"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : policy.status === "inactive"
+                                    ? "bg-gray-100 text-gray-800"
+                                    : policy.status === "draft"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
                                   }`}
                               >
                                 {policy.status.charAt(0).toUpperCase() +

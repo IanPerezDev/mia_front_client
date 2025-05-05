@@ -12,6 +12,7 @@ interface Reservation {
   check_in: string;
   check_out: string;
   room: string;
+  nombre_viajero: string,
 }
 
 // Reusable components
@@ -77,6 +78,7 @@ export function Reserva() {
     check_in: "",
     check_out: "",
     room: "",
+    nombre_viajero: "",
   });
 
   useEffect(() => {
@@ -100,6 +102,7 @@ export function Reserva() {
           check_in: data.check_in.split("T")[0],
           check_out: data.check_out.split("T")[0],
           room: data.room,
+          nombre_viajero: data.nombre_viajero,
         });
       } else {
         setMockReservation({
@@ -109,6 +112,7 @@ export function Reserva() {
           check_in: "",
           check_out: "",
           room: "",
+          nombre_viajero: "",
         });
       }
     };
@@ -138,7 +142,7 @@ export function Reserva() {
               <InfoCard
                 icon={User}
                 label="Huésped"
-                value={mockReservation.viajero}
+                value={mockReservation.nombre_viajero || mockReservation.viajero}
               />
               <InfoCard
                 icon={Hotel}

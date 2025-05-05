@@ -135,7 +135,7 @@ export function FiscalDataModal({
         }
       }
       console.log("Datos fiscales guardados:", responseCompany);
-      //onSave(company.id_empresa, formData);
+      onSave(company.id_empresa, formData);
       setIsEditing(false);
       setError("");
     } catch (error) {

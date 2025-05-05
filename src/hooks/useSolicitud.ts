@@ -61,6 +61,7 @@ async function getSolicitudViajero(
         id_pago: reservaDB.id_pago,
         id_credito: reservaDB.id_credito,
         solicitud_total: reservaDB.total,
+        traveler_name: reservaDB.nombre_viajero,
       };
     });
     callback(data);
@@ -133,6 +134,7 @@ async function postChatSolicitud(solicitud: any, id_usuario: string) {
         total: solicitud.room.totalPrice,
         status: "pending",
         id_agente: id_usuario,
+        nombre_viajero: solicitud.nombre_viajero,
       },
     ], // Establecemos el estado por defecto como "pending"
   };
@@ -176,6 +178,7 @@ async function postSolicitud(solicitud: any, id_usuario: string) {
         total: solicitud.room.totalPrice,
         status: "pending",
         id_agente: id_usuario,
+        nombre_viajero: null,
       },
     ], // Establecemos el estado por defecto como "pending"
   };
