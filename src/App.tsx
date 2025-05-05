@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AuthModal } from "./components/AuthModal";
 import { ChatMessage } from "./components/ChatMessage";
 import { Navigation } from "./components/Navigation";
@@ -32,6 +32,7 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { Admin } from "./pages/Admin";
 import { Configuration } from "./pages/Configuration";
 import { SupportModal } from "./components/SupportModal";
+import { Loader } from "./components/Loader";
 
 const ResponsiveChat = () => {
   const [currentPage, setCurrentPage] = useState<
@@ -58,6 +59,13 @@ const ResponsiveChat = () => {
   const { authState, setAuthState } = useUser();
 
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (endRef.current) {
+      endRef.current.scrollTop = endRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     // Check URL for manual-reservation route
@@ -538,7 +546,10 @@ const ResponsiveChat = () => {
                 </div>
 
                 {/* Chat Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div
+                  className="flex-1 overflow-y-auto p-6 space-y-4 "
+                  ref={endRef}
+                >
                   <div className="max-w-3xl mx-auto space-y-4">
                     {messages.map((message) => (
                       <ChatMessage
@@ -547,13 +558,7 @@ const ResponsiveChat = () => {
                         isUser={message.isUser}
                       />
                     ))}
-                    {isLoading && (
-                      <ChatMessage
-                        content="Escribiendo..."
-                        isUser={false}
-                        isLoading={true}
-                      />
-                    )}
+                    {isLoading && <Loader />}
                     {promptLimitReached && (
                       <div className="bg-white/10 backdrop-blur-lg border-l-4 border-yellow-400 p-4 rounded-lg shadow-md">
                         <div className="flex items-center">

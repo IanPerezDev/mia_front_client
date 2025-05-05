@@ -47,8 +47,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     <div
       className={`max-w-[80%] p-4 rounded-2xl backdrop-blur-lg ${
         isUser
-          ? "bg-white text-blue-600 ml-auto rounded-br-none transform transition-all duration-300 hover:shadow-lg"
-          : "bg-white/10 text-white shadow-sm rounded-bl-none transform transition-all duration-300 hover:shadow-lg"
+          ? "bg-white text-blue-600 ml-auto rounded-br-none transform transition-all duration-300 hover:shadow-lg opacity-0 animate-fade-in-bottom-right"
+          : "bg-white/10 text-white shadow-sm rounded-bl-none transform transition-all duration-300 hover:shadow-lg opacity-0 animate-fade-in-left"
       }`}
     >
       <div

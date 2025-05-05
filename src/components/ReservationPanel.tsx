@@ -61,7 +61,7 @@ const cardStyle = {
   hidePostalCode: true, // Oculta el campo de código postal
   hideIcon: false, // Oculta el ícono de Stripe (opcional)
   disabled: false, // Si quieres deshabilitar la edición
-  disableLink: true, 
+  disableLink: true,
 };
 
 const stripePromise = loadStripe(
@@ -133,6 +133,7 @@ const CheckOutForm = ({
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
@@ -316,7 +317,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
             type: bookingData.room.type,
             totalPrice: bookingData.room.totalPrice,
           },
-          nombre_viajero: bookingData.guests[0]
+          nombre_viajero: bookingData.guests[0],
         },
         user.id
       );
@@ -454,14 +455,14 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   };
 
   const handlePayment = async () => {
-    setIsProcessing(true);
-    setSaveError(null);
-
-    if (!selectedMethod) return;
-    const method = paymentMethods.find((m) => m.id === selectedMethod);
-    console.log("Processing payment with method:", method);
-    const paymentData = getPaymentData(bookingData);
     try {
+      setIsProcessing(true);
+      setSaveError(null);
+
+      if (!selectedMethod) return;
+      const method = paymentMethods.find((m) => m.id === selectedMethod);
+      console.log("Processing payment with method:", method);
+      const paymentData = getPaymentData(bookingData);
       const { data } = await supabase.auth.getUser();
       const id_agente = data.user?.id;
       const response = await fetch(`${URL}/v1/stripe/make-payment`, {
@@ -479,6 +480,8 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       });
 
       if (!response.ok) {
+        const responsePayment = await response.json();
+        console.log(responsePayment);
         throw new Error("Error al procesar el pago en Stripe");
       }
 

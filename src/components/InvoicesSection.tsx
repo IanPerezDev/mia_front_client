@@ -1,24 +1,21 @@
-import React from 'react';
-import { Invoice } from '../types';
-import { formatCurrency } from '../utils/formatters';
-import EmptyState from './EmptyState';
-import { FileText, Download } from 'lucide-react';
+import React from "react";
+import { Invoice } from "../types";
+import { formatCurrency } from "../utils/formatters";
+import EmptyState from "./EmptyState";
+import { FileText, Download } from "lucide-react";
 
 interface InvoicesSectionProps {
   invoices: any;
 }
 
-const formatDate = (dateString: string): string => {
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  } catch (error) {
-    return 'Invalid date';
-  }
+const formatDate = (dateString: string) => {
+  const [year, month, day] = dateString.split("T")[0].split("-");
+  const date = new Date(+year, +month - 1, +day);
+  return date.toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => {
@@ -32,13 +29,22 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 ID Factura
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID Facturama 
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                ID Facturama
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Fecha de creación
               </th>
               {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
