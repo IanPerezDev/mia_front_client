@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Hotel, User, Bed, ArrowRight } from "lucide-react";
+import {
+  Calendar,
+  Hotel,
+  User,
+  Bed,
+  ArrowRight,
+  MessageCircle,
+} from "lucide-react";
 import { HEADERS_API, URL } from "../constants/apiConstant";
 import { useRoute } from "wouter";
 import { SupportModal } from "../components/SupportModal";
@@ -8,11 +15,12 @@ import { SupportModal } from "../components/SupportModal";
 interface Reservation {
   id: string | null;
   viajero: string;
+  comentarios: string;
   nombre_hotel: string;
   check_in: string;
   check_out: string;
   room: string;
-  nombre_viajero: string,
+  nombre_viajero: string;
 }
 
 // Reusable components
@@ -75,6 +83,7 @@ export function Reserva() {
     id: null,
     viajero: "",
     nombre_hotel: "",
+    comentarios: "",
     check_in: "",
     check_out: "",
     room: "",
@@ -92,6 +101,7 @@ export function Reserva() {
           }
         );
         const json = await response.json();
+        console.log(json);
         const data = json[0];
         setMockReservation({
           id: data.codigo_reservacion_hotel,
@@ -99,6 +109,7 @@ export function Reserva() {
             .filter((item) => item)
             .join(" "),
           nombre_hotel: data.hotel,
+          comentarios: data.comments,
           check_in: data.check_in.split("T")[0],
           check_out: data.check_out.split("T")[0],
           room: data.room,
@@ -108,6 +119,7 @@ export function Reserva() {
         setMockReservation({
           id: null,
           viajero: "",
+          comentarios: "",
           nombre_hotel: "",
           check_in: "",
           check_out: "",
@@ -121,7 +133,7 @@ export function Reserva() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50">
-      <div className="max-w-3xl mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-blue-900">
@@ -142,7 +154,9 @@ export function Reserva() {
               <InfoCard
                 icon={User}
                 label="Huésped"
-                value={mockReservation.nombre_viajero || mockReservation.viajero}
+                value={
+                  mockReservation.nombre_viajero || mockReservation.viajero
+                }
               />
               <InfoCard
                 icon={Hotel}
@@ -156,13 +170,19 @@ export function Reserva() {
               check_in={mockReservation.check_in}
               check_out={mockReservation.check_out}
             />
-
-            {/* Room Type */}
-            <InfoCard
-              icon={Bed}
-              label="Tipo de Habitación"
-              value={cambiarLenguaje(mockReservation.room)}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Room Type */}
+              <InfoCard
+                icon={Bed}
+                label="Tipo de Habitación"
+                value={cambiarLenguaje(mockReservation.room)}
+              />
+              <InfoCard
+                icon={MessageCircle}
+                label="Comentarios"
+                value={mockReservation.comentarios || "No hay comentarios"}
+              />
+            </div>
           </div>
 
           {/* Additional Info */}
