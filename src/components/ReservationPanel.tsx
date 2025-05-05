@@ -316,6 +316,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
             type: bookingData.room.type,
             totalPrice: bookingData.room.totalPrice,
           },
+          nombre_viajero: bookingData.guests[0]
         },
         user.id
       );
