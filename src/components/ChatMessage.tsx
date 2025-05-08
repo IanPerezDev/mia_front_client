@@ -142,6 +142,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 {children}
               </pre>
             ),
+            table: ({ children }) => (
+              <table className="min-w-full text-sm text-white border border-white/20 mb-4">
+                {children}
+              </table>
+            ),
+            thead: ({ children }) => (
+              <thead className="bg-white/10 text-white font-bold">
+                {children}
+              </thead>
+            ),
+            tbody: ({ children }) => <tbody>{children}</tbody>,
+            tr: ({ children }) => (
+              <tr className="border-b border-white/10">{children}</tr>
+            ),
+            th: ({ children }) => (
+              <th className="px-4 py-2 text-left">{children}</th>
+            ),
+            td: ({ children }) => <td className="px-4 py-2">{children}</td>,
           }}
         >
           {messageContent}
