@@ -109,7 +109,6 @@ const getPaymentData = (bookingData: BookingData) => {
 
 interface ReservationPanelProps {
   bookingData?: BookingData;
-  onProceedToPayment?: () => void;
 }
 
 const formatDate = (dateStr: string | null) => {

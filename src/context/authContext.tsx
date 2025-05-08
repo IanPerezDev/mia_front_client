@@ -8,14 +8,14 @@ type UserAuth = {
 } | null;
 
 type Auth = {
-  user: UserAuth;
-  isAuthenticated: boolean;
+  user?: UserAuth;
+  isAuthenticated?: boolean;
   promptCount: number;
 } | null;
 
 // Crea el contexto
 const UserContext = createContext<{
-  authState: Auth;
+  authState?: Auth;
   setAuthState: React.Dispatch<React.SetStateAction<Auth>>;
 }>({
   authState: null,
