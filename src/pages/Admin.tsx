@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import html2pdf from "html2pdf.js";
 import ReservationDetailsModal from '../components/ReservationDetailsModal';
+import PaymentDeatailsModal from '../components/PaymentDetailsModal';
 import CsvDownload from 'react-csv-downloader';
 import {
   Users,
@@ -44,7 +45,7 @@ import {
 import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import { useSolicitud } from "../hooks/useSolicitud";
 import type { UserPreferences, PaymentHistory } from '../types';
-import { getReservasConsultasAgente } from '../hooks/useDatabase';
+import { getReservasConsultasAgente, getPagosConsultasAgente } from '../hooks/useDatabase';
 
 interface DashboardStats {
   totalUsers: number;
@@ -189,6 +190,7 @@ export const Admin = () => {
 
   const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenPay, setIsModalOpenPay] = useState(false);
 
   const { obtenerSolicitudesWithViajero } = useSolicitud();
 
@@ -361,7 +363,7 @@ export const Admin = () => {
       if (!user) {
         throw new Error("No hay usuario autenticado");
       }
-      const paymentsData = await fetchPagosAgent();
+      const paymentsData = await getPagosConsultasAgente(user.user.id);
       setPayments(paymentsData || []);
       setFilteredPayments(paymentsData || []);
     } catch (error) {
@@ -483,6 +485,11 @@ export const Admin = () => {
   const handleViewDetails = (reservation: any) => {
     setSelectedReservation(reservation);
     setIsModalOpen(true);
+  };
+
+  const handleViewDetailsPayment = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setIsModalOpenPay(true);
   };
 
   if (isLoading) {
@@ -989,8 +996,7 @@ export const Admin = () => {
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Todos los estados</option>
-                      <option value="pending">Pendientes</option>
-                      <option value="complete">Completadas</option>
+                      <option value="completed">Completadas</option>
                       <option value="canceled">Canceladas</option>
                     </select>
                   </div>
@@ -1075,11 +1081,12 @@ export const Admin = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredBookings.map((booking) => (
-                      <tr key={booking.id} className="hover:bg-gray-50">
+                      booking.pagos &&
+                      (<tr key={booking.id} className="hover:bg-gray-50">
                         {activeColCodeBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium">{booking.confirmation_code}</span>
+                              <span className="font-medium">{booking.codigo_reservacion_hotel}</span>
                             </div>
                           </td>}
                         {activeColHotelBookings &&
@@ -1091,7 +1098,7 @@ export const Admin = () => {
                         {activeColUsersBookings &&
                           <td className="py-4">
                             <div className="flex items-center space-x-2">
-                              <span>{booking.id_viajero}</span>
+                              <span>{booking.nombre_viajero ? booking.nombre_viajero : booking.primer_nombre + " " + booking.apellido_paterno}</span>
                             </div>
                           </td>}
                         {activeColDateBookings &&
@@ -1137,7 +1144,7 @@ export const Admin = () => {
                             <Eye className="h-5 w-5" />
                           </button>
                         </td>
-                      </tr>
+                      </tr>)
                     ))}
                   </tbody>
                 </table>
@@ -1169,9 +1176,11 @@ export const Admin = () => {
                   <thead>
                     <tr className="text-left border-b border-gray-200">
                       <th className="pb-3 font-semibold text-gray-600">Monto</th>
-                      <th className="pb-3 font-semibold text-gray-600">Hotel</th>
-                      <th className="pb-3 font-semibold text-gray-600">Estatus</th>
-                      <th className="pb-3 font-semibold text-gray-600">Moneda</th>
+                      <th className="pb-3 font-semibold text-gray-600">Fecha de creación</th>
+                      <th className="pb-3 font-semibold text-gray-600">Metodo</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
+                      <th className="pb-3 font-semibold text-gray-600">Referencia</th>
+                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1179,27 +1188,49 @@ export const Admin = () => {
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">${payment.booking_total}</span>
+                            <span className="font-medium">${payment.total}</span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{payment.hotel_name}</span>
+                            <span className="font-medium">{payment.fecha_creacion}</span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            {getPaymentStatusIcon(payment.pendiente_por_cobrar)}
+
+                            <CreditCard className="mr-2 h-4 w-4 text-gray-400" />
                             <span className="capitalize">
-                              {payment.pendiente_por_cobrar === 0 ? 'Completado' :
-                                payment.pendiente_por_cobrar != 0 ? 'Pendiente' : 'Fallido'}
+                              {payment.tipo_de_pago}
                             </span>
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{payment.currency}</span>
+                            <span className="font-medium">
+                              {payment.banco ? (
+                                <>
+                                  {payment.banco} {payment.last_digits && `(${payment.last_digits})`}
+                                </>
+                              ) : (
+                                '-'
+                              )}
+                            </span>
                           </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{payment.concepto}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <button
+                            onClick={() => handleViewDetailsPayment(payment)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
+                            aria-label="View Details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
                         </td>
                       </tr>
 
@@ -1383,6 +1414,13 @@ export const Admin = () => {
         onClose={() => setIsModalOpen(false)}
         reservation={selectedReservation}
       />
+
+      <PaymentDeatailsModal
+        isOpen={isModalOpenPay}
+        onClose={() => setIsModalOpenPay(false)}
+        reservation={selectedReservation}
+      />
+
     </div>
   )
 }

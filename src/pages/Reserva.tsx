@@ -142,7 +142,7 @@ export function Reserva() {
               <InfoCard
                 icon={User}
                 label="Huésped"
-                value={mockReservation.nombre_viajero || mockReservation.viajero}
+                value={mockReservation.nombre_viajero.toUpperCase() || mockReservation.viajero}
               />
               <InfoCard
                 icon={Hotel}

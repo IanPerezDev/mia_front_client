@@ -1,8 +1,9 @@
 import React from 'react';
 import StatusBadge from './StatusBadge';
 import { BookingData } from '../types';
+import { CreditCard } from 'lucide-react';
 
-interface ReservationDetailsProps {
+interface PaymentDetailsProps {
     reservation: BookingData;
 }
 
@@ -76,55 +77,48 @@ const getStatusColor = (status: string): string => {
     }
 };
 
-const ReservationDetails: React.FC<ReservationDetailsProps> = ({ reservation }) => {
+const PaymentDetails: React.FC<PaymentDetailsProps> = ({ reservation }) => {
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
                 <div>
-                    <h3 className="text-lg font-medium mb-4 text-gray-900"> Informacion de Reservación</h3>
+                    <h3 className="text-lg font-medium mb-4 text-gray-900"> Informacion de Pago</h3>
                     <div className="space-y-3">
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Codigo de confirmacion</span>
-                            <span className="text-gray-900">{reservation.codigo_reservacion_hotel}</span>
+                            <span className="text-sm font-medium text-gray-500">Monto Total</span>
+                            <span className="text-gray-900">{reservation.total}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Hotel</span>
-                            <span className="text-gray-900">{reservation.hotel}</span>
+                            <span className="text-sm font-medium text-gray-500">Subtotal</span>
+                            <span className="text-gray-900">{reservation.subtotal}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Tipo de cuarto</span>
-                            <span className="text-gray-900">{reservation.room == "single" ? "Sencillo" : "Doble"}</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Check-in</span>
-                            <span className="text-gray-900">{formatDateTime(reservation.check_in)}</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Check-out</span>
-                            <span className="text-gray-900">{formatDateTime(reservation.check_out)}</span>
+                            <span className="text-sm font-medium text-gray-500">Impuestos</span>
+                            <span className="text-gray-900">{reservation.impuestos}</span>
                         </div>
                     </div>
                 </div>
-
                 <div>
-                    <h3 className="text-lg font-medium mb-4 text-gray-900">Detalles Booking</h3>
+                    <h3 className="text-lg font-medium mb-4 text-gray-900"> Detalles de Pago</h3>
                     <div className="space-y-3">
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Viajero</span>
-                            <span className="text-gray-900">{reservation.nombre_viajero ? reservation.nombre_viajero : reservation.primer_nombre + " "+ reservation.apellido_paterno }</span>
+                            <span className="text-sm font-medium text-gray-500">Metodo de pago</span>
+                            {reservation.tipo_de_pago}
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Estado</span>
-                            <StatusBadge status={reservation.status == "pending" || reservation.status == "complete" ? "Completado" : "Cancelado"} />
+                            <span className="text-sm font-medium text-gray-500">Detalles</span>
+                            <span className="text-gray-900">{reservation.banco ? (
+                                <>
+                                    {reservation.banco} {reservation.last_digits && `(${reservation.last_digits})`}
+                                </>
+                            ) : (
+                                '-'
+                            )}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Fecha creación</span>
-                            <span className="text-gray-900">{formatDateTime(reservation.created_at)}</span>
+                            <span className="text-sm font-medium text-gray-500">Concepto</span>
+                            <span className="text-gray-900">{reservation.concepto}</span>
                         </div>
-                        {/* <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-500">Generado Por</span>
-                            <span className="text-gray-900">{reservation.id_usuario_generador}</span>
-                        </div> */}
                     </div>
                 </div>
             </div>
@@ -132,4 +126,4 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({ reservation }) 
     );
 };
 
-export default ReservationDetails;
+export default PaymentDetails;

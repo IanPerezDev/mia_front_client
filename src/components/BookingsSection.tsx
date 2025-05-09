@@ -75,19 +75,19 @@ const getStatusColor = (status: string): string => {
   }
 };
 
-interface PaymentsSectionProps {
+interface BookingsSectionProps {
   payments: Payment[];
   currency: string;
   totalAmount: number;
 }
 
-const PaymentsSection: React.FC<PaymentsSectionProps> = ({
+const BookingsSection: React.FC<BookingsSectionProps> = ({
   payments,
   currency,
   totalAmount
 }) => {
   if (!payments || payments.length === 0) {
-    return <EmptyState message="No hay pagos disponibles" />;
+    return <EmptyState message="No hay reservas disponibles" />;
   }
 
   // Calculate subtotal (assuming 10% tax for this example)
@@ -102,77 +102,50 @@ const PaymentsSection: React.FC<PaymentsSectionProps> = ({
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Monto
+                Codigo
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha Pago
+                Hotel
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Metodo
+                Usuario
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Detalles
+                Fechas
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Referencia
+                Precio
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {payments.map((payment) => (
-              <tr key={payment.id_pago} className="hover:bg-gray-50">
+              <tr key={payment.id_solicitud} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {formatCurrency(payment.subtotal+payment.impuestos, payment.currency)}
+                  {payment.codigo_reservacion_hotel}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {formatDateTime(payment.fecha_creacion)}
+                  {payment.hotel}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  <div className="flex items-center">
-                    <CreditCard className="mr-2 h-4 w-4 text-gray-400" />
-                    {payment.tipo_de_pago	}
-                  </div>
+                  {payment.nombre_viajero ? payment.nombre_viajero : payment.viajero.nombre + " " + payment.viajero.apellido_paterno}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {payment.banco ? (
-                    <>
-                      {payment.banco} {payment.last_digits && `(${payment.last_digits})`}
-                    </>
-                  ) : (
-                    '-'
-                  )}
+                  <span>
+                    {new Date(payment.check_in).toLocaleDateString()} -
+                    {new Date(payment.check_out).toLocaleDateString()}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {payment.concepto}
+                  {formatCurrency(payment.total, currency)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Resumen de Pago</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Subtotal</span>
-            <span className="text-sm font-medium">{formatCurrency(subtotal, currency)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Impuestos (16%)</span>
-            <span className="text-sm font-medium">{formatCurrency(taxAmount, currency)}</span>
-          </div>
-          <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-            <span className="text-sm font-medium text-gray-700">Total</span>
-            <span className="text-base font-semibold">{formatCurrency(totalAmount, currency)}</span>
-          </div>
-          <div className="text-xs text-gray-500 pt-1">
-            Pagado en {currency}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default PaymentsSection;
+export default BookingsSection;
