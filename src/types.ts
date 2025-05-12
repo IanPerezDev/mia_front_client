@@ -32,7 +32,7 @@ export interface BookingData {
     checkOut: string | null;
   };
   room: {
-    type: 'single' | 'double' | null;
+    type: string | null;
     pricePerNight: number | null;
     totalPrice: number | null;
   };
@@ -59,7 +59,6 @@ export interface Company {
   empresa_municipio: string | null;
   empresa_cp: string | null;
 }
-
 
 export interface TaxInfo {
   id_datos_fiscales: string;
@@ -99,7 +98,7 @@ export interface Assignment {
   companyId: string;
   employeeId: string;
   startDate: string;
-  role: 'admin' | 'user' | 'manager';
+  role: "admin" | "user" | "manager";
 }
 
 export interface Tag {
@@ -147,12 +146,16 @@ export interface PaymentMethod {
   };
 }
 
-export type PolicyType = 'budget' | 'schedule' | 'benefits' | 'other';
-export type PolicyStatus = 'active' | 'inactive' | 'draft' | 'expired';
-export type FormMode = 'create' | 'edit';
-export type PaymentStatus = 'pending' | 'complete' | 'canceled';
+export type PolicyType = "budget" | "schedule" | "benefits" | "other";
+export type PolicyStatus = "active" | "inactive" | "draft" | "expired";
+export type FormMode = "create" | "edit";
+export type PaymentStatus = "pending" | "complete" | "canceled";
 
-export type PaymentMethodd = 'Credit Card' | 'Bank Transfer' | 'PayPal' | 'Crypto';
+export type PaymentMethodd =
+  | "Credit Card"
+  | "Bank Transfer"
+  | "PayPal"
+  | "Crypto";
 
 export interface Payment {
   id_credito: string;
@@ -184,7 +187,7 @@ export interface Payment {
   check_in: Date | string;
   check_out: Date | string;
   room?: string | null;
-  estado_solicitud: 'pending' | 'complete' | 'canceled';
+  estado_solicitud: "pending" | "complete" | "canceled";
   id_usuario_generador: string;
 
   // Campos calculados (opcionales si los incluyes en la vista)

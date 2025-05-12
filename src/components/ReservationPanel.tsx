@@ -8,19 +8,14 @@ import {
   ArrowRight,
   Check,
   Clock,
-  Download,
-  Receipt,
   CreditCard as PaymentIcon,
   BanknoteIcon,
   ArrowLeft,
   CheckCircle,
   CheckCircle2,
-  Trash2,
   Plus,
 } from "lucide-react";
-import html2pdf from "html2pdf.js";
 import { supabase } from "../services/supabaseClient";
-import { CallToBackend } from "../components/CallToBackend";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -32,9 +27,39 @@ import { useSolicitud } from "../hooks/useSolicitud";
 import { createLogPayment, createNewPago } from "../hooks/useDatabase";
 import { fetchPaymentMethods, fetchCreditAgent } from "../hooks/useFetch";
 import { URL } from "../constants/apiConstant";
+import { Reservation } from "../types/chat";
+import { Hotel } from "../types/hotel";
+import { fetchHotelById } from "../services/database";
 
-const { obtenerSolicitudes, crearSolicitud, crearSolicitudChat } =
-  useSolicitud();
+function areAllFieldsFilled(obj: any, excludeKeys: string[] = []): boolean {
+  if (obj === null || obj === undefined) return false;
+
+  if (
+    typeof obj === "string" ||
+    typeof obj === "number" ||
+    typeof obj === "boolean"
+  ) {
+    return true;
+  }
+
+  if (Array.isArray(obj)) {
+    return (
+      obj.length > 0 &&
+      obj.every((item) => areAllFieldsFilled(item, excludeKeys))
+    );
+  }
+
+  if (typeof obj === "object") {
+    return Object.entries(obj).every(([key, value]) => {
+      if (excludeKeys.includes(key)) return true;
+      return areAllFieldsFilled(value, excludeKeys);
+    });
+  }
+
+  return false;
+}
+
+const { crearSolicitudChat } = useSolicitud();
 const API_KEY =
   "nkt-U9TdZU63UENrblg1WI9I1Ln9NcGrOyaCANcpoS2PJT3BlbkFJ1KW2NIGUYF87cuvgUF3Q976fv4fPrnWQroZf0RzXTZTA942H3AMTKFKJHV6cTi8c6dd6tybUD65fybhPJT3BlbkFJ1KW2NIGPrnWQroZf0RzXTZTA942H3AMTKFy15whckAGSSRSTDvsvfHsrtbXhdrT";
 const AUTH = {
@@ -108,12 +133,16 @@ const getPaymentData = (bookingData: BookingData) => {
 };
 
 interface ReservationPanelProps {
-  bookingData?: BookingData;
+  booking?: Reservation | null;
 }
 
 const formatDate = (dateStr: string | null) => {
   if (!dateStr) return null;
-  const date = new Date(dateStr);
+
+  // Forzar la fecha como local ignorando la conversión de zona horaria
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day); // Mes es 0-indexado
+
   return {
     weekday: date.toLocaleDateString("es-MX", { weekday: "long" }),
     day: date.getDate(),
@@ -219,8 +248,9 @@ const CheckOutForm = ({
 // }
 
 export const ReservationPanel: React.FC<ReservationPanelProps> = ({
-  bookingData,
+  booking,
 }) => {
+  const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isBookingSaved, setIsBookingSaved] = useState(false);
@@ -234,6 +264,108 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dataHotel, setDataHotel] = useState<Hotel | null>(null);
+
+  useEffect(() => {
+    let currentBooking = booking || null;
+    let currentBookingData = bookingData || {
+      confirmationCode: null,
+      hotel: {
+        name: null,
+        location: null,
+        image: null,
+        additionalImages: [],
+      },
+      dates: {
+        checkIn: null,
+        checkOut: null,
+      },
+      room: {
+        type: null,
+        pricePerNight: null,
+        totalPrice: null,
+      },
+      guests: [],
+      totalNights: null,
+    };
+    if (currentBooking?.check_in && currentBooking?.check_out) {
+      const totalNights = Math.ceil(
+        (new Date(currentBooking.check_out).getTime() -
+          new Date(currentBooking.check_in).getTime()) /
+          (1000 * 3600 * 24)
+      );
+      currentBookingData = {
+        ...currentBookingData,
+        dates: {
+          checkIn: currentBooking.check_in,
+          checkOut: currentBooking.check_out,
+        },
+        totalNights,
+      };
+    }
+    if (
+      currentBooking?.id_hotel &&
+      (!dataHotel || dataHotel?.id_hotel != currentBooking.id_hotel)
+    ) {
+      fetchHotelById(currentBooking.id_hotel, (hotel_response) => {
+        console.log(hotel_response);
+        setDataHotel(hotel_response);
+      });
+    }
+    if (dataHotel) {
+      currentBookingData = {
+        ...currentBookingData,
+        hotel: {
+          name: dataHotel.hotel,
+          location: dataHotel.direccion,
+          image: dataHotel.imagenes[0],
+          additionalImages: dataHotel.imagenes,
+        },
+      };
+      if (currentBooking?.room) {
+        let room = dataHotel.tipos_cuartos.find(
+          (room) =>
+            room.id_tipo_cuarto ===
+            (currentBooking.room == "single"
+              ? 1
+              : currentBooking.room == "double"
+              ? 2
+              : 0)
+        );
+        if (!room) {
+          room = dataHotel.tipos_cuartos[0];
+        }
+
+        currentBookingData = {
+          ...currentBookingData,
+          room: {
+            ...currentBookingData.room,
+            type: room.cuarto,
+            pricePerNight: parseFloat(room.precio),
+            totalPrice:
+              parseFloat(room.precio) * currentBookingData.totalNights!,
+          },
+        };
+      }
+    }
+    if (currentBooking?.viajero || currentBooking?.id_viajero) {
+      console.log(currentBooking.viajero || currentBooking.id_viajero);
+      currentBookingData = {
+        ...currentBookingData,
+        guests: [currentBooking.viajero || currentBooking.id_viajero].filter(
+          (guest): guest is string => typeof guest === "string"
+        ),
+      };
+    }
+    if (areAllFieldsFilled(currentBookingData, ["confirmationCode"])) {
+      currentBookingData = {
+        ...currentBookingData,
+        confirmationCode: `RES${Math.round(Math.random() * 10000000)}`,
+      };
+    }
+    setBookingData(currentBookingData);
+    console.log(currentBookingData);
+  }, [booking, dataHotel]);
 
   const fetchData = async () => {
     const data = await fetchPaymentMethods();
@@ -266,22 +398,22 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     }
   }, [bookingData?.confirmationCode]);
 
-  const handleDownloadPDF = () => {
-    const element = document.getElementById("reservation-content");
-    if (!element) return;
+  // const handleDownloadPDF = () => {
+  //   const element = document.getElementById("reservation-content");
+  //   if (!element) return;
 
-    const opt = {
-      margin: 1,
-      filename: `reservacion-${
-        bookingData?.confirmationCode || "borrador"
-      }.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    };
+  //   const opt = {
+  //     margin: 1,
+  //     filename: `reservacion-${
+  //       bookingData?.confirmationCode || "borrador"
+  //     }.pdf`,
+  //     image: { type: "jpeg", quality: 0.98 },
+  //     html2canvas: { scale: 2 },
+  //     jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+  //   };
 
-    html2pdf().set(opt).from(element).save();
-  };
+  //   html2pdf().set(opt).from(element).save();
+  // };
 
   const saveBookingToDatabase = async () => {
     if (!bookingData || isSaving || isBookingSaved) return;
@@ -445,9 +577,9 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
     );
   }
 
-  const handleDeleteMethod = (id: string) => {
-    console.log("Delete payment method:", id);
-  };
+  // const handleDeleteMethod = (id: string) => {
+  //   console.log("Delete payment method:", id);
+  // };
 
   const handleAddMethod = () => {
     setShowAddPaymentForm(true);
@@ -833,7 +965,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   )}
                 </>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     onClick={() => setCardPayment(true)}
@@ -942,7 +1074,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   {checkInDate ? (
                     <div className="space-y-1">
                       <p className="text-3xl font-bold text-[#10244c]">
-                        {checkInDate.day + 1}
+                        {checkInDate.day}
                       </p>
                       <div>
                         <p className="text-lg capitalize text-[#10244c]">
@@ -978,7 +1110,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                   {checkOutDate ? (
                     <div className="space-y-1">
                       <p className="text-3xl font-bold text-[#10244c]">
-                        {checkOutDate.day + 1}
+                        {checkOutDate.day}
                       </p>
                       <div>
                         <p className="text-lg capitalize text-[#10244c]">

@@ -5,7 +5,7 @@ interface MessageContent {
 
 interface CardHotel {
   component_type: "hotel";
-  id_hotel: string;
+  id_hoteles: string[];
 }
 
 export interface UserMessage {
@@ -27,10 +27,11 @@ export type ChatContent =
 export type ChatContentResponse = (MessageContent | CardHotel)[];
 
 export interface Reservation {
-  check_in: string;
-  check_out: string;
-  id_hotel: string;
-  id_viajero: string;
+  check_in?: string | null;
+  check_out?: string | null;
+  id_hotel?: string | null;
+  viajero?: string | null;
+  room?: "single" | "double" | null;
 }
 
 export interface ChatResponse {

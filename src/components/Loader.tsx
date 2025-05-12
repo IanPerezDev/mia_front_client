@@ -1,4 +1,18 @@
+import { useState, useEffect } from "react";
+
 export const Loader = () => {
+  const [currentState, setCurrentState] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentState((prev) =>
+        prev < loadingStates.length - 1 ? prev + 1 : prev
+      );
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex items-center justify-start h-full">
       <svg
@@ -26,7 +40,27 @@ export const Loader = () => {
           />
         </g>
       </svg>
-      <p className="text-gray-50">Pensando...</p>
+      <p className="text-gray-50"> {loadingStates[currentState].message} </p>
+      <span className="loading-dots text-gray-50">
+        <span>.</span>
+        <span>.</span>
+        <span>.</span>
+      </span>
     </div>
   );
 };
+
+const loadingStates = [
+  {
+    message: "Recibiendo tu mensaje",
+  },
+  {
+    message: "Buscando tus preferencias",
+  },
+  {
+    message: "Procesando información",
+  },
+  {
+    message: "Escribiendo respuesta",
+  },
+];

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AuthModal } from "./components/AuthModal";
-import { ChatMessage } from "./components/ChatMessage";
+import { ChatMessagesController } from "./components/ChatMessage";
 import { Navigation } from "./components/Navigation";
 import { sendMessageToN8N } from "./services/n8nService";
 import { supabase } from "./services/supabaseClient";
@@ -31,7 +31,7 @@ import { Admin } from "./pages/Admin";
 import { Configuration } from "./pages/Configuration";
 import { SupportModal } from "./components/SupportModal";
 import { Loader } from "./components/Loader";
-import { ChatContent, UserMessage } from "./types/chat";
+import { ChatContent, Reservation, UserMessage } from "./types/chat";
 import { sendMessage } from "./services/chatService";
 
 const ResponsiveChat = () => {
@@ -51,28 +51,8 @@ const ResponsiveChat = () => {
   const [thread, setThread] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [bookingData, setBookingData] = useState<BookingData | null>({
-    confirmationCode: "dwefw",
-    hotel: {
-      name: "Hotel grande",
-      location: "Cerca",
-      image: "hotel.jpg",
-      additionalImages: [],
-    },
-    dates: {
-      checkIn: "2023-10-01",
-      checkOut: "2023-10-05",
-    },
-    room: {
-      type: "single",
-      pricePerNight: 100,
-      totalPrice: 500,
-    },
-    guests: ["John Doe", "Jane Doe"],
-    totalNights: 5,
-  });
+  const [bookingData, setBookingData] = useState<Reservation | null>(null);
   const [showRegistrationPage, setShowRegistrationPage] = useState(false);
   const { authState, setAuthState } = useUser();
 
@@ -360,7 +340,7 @@ const ResponsiveChat = () => {
           {/* Chat Panel - Left Side */}
           <div
             className={`${
-              showWelcomeMessage ? "w-full" : "w-1/2"
+              showWelcomeMessage ? "w-full" : "w-2/3"
             } transition-all duration-500 ${
               !showWelcomeMessage && "fixed left-0 h-[calc(100vh-4rem)]"
             }`}
@@ -499,14 +479,10 @@ const ResponsiveChat = () => {
                   className="flex-1 overflow-y-auto p-6 space-y-4 "
                   ref={endRef}
                 >
-                  <div className="max-w-3xl mx-auto space-y-4">
-                    {messages.map((message) => (
-                      <ChatMessage
-                        key={message.id}
-                        content={message.content}
-                        isUser={message.isUser}
-                      />
-                    ))}
+                  <div className="w-full mx-auto space-y-4">
+                    {messages.length > 0 && (
+                      <ChatMessagesController messages={messages} />
+                    )}
                     {isLoading && <Loader />}
                     {promptLimitReached && (
                       <div className="bg-white/10 backdrop-blur-lg border-l-4 border-yellow-400 p-4 rounded-lg shadow-md">
@@ -530,7 +506,7 @@ const ResponsiveChat = () => {
 
                 {/* Chat Input Area */}
                 <div className="border-t border-white/10 backdrop-blur-lg p-6">
-                  <div className="max-w-3xl mx-auto">
+                  <div className="w-full mx-auto">
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 relative">
                         <input
@@ -577,8 +553,8 @@ const ResponsiveChat = () => {
           {/* Reservation Panel - Right Side */}
           {!showWelcomeMessage && (
             <>
-              <div className="w-1/2 ml-[50%] min-h-[calc(100vh-4rem)] p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
-                <ReservationPanel bookingData={bookingData} />
+              <div className="w-1/3 ml-[66%] min-h-[calc(100vh-4rem)] p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
+                <ReservationPanel booking={bookingData || null} />
               </div>
               <a
                 href="https://wa.me/5510445254"
