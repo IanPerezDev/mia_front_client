@@ -59,12 +59,12 @@ export const HotelCard: React.FC<HotelCardProps> = ({ id_hotel }) => {
 
         <div className="p-4">
           {/* Nombre del hotel */}
-          <h2 className="mb-1 text-lg font-bold text-gray-800 line-clamp-1">
+          <h2 className="mb-1 text-base font-bold text-gray-800">
             {hotel.hotel}
           </h2>
 
           {/* Ciudad y Estado */}
-          <div className="mb-1 flex items-center gap-2 text-sm text-gray-600">
+          <div className="mb-1 flex items-center gap-1 text-xs text-gray-700 font-medium">
             <MapPin size={14} />
             <span>
               {hotel.ciudad}, {hotel.estado}
@@ -72,7 +72,9 @@ export const HotelCard: React.FC<HotelCardProps> = ({ id_hotel }) => {
           </div>
 
           {/* Dirección (opcional) */}
-          <p className="mb-2 text-xs text-gray-500">{hotel.direccion}</p>
+          <p className="mb-2 text-xs text-gray-500 line-clamp-1">
+            {hotel.direccion}
+          </p>
 
           {/* Amenidades fijas
           <div className="mb-3 flex flex-wrap gap-3">

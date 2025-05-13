@@ -1,8 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
-import { Search, MapPin, Hotel, Coffee, Users, ArrowLeft, Filter, CreditCard, ChevronDown, ChevronUp, Bed, Shield as Child } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { fetchHoteles } from '../hooks/useFetch';
+import React, { useState, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
+import {
+  Search,
+  MapPin,
+  Hotel,
+  Coffee,
+  Users,
+  ArrowLeft,
+  Filter,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  Bed,
+  Shield as Child,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { fetchHoteles } from "../hooks/useFetch";
 
 interface Hotel {
   id_hotel: string;
@@ -38,10 +51,10 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
   const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
   const [displayedHotels, setDisplayedHotels] = useState<Hotel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedState, setSelectedState] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('');
-  const [selectedBrand, setSelectedBrand] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -74,16 +87,21 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
       setDisplayedHotels(randomHotels);
 
       // Extract unique values for filters
-      const uniqueStates = [...new Set(data?.map(hotel => hotel.estado) || [])];
-      const uniqueCities = [...new Set(data?.map(hotel => hotel.ciudad) || [])];
-      const uniqueBrands = [...new Set(data?.map(hotel => hotel.hotel) || [])];
+      const uniqueStates = [
+        ...new Set(data?.map((hotel) => hotel.estado) || []),
+      ];
+      const uniqueCities = [
+        ...new Set(data?.map((hotel) => hotel.ciudad) || []),
+      ];
+      const uniqueBrands = [
+        ...new Set(data?.map((hotel) => hotel.hotel) || []),
+      ];
 
       setStates(uniqueStates.sort());
       setCities(uniqueCities.sort());
       setBrands(uniqueBrands.sort());
-
     } catch (error) {
-      console.error('Error fetching hotels:', error);
+      console.error("Error fetching hotels:", error);
     } finally {
       setIsLoading(false);
     }
@@ -101,26 +119,27 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
     // Search term filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(hotel =>
-        hotel.hotel.toLowerCase().includes(searchLower) ||
-        hotel.ciudad.toLowerCase().includes(searchLower) ||
-        hotel.estado.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (hotel) =>
+          hotel.hotel.toLowerCase().includes(searchLower) ||
+          hotel.ciudad.toLowerCase().includes(searchLower) ||
+          (hotel.estado || "").toLowerCase().includes(searchLower)
       );
     }
 
     // State filter
     if (selectedState) {
-      filtered = filtered.filter(hotel => hotel.estado === selectedState);
+      filtered = filtered.filter((hotel) => hotel.estado === selectedState);
     }
 
     // City filter
     if (selectedCity) {
-      filtered = filtered.filter(hotel => hotel.ciudad === selectedCity);
+      filtered = filtered.filter((hotel) => hotel.ciudad === selectedCity);
     }
 
     // Brand filter
     if (selectedBrand) {
-      filtered = filtered.filter(hotel => hotel.hotel === selectedBrand);
+      filtered = filtered.filter((hotel) => hotel.hotel === selectedBrand);
     }
 
     setDisplayedHotels(filtered);
@@ -132,20 +151,20 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 2
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      minimumFractionDigits: 2,
     }).format(price);
   };
 
   const handleReserveClick = (hotel: Hotel) => {
     // Store hotel data in session storage
-    sessionStorage.setItem('selectedHotel', JSON.stringify(hotel));
+    sessionStorage.setItem("selectedHotel", JSON.stringify(hotel));
     // Update the URL without reloading
-    window.history.pushState({}, '', '/manual-reservation');
+    window.history.pushState({}, "", "/manual-reservation");
     // Update the current page state
-    window.dispatchEvent(new Event('popstate'));
+    window.dispatchEvent(new Event("popstate"));
     // Force a page reload to ensure proper state update
     window.location.reload();
   };
@@ -178,7 +197,7 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                 placeholder="Buscar por marca, ciudad o estado..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
               <Search className="w-6 h-6 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
@@ -190,7 +209,7 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
               className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
             >
               <Filter className="w-5 h-5" />
-              <span>{showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
+              <span>{showFilters ? "Ocultar filtros" : "Mostrar filtros"}</span>
               {showFilters ? (
                 <ChevronUp className="w-5 h-5" />
               ) : (
@@ -293,7 +312,10 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                   {/* Hotel Image */}
                   <div className="relative h-48">
                     <img
-                      src={hotel.URLImagenHotel || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
+                      src={
+                        hotel.URLImagenHotel ||
+                        "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+                      }
                       alt={hotel.hotel}
                       className="w-full h-full object-cover"
                     />
@@ -311,14 +333,20 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
                     </h3>
                     <div className="flex items-center text-gray-500 mb-4">
                       <MapPin className="w-4 h-4 mr-1" />
-                      <span>{hotel.ciudad}, {hotel.estado}</span>
+                      <span>
+                        {hotel.ciudad}, {hotel.estado}
+                      </span>
                     </div>
 
                     {/* Amenities */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div className="flex items-center text-gray-600">
                         <Coffee className="w-4 h-4 mr-2" />
-                        <span>{hotel.desayuno_incluido === 'SI' ? 'Incluye desayuno' : 'Sin desayuno'}</span>
+                        <span>
+                          {hotel.desayuno_incluido === "SI"
+                            ? "Incluye desayuno"
+                            : "Sin desayuno"}
+                        </span>
                       </div>
                       <div className="flex items-center text-gray-600">
                         <Child className="w-4 h-4 mr-2" />

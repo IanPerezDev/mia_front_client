@@ -45,14 +45,14 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
 
       <button
         onClick={prevSlide}
-        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/75"
+        className="absolute border border-white left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/75"
       >
         <ChevronLeft size={16} />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/75"
+        className="absolute border border-white right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/75"
       >
         <ChevronRight size={16} />
       </button>
