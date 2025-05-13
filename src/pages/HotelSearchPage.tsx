@@ -100,11 +100,13 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
 
     // Search term filter
     if (searchTerm) {
+      
       const searchLower = searchTerm.toLowerCase();
+      console.log(searchLower)
       filtered = filtered.filter(hotel =>
-        hotel.hotel.toLowerCase().includes(searchLower) ||
-        hotel.ciudad.toLowerCase().includes(searchLower) ||
-        hotel.estado.toLowerCase().includes(searchLower)
+        hotel?.hotel?.toLowerCase().includes(searchLower) ||
+        hotel?.ciudad?.toLowerCase().includes(searchLower) ||
+        hotel?.estado?.toLowerCase().includes(searchLower)
       );
     }
 
