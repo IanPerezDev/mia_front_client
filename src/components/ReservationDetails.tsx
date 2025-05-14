@@ -1,57 +1,54 @@
-import React from 'react';
-import StatusBadge from './StatusBadge';
-import { BookingData } from '../types';
+import React from "react";
+import StatusBadge from "./StatusBadge";
+import { BookingData } from "../types";
 
 interface ReservationDetailsProps {
-    reservation: BookingData;
+  reservation: BookingData;
 }
 
 /**
  * Format a date string to a user-friendly format
  */
-export const formatDate = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('es-MX', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }).format(date);
-    } catch (error) {
-        return 'Invalid date';
-    }
+export const formatDate = (dateString: string) => {
+  const [year, month, day] = dateString.split("T")[0].split("-");
+  const date = new Date(+year, +month - 1, +day);
+  return date.toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 /**
  * Format a date string to include time
  */
 const formatDateTime = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('es-MX', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
-    } catch (error) {
-        return 'Invalid date';
-    }
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("es-MX", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch (error) {
+    return "Invalid date";
+  }
 };
 
 /**
  * Format a currency value with proper symbols
  */
 const formatCurrency = (amount: number, currency: string): string => {
-    try {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency
-        }).format(amount);
-    } catch (error) {
-        return `${amount} ${currency}`;
-    }
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount);
+  } catch (error) {
+    return `${amount} ${currency}`;
+  }
 };
 
 /**
@@ -128,8 +125,11 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({ reservation }) 
                     </div>
                 </div>
             </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default ReservationDetails;

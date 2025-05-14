@@ -1,34 +1,45 @@
-import React from 'react';
-import { Receipt, FileText, Calendar, Download, ArrowRight } from 'lucide-react';
-import type { Invoice } from '../types';
+import React from "react";
+import {
+  Receipt,
+  FileText,
+  Calendar,
+  Download,
+  ArrowRight,
+} from "lucide-react";
+import type { Invoice } from "../types";
 
 interface InvoiceHistoryProps {
   invoices: Invoice[];
   isLoading: boolean;
 }
 
-export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, isLoading }) => {
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({
+  invoices,
+  isLoading,
+}) => {
+  const formatDate = (dateString: string) => {
+    const [year, month, day] = dateString.split("T")[0].split("-");
+    const date = new Date(+year, +month - 1, +day);
+    return date.toLocaleDateString("es-MX", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
   const getInvoiceTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      purchase: 'Compra',
-      purchase_with_comments: 'Compra con comentarios',
-      reservation: 'Reservación',
-      reservation_with_comments: 'Reservación con comentarios',
-      partial_purchase: 'Parcialidad',
-      partial_nights: 'Por noches',
-      per_traveler: 'Por viajero',
-      per_service: 'Por servicio',
-      custom_tax: 'IVA personalizado',
-      combined_traveler_service: 'Viajero + Servicio',
-      combined_provider: 'Por proveedor'
+      purchase: "Compra",
+      purchase_with_comments: "Compra con comentarios",
+      reservation: "Reservación",
+      reservation_with_comments: "Reservación con comentarios",
+      partial_purchase: "Parcialidad",
+      partial_nights: "Por noches",
+      per_traveler: "Por viajero",
+      per_service: "Por servicio",
+      custom_tax: "IVA personalizado",
+      combined_traveler_service: "Viajero + Servicio",
+      combined_provider: "Por proveedor",
     };
     return labels[type] || type;
   };
@@ -45,7 +56,9 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, isLoad
     return (
       <div className="text-center py-12">
         <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay facturas</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          No hay facturas
+        </h3>
         <p className="text-gray-500">
           Las facturas aparecerán aquí una vez que las generes
         </p>
@@ -76,7 +89,7 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, isLoad
             </div>
             <div className="text-right">
               <p className="font-medium text-gray-900">
-                ${invoice.amount.toLocaleString('es-MX')} MXN
+                ${invoice.amount.toLocaleString("es-MX")} MXN
               </p>
               <p className="text-sm text-gray-500">
                 IVA {invoice.tax_percentage}%
@@ -90,7 +103,8 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, isLoad
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
                   <span>
-                    {formatDate(invoice.booking.check_in)} - {formatDate(invoice.booking.check_out)}
+                    {formatDate(invoice.booking.check_in)} -{" "}
+                    {formatDate(invoice.booking.check_out)}
                   </span>
                 </div>
                 <span>•</span>

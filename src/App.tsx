@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AuthModal } from "./components/AuthModal";
-import { ChatMessage } from "./components/ChatMessage";
+import { ChatMessagesController } from "./components/ChatMessage";
 import { Navigation } from "./components/Navigation";
 import { sendMessageToN8N } from "./services/n8nService";
 import { supabase } from "./services/supabaseClient";
@@ -20,8 +20,6 @@ import {
   Phone,
 } from "lucide-react";
 import { ReservationPanel } from "./components/ReservationPanel";
-import { PaymentPage } from "./pages/PaymentPage";
-import { RegistrationPage } from "./pages/RegistrationPage";
 import { NewRegistrationPage } from "./pages/NewRegistrationPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { BookingsReportPage } from "./pages/BookingsReportPage";
@@ -32,13 +30,15 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { Admin } from "./pages/Admin";
 import { Configuration } from "./pages/Configuration";
 import { SupportModal } from "./components/SupportModal";
+import { Loader } from "./components/Loader";
+import { ChatContent, Reservation, UserMessage } from "./types/chat";
+import { sendMessage } from "./services/chatService";
 
 const ResponsiveChat = () => {
   const [currentPage, setCurrentPage] = useState<
     | "chat"
     | "profile"
     | "registration"
-    | "payment"
     | "bookings"
     | "faq"
     | "hotels"
@@ -47,17 +47,23 @@ const ResponsiveChat = () => {
     | "admin-empresa"
     | "configuration"
   >("chat");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatContent[]>([]);
+  const [thread, setThread] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [bookingData, setBookingData] = useState<BookingData | null>(null);
-  const [showPaymentPage, setShowPaymentPage] = useState(false);
+  const [bookingData, setBookingData] = useState<Reservation | null>(null);
   const [showRegistrationPage, setShowRegistrationPage] = useState(false);
   const { authState, setAuthState } = useUser();
 
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (endRef.current) {
+      endRef.current.scrollTop = endRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     // Check URL for manual-reservation route
@@ -67,28 +73,6 @@ const ResponsiveChat = () => {
     } else if (path === "/admin") {
       setCurrentPage("admin");
     }
-  }, []);
-
-  useEffect(() => {
-    // Add event listener for payment page navigation
-    const handleShowPaymentPage = (
-      event: CustomEvent<{ bookingData: BookingData }>
-    ) => {
-      setBookingData(event.detail.bookingData);
-      setCurrentPage("payment");
-    };
-
-    window.addEventListener(
-      "showPaymentPage",
-      handleShowPaymentPage as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "showPaymentPage",
-        handleShowPaymentPage as EventListener
-      );
-    };
   }, []);
 
   const handleLogin = async (email: string, password: string) => {
@@ -228,117 +212,72 @@ const ResponsiveChat = () => {
     setCurrentPage("configuration");
   };
 
-  const handleVolverInicio = async () => {
-    setInputMessage("");
-    setIsLoading(true);
-
-    if (!authState.isAuthenticated) {
-      setAuthState((prev) => ({
-        ...prev,
-        promptCount: prev.promptCount + 1,
-      }));
-    }
-
-    try {
-      const response = await sendMessageToN8N(
-        "Podrias ayudarme con algo mas?",
-        authState.user?.id
-      );
-
-      if (response.data?.bookingData) {
-        setBookingData(response.data.bookingData);
-      }
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content:
-          response.output || "Lo siento, hubo un error al procesar tu mensaje.",
-        timestamp: new Date(),
-        isUser: false,
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error("Error:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Lo siento, hubo un error al procesar tu mensaje.",
-        timestamp: new Date(),
-        isUser: false,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-    // const botMessage: Message = {
-    //   id: (Date.now() + 1).toString(),
-    //   content:
-    //     "¿Te puedo ayudar con algo mas?",
-    //   timestamp: new Date(),
-    //   isUser: false,
-    // };
-
-    // setMessages((prev) => [...prev, botMessage]);
-  };
-
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    if (!authState.isAuthenticated && authState.promptCount >= 2) {
+    if (!authState?.isAuthenticated && (authState?.promptCount ?? 0) >= 2) {
       setShowRegistrationPage(true);
       return;
     }
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
+    const newMessage: UserMessage = {
+      component_type: "user",
       content: inputMessage,
-      timestamp: new Date(),
-      isUser: true,
     };
 
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage("");
     setIsLoading(true);
 
-    if (!authState.isAuthenticated) {
+    if (!authState?.isAuthenticated) {
       setAuthState((prev) => ({
         ...prev,
-        promptCount: prev.promptCount + 1,
+        promptCount: (prev?.promptCount ?? 0) + 1,
       }));
     }
 
-    try {
-      const response = await sendMessageToN8N(inputMessage, authState.user?.id);
+    sendMessage(
+      inputMessage,
+      thread || null,
+      authState?.user?.id || null,
+      (data) => {
+        try {
+          if (data.error) {
+            throw new Error(JSON.stringify(data.error));
+          }
 
-      if (response.data?.bookingData) {
-        setBookingData(response.data.bookingData);
+          setThread(data.thread ?? null);
+          if (data.response && Array.isArray(data.response)) {
+            if (Array.isArray(data.response)) {
+              setMessages((prev) => [
+                ...prev,
+                ...(data.response as ChatContent[]),
+              ]);
+            } else {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  component_type: "error",
+                  content: "Lo siento, no puedo ayudarte con eso.",
+                },
+              ]);
+            }
+          }
+          setBookingData(data.reserva[0] ?? null);
+        } catch (error) {
+          console.error(error);
+          setMessages((prev) => [
+            ...prev,
+            {
+              component_type: "error",
+              content: "Lo siento, no puedo ayudarte con eso.",
+            },
+          ]);
+        } finally {
+          setIsLoading(false);
+        }
       }
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content:
-          response.output || "Lo siento, hubo un error al procesar tu mensaje.",
-        timestamp: new Date(),
-        isUser: false,
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error("Error:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Lo siento, hubo un error al procesar tu mensaje.",
-        timestamp: new Date(),
-        isUser: false,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleProceedToPayment = () => {
-    setCurrentPage("payment");
+    );
   };
 
   const showWelcomeMessage = messages.length === 0;
@@ -382,8 +321,6 @@ const ResponsiveChat = () => {
 
       {currentPage === "registration" ? (
         <NewRegistrationPage onComplete={handleRegistrationComplete} />
-      ) : currentPage === "payment" && bookingData ? (
-        <PaymentPage bookingData={bookingData} onBack={handleBackToChat} />
       ) : currentPage === "profile" ? (
         <ProfilePage onBack={handleBackToChat} />
       ) : currentPage === "bookings" ? (
@@ -403,7 +340,7 @@ const ResponsiveChat = () => {
           {/* Chat Panel - Left Side */}
           <div
             className={`${
-              showWelcomeMessage ? "w-full" : "w-1/2"
+              showWelcomeMessage ? "w-full" : "w-2/3"
             } transition-all duration-500 ${
               !showWelcomeMessage && "fixed left-0 h-[calc(100vh-4rem)]"
             }`}
@@ -538,22 +475,15 @@ const ResponsiveChat = () => {
                 </div>
 
                 {/* Chat Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  <div className="max-w-3xl mx-auto space-y-4">
-                    {messages.map((message) => (
-                      <ChatMessage
-                        key={message.id}
-                        content={message.content}
-                        isUser={message.isUser}
-                      />
-                    ))}
-                    {isLoading && (
-                      <ChatMessage
-                        content="Escribiendo..."
-                        isUser={false}
-                        isLoading={true}
-                      />
+                <div
+                  className="flex-1 overflow-y-auto p-6 space-y-4 "
+                  ref={endRef}
+                >
+                  <div className="w-full mx-auto space-y-4">
+                    {messages.length > 0 && (
+                      <ChatMessagesController messages={messages} />
                     )}
+                    {isLoading && <Loader />}
                     {promptLimitReached && (
                       <div className="bg-white/10 backdrop-blur-lg border-l-4 border-yellow-400 p-4 rounded-lg shadow-md">
                         <div className="flex items-center">
@@ -576,7 +506,7 @@ const ResponsiveChat = () => {
 
                 {/* Chat Input Area */}
                 <div className="border-t border-white/10 backdrop-blur-lg p-6">
-                  <div className="max-w-3xl mx-auto">
+                  <div className="w-full mx-auto">
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 relative">
                         <input
@@ -622,31 +552,28 @@ const ResponsiveChat = () => {
 
           {/* Reservation Panel - Right Side */}
           {!showWelcomeMessage && (
-            <div className="w-1/2 ml-[50%] min-h-[calc(100vh-4rem)] p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
-              <ReservationPanel
-                bookingData={bookingData}
-                onProceedToPayment={handleProceedToPayment}
-                handleVolverInicio={handleVolverInicio}
-              />
-            </div>
+            <>
+              <div className="w-1/3 ml-[66%] min-h-[calc(100vh-4rem)] p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
+                <ReservationPanel booking={bookingData || null} />
+              </div>
+              <a
+                href="https://wa.me/5510445254"
+                target="_blank"
+                className="fixed bottom-10 right-10 group"
+              >
+                <div className="bg-green-500 p-0 rounded-full shadow-lg w-16 h-16 flex items-center justify-center">
+                  <img
+                    src="https://cdn2.iconfinder.com/data/icons/simple-social-media-shadow/512/3-512.png"
+                    alt="WhatsApp"
+                    className="w-25 h-25 object-contain"
+                  />
+                </div>
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  ¡Chatea con MIA en WhatsApp!
+                </div>
+              </a>
+            </>
           )}
-
-          <a
-            href="https://wa.me/5510445254"
-            target="_blank"
-            className="fixed bottom-10 right-10 group"
-          >
-            <div className="bg-green-500 p-0 rounded-full shadow-lg w-16 h-16 flex items-center justify-center">
-              <img
-                src="https://cdn2.iconfinder.com/data/icons/simple-social-media-shadow/512/3-512.png"
-                alt="WhatsApp"
-                className="w-25 h-25 object-contain"
-              />
-            </div>
-            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              ¡Chatea con MIA en WhatsApp!
-            </div>
-          </a>
         </div>
       )}
     </div>
