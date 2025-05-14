@@ -389,10 +389,8 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                               {booking.hotel_name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
-                              <span>
-                                ID Viajero:{" "}
-                                {booking.traveler_name || booking.traveler_id}
-                              </span>
+
+                              <span>ID Viajero: {booking.traveler_name?.toUpperCase() || booking.traveler_id}</span>
                               {booking.confirmation_code && (
                                 <>
                                   <span>•</span>

@@ -53,7 +53,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
   return (
     <div 
       className={`absolute top-full left-0 mt-2 p-2 bg-white rounded-lg shadow-lg transform transition-all duration-200 ease-in-out
-                  ${isOpen ? 'opacity-100 translate-y-0 -translate-x-32' : 'opacity-0 -translate-y-2 pointer-events-none'}`}
+                  ${isOpen ? 'opacity-100 translate-y-0 -translate-x-6' : 'opacity-0 -translate-y-2 pointer-events-none'}`}
       role="dialog"
       aria-modal="true"
     >
@@ -61,15 +61,15 @@ const ShareModal: React.FC<ShareModalProps> = ({
         <EmailShareButton url={`${URLFront}/reserva/${id}`}>
             <EmailIcon round={true} size={48}/>
         </EmailShareButton>
-        <FacebookShareButton url={`${URLFront}/reserva/${id}`}>
-            <FacebookIcon round={true} size={48}/>
-        </FacebookShareButton>
         <WhatsappShareButton url={`${URLFront}/reserva/${id}`}>
             <WhatsappIcon round={true} size={48}/>
         </WhatsappShareButton>
+        {/* <FacebookMessengerShareButton url={`${URLFront}/reserva/${id}`}>
+            <FacebookMessengerIcon   round={true} size={48}/>
+        </FacebookMessengerShareButton>
         <LinkedinShareButton url={`${URLFront}/reserva/${id}`}>
             <LinkedinIcon round={true} size={48}/>
-        </LinkedinShareButton>
+        </LinkedinShareButton> */}
       </div>
     </div>
   );

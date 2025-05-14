@@ -735,6 +735,29 @@ export const getReservasConsultasAgente = async (agent_id: string) => {
   }
 };
 
+export const getPagosConsultasAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener metodos de pago");
+    const response = await fetch(
+      `${URL}/v1/mia/pagos/consultas?user_id=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getHoteles = async () => {
   try {
     console.log("En proceso de obtener hoteles");

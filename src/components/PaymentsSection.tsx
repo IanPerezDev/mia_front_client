@@ -107,6 +107,7 @@ const PaymentsSection: React.FC<PaymentsSectionProps> = ({
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+
                 Monto
               </th>
               <th
@@ -133,20 +134,12 @@ const PaymentsSection: React.FC<PaymentsSectionProps> = ({
               >
                 Referencia
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Estado
-              </th>
+
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {payments.map((payment) => (
               <tr key={payment.id_pago} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {payment.id_pago}
-                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {formatCurrency(
                     payment.subtotal + payment.impuestos,
@@ -174,9 +167,6 @@ const PaymentsSection: React.FC<PaymentsSectionProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {payment.concepto}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={payment.status} />
                 </td>
               </tr>
             ))}
