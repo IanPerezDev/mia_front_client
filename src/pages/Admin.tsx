@@ -505,7 +505,7 @@ export const Admin = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 mt-14">
+    <div className="min-h-screen bg-gray-100 pt-14">
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1122,17 +1122,17 @@ export const Admin = () => {
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'complete'
                             ? 'bg-green-100 text-green-800'
                             : booking.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                             }`}>
                             {booking.status === 'complete' ? (
                               <CheckCircle className="w-4 h-4 mr-1" />
                             ) : booking.status === 'pending' ? (
-                              <Clock className="w-4 h-4 mr-1" />
+                              <CheckCircle className="w-4 h-4 mr-1" />
                             ) : (
                               <XCircle className="w-4 h-4 mr-1" />
                             )}
-                            {booking.status}
+                            {booking.status === "complete" ? "Completado" : booking.status === "pending" ? "Completado": "Cancelado"}
                           </span>
                         </td>}
                         <td className="py-4">
