@@ -83,12 +83,13 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
     }
   }, []);
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+  const formatDate = (dateString: string) => {
+    const [year, month, day] = dateString.split("T")[0].split("-");
+    const date = new Date(+year, +month - 1, +day);
     return date.toLocaleDateString("es-MX", {
+      day: "2-digit",
+      month: "2-digit",
       year: "numeric",
-      month: "numeric",
-      day: "numeric",
     });
   };
 
@@ -241,12 +242,13 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder={`Buscar por ${filterType === "hotel"
+                placeholder={`Buscar por ${
+                  filterType === "hotel"
                     ? "nombre de hotel"
                     : filterType === "traveler"
-                      ? "nombre o ID de viajero"
-                      : "fecha"
-                  }...`}
+                    ? "nombre o ID de viajero"
+                    : "fecha"
+                }...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-2 pl-10"
@@ -262,8 +264,9 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                 <Filter className="w-4 h-4" />
                 <span>Filtros</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 transition-transform ${
+                    showFilters ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -277,20 +280,22 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setFilterType("hotel")}
-                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${filterType === "hotel"
+                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
+                            filterType === "hotel"
                               ? "bg-blue-100 text-blue-700"
                               : "bg-gray-100"
-                            }`}
+                          }`}
                         >
                           <Hotel className="w-4 h-4" />
                           <span>Hotel</span>
                         </button>
                         <button
                           onClick={() => setFilterType("traveler")}
-                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${filterType === "traveler"
+                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
+                            filterType === "traveler"
                               ? "bg-blue-100 text-blue-700"
                               : "bg-gray-100"
-                            }`}
+                          }`}
                         >
                           <User className="w-4 h-4" />
                           <span>Viajero</span>
@@ -384,6 +389,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                               {booking.hotel_name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
+
                               <span>ID Viajero: {booking.traveler_name?.toUpperCase() || booking.traveler_id}</span>
                               {booking.confirmation_code && (
                                 <>
@@ -458,8 +464,6 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                         >
                           <Share2 className="w-4 h-4" /> Compartir
                         </ShareButton>
-
-
                       </div>
                     </div>
                   </div>

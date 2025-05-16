@@ -1,12 +1,58 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ChatContent } from "../types/chat";
+import { HotelCard } from "./HotelCard";
 
 interface ChatMessageProps {
   content: string;
   isUser: boolean;
   isLoading?: boolean;
 }
+export const ChatMessagesController: React.FC<{
+  messages: ChatContent[];
+}> = ({ messages }) => {
+  return (
+    <>
+      {messages.map((item, index) => {
+        if (
+          item.component_type === "user" ||
+          item.component_type === "message"
+        ) {
+          return (
+            <ChatMessage
+              key={index}
+              content={item.content}
+              isUser={item.component_type === "user"}
+              isLoading={true}
+            />
+          );
+        }
+        if (item.component_type === "hotel") {
+          return (
+            <div key={index} className="overflow-x-auto p-4 pt-0 ">
+              <div className="flex gap-2">
+                {item.id_hoteles.map((hotelId) => (
+                  <div key={hotelId + `${index}`} className="min-w-[300px]">
+                    <HotelCard key={hotelId + `${index}`} id_hotel={hotelId} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        if (item.component_type === "error") {
+          return (
+            <div key={index} className="bg-red-500 text-white p-4 rounded-lg">
+              <p>{item.content}</p>
+            </div>
+          );
+        }
+        return null; // Handle other component types if needed
+      })}
+    </>
+  );
+};
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
   content,
@@ -45,10 +91,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
   return (
     <div
-      className={`max-w-[80%] p-4 rounded-2xl backdrop-blur-lg ${
+      className={`max-w-[100%] w-fit p-4 rounded-2xl backdrop-blur-lg ${
         isUser
-          ? "bg-white text-blue-600 ml-auto rounded-br-none transform transition-all duration-300 hover:shadow-lg"
-          : "bg-white/10 text-white shadow-sm rounded-bl-none transform transition-all duration-300 hover:shadow-lg"
+          ? "bg-white text-blue-900 ml-auto rounded-br-none transform transition-all duration-300 hover:shadow-lg opacity-0 animate-fade-in-bottom-right"
+          : "text-white transform transition-all duration-300 opacity-0 animate-fade-in-left"
       }`}
     >
       <div
@@ -58,11 +104,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           remarkPlugins={[remarkGfm]}
           components={{
             p: ({ children }) => (
-              <p
-                className={`mb-2 last:mb-0 ${
-                  isUser ? "text-blue-600" : "text-white"
-                }`}
-              >
+              <p className={`${isUser ? "text-blue-600" : "text-white"}`}>
                 {children}
               </p>
             ),
@@ -142,6 +184,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 {children}
               </pre>
             ),
+            table: ({ children }) => (
+              <table className="min-w-full text-sm text-white border border-white/20 mb-4">
+                {children}
+              </table>
+            ),
+            thead: ({ children }) => (
+              <thead className="bg-white/10 text-white font-bold">
+                {children}
+              </thead>
+            ),
+            tbody: ({ children }) => <tbody>{children}</tbody>,
+            tr: ({ children }) => (
+              <tr className="border-b border-white/10">{children}</tr>
+            ),
+            th: ({ children }) => (
+              <th className="px-4 py-2 text-left">{children}</th>
+            ),
+            td: ({ children }) => <td className="px-4 py-2">{children}</td>,
           }}
         >
           {messageContent}
