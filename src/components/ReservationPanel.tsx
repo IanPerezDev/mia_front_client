@@ -250,6 +250,7 @@ const CheckOutForm = ({
 export const ReservationPanel: React.FC<ReservationPanelProps> = ({
   booking,
 }) => {
+  const [error, setError] = useState<string | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -364,7 +365,13 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       };
     }
     setBookingData(currentBookingData);
-    console.log(currentBookingData);
+    if (currentBookingData.room.pricePerNight <= 0) {
+      setError(
+        "Las reservaciones con un precio menor o igual a $0 seran canceladas, puedes cambiar eso pidiendo un cambio de hotel"
+      );
+    } else {
+      setError(null);
+    }
   }, [booking, dataHotel]);
 
   const fetchData = async () => {
@@ -1009,6 +1016,14 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
       )}
 
       <div id="reservation-content" className="space-y-8">
+        {error && (
+          <>
+            <div className="mt-6 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">
+              <p className="font-medium">Ocurrió un error</p>
+              <p className="text-xs mt-1">{error}</p>
+            </div>
+          </>
+        )}
         {bookingData.hotel?.name && (
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -1146,9 +1161,7 @@ export const ReservationPanel: React.FC<ReservationPanelProps> = ({
                       Tipo de Habitación
                     </p>
                     <p className="text-lg font-medium text-[#10244c]">
-                      {bookingData.room.type === "single"
-                        ? "Sencilla"
-                        : "Doble"}
+                      {bookingData.room.type || ""}
                     </p>
                   </div>
                   {bookingData.totalNights && (

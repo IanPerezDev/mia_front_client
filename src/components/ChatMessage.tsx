@@ -43,7 +43,10 @@ export const ChatMessagesController: React.FC<{
         }
         if (item.component_type === "error") {
           return (
-            <div key={index} className="bg-red-500 text-white p-4 rounded-lg">
+            <div
+              key={index}
+              className="bg-red-600/70 text-white p-4 rounded-lg"
+            >
               <p>{item.content}</p>
             </div>
           );
