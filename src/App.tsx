@@ -33,6 +33,7 @@ import { SupportModal } from "./components/SupportModal";
 import { Loader } from "./components/Loader";
 import { ChatContent, Reservation, UserMessage } from "./types/chat";
 import { sendMessage } from "./services/chatService";
+import { useLocation } from 'wouter';
 
 const ResponsiveChat = () => {
   const [currentPage, setCurrentPage] = useState<
@@ -55,6 +56,7 @@ const ResponsiveChat = () => {
   const [bookingData, setBookingData] = useState<Reservation | null>(null);
   const [showRegistrationPage, setShowRegistrationPage] = useState(false);
   const { authState, setAuthState } = useUser();
+  const [, setLocation] = useLocation();
 
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -104,6 +106,7 @@ const ResponsiveChat = () => {
           promptCount: 0,
         });
         setIsModalOpen(false);
+        setLocation('/dashboard');
 
         // Redirect to admin dashboard if admin user
         if (isAdmin) {
