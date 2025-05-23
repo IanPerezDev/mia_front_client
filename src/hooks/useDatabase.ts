@@ -214,6 +214,40 @@ export const createNewDatosFiscales = async (data: any) => {
     throw error;
   }
 };
+
+export const createNewEtiquetas = async (data: any, id_agente: string) => {
+  try {
+    const response = await fetch(`${URL}/v1/mia/etiquetas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_agente: id_agente,
+        nombre: data.name,
+        description: data.description || null,
+        color: data.color,
+        tipo_tag: data.tipoTag,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.message === "Etiqueta creada correctamente") {
+      return {
+        success: true,
+        id_datos_fiscales: json.data.id_datos_fiscales,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateNewDatosFiscales = async (data: any) => {
   console.log(data);
   try {
@@ -604,6 +638,29 @@ export const getEmpresasDatosFiscales = async (agent_id: string) => {
     console.log("En proceso de obtener viajeros");
     const response = await fetch(
       `${URL}/v1/mia/agentes/empresas-con-datos-fiscales?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTagsAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener etiquetas");
+    const response = await fetch(
+      `${URL}/v1/mia/etiquetas/get-tags-agente?id_agente=${encodeURIComponent(
         agent_id
       )}`,
       {

@@ -24,11 +24,13 @@ import {
   updateViajero,
   deleteTraveler,
   deleteCompany,
+  createNewEtiquetas,
 } from "../hooks/useDatabase";
 import {
   fetchCompaniesAgent,
   fetchViajerosCompanies,
   fetchEmpresasDatosFiscales,
+  fetchTagsAgente,
 } from "../hooks/useFetch";
 import {
   Building2,
@@ -123,7 +125,11 @@ export const Configuration = () => {
     } else if (activeTab === "taxInfo") {
       const data = await fetchEmpresasDatosFiscales();
       setDatosFiscales(data);
+    } else if (activeTab === "tags") {
+      const data = await fetchTagsAgente();
+      setTags(data);
     }
+    
   };
 
   useEffect(() => {
@@ -328,7 +334,24 @@ export const Configuration = () => {
         break;
       case "tag":
         if (formMode === "create") {
-          setTags([...tags, newData]);
+          console.log(data);
+          try {
+            const { data: user, error: userError } =
+              await supabase.auth.getUser();
+            if (userError) {
+              throw userError;
+            }
+            if (!user) {
+              throw new Error("No hay usuario autenticado");
+            }
+            const responseTag = await createNewEtiquetas(data,user.user.id);
+            if (!responseTag.success) {
+              throw new Error("No se pudo registrar la etiqueta");
+            }
+            console.log(responseTag);
+          } catch (error) {
+            console.error("Error creando nueva etiqueta", error);
+          }
         } else {
           setTags(tags.map((t) => (t.id === id ? newData : t)));
         }
@@ -390,7 +413,7 @@ export const Configuration = () => {
             onSubmit={(data) => handleSubmit("tag", data)}
             onCancel={() => setShowForm(false)}
             initialData={selectedItem}
-            employees={employees}
+            //employees={employees}
           />
         );
       case "policies":
@@ -458,7 +481,7 @@ export const Configuration = () => {
                 <BookOpenText className="mr-2 h-5 w-5" />
                 Datos fiscales
               </button> */}
-              {/*<button
+              <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
                   ? 'border-blue-500 text-blue-600'
@@ -467,7 +490,7 @@ export const Configuration = () => {
               >
                 <Tags className="mr-2 h-5 w-5" />
                 Etiquetas
-              </button>*/}
+              </button>
               {/*<button
                 onClick={() => setActiveTab('policies')}
                 className={`${activeTab === 'policies'
@@ -601,7 +624,7 @@ export const Configuration = () => {
                               Descripción
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Usada por
+                              Tipo
                             </th>
                           </>
                         )}
@@ -820,11 +843,8 @@ export const Configuration = () => {
 
                       {activeTab === "tags" &&
                         handleSearch(tags).map((tag) => {
-                          const taggedEmployees = employees.filter((e) =>
-                            e.tagIds?.includes(tag.id)
-                          );
                           return (
-                            <tr key={tag.id}>
+                            <tr key={tag.id_etiqueta}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <div
@@ -832,7 +852,7 @@ export const Configuration = () => {
                                     style={{ backgroundColor: tag.color }}
                                   />
                                   <div className="text-sm font-medium text-gray-900">
-                                    {tag.name}
+                                    {tag.nombre_etiqueta}
                                   </div>
                                 </div>
                               </td>
@@ -840,7 +860,7 @@ export const Configuration = () => {
                                 {tag.description || "-"}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {taggedEmployees.length} employees
+                                {tag.tipoTag}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button

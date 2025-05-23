@@ -94,7 +94,7 @@ export interface Employee {
 }
 
 export interface Assignment {
-  id: string;
+  id_etiqueta: string;
   companyId: string;
   employeeId: string;
   startDate: string;
@@ -106,7 +106,7 @@ export interface Tag {
   name: string;
   color: string;
   description?: string;
-  employeeIds: string[];
+  tipoTag: string;
 }
 
 export interface Policy {
