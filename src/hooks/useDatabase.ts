@@ -896,3 +896,33 @@ export const deleteCompany = async (id_empresa: string) => {
     };
   }
 };
+
+export const createNewSolicitudEtiqueta = async (data: any) => {
+  console.log(data)
+  try {
+    const response = await fetch(`${URL}/v1/mia/etiquetas/solicitud-etiqueta`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_etiqueta: data.id_etiqueta,
+        id_solicitud: data.id_solicitud,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.message === "Relacion creada correctamente") {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
