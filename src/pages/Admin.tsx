@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import html2pdf from "html2pdf.js";
 import ReservationDetailsModal from '../components/ReservationDetailsModal';
-import PaymentDeatailsModal from '../components/PaymentDetailsModal';
+import {PaymentDeatailsModal} from '../components/PaymentDetailsModal';
+import {FacturaDetailsModal} from '../components/PaymentDetailsModal';
 import CsvDownload from 'react-csv-downloader';
 import {
   Users,
@@ -41,11 +42,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   Eye,
+  Notebook,
 } from 'lucide-react';
 import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import { useSolicitud } from "../hooks/useSolicitud";
 import type { UserPreferences, PaymentHistory } from '../types';
-import { getReservasConsultasAgente, getPagosConsultasAgente } from '../hooks/useDatabase';
+import { getReservasConsultasAgente, getPagosConsultasAgente, getFacturasConsultasAgente } from '../hooks/useDatabase';
 
 interface DashboardStats {
   totalUsers: number;
@@ -191,6 +193,7 @@ export const Admin = () => {
   const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpenPay, setIsModalOpenPay] = useState(false);
+  const [isModalOpenFac, setIsModalOpenFac] = useState(false);
 
   const { obtenerSolicitudesWithViajero } = useSolicitud();
 
@@ -323,23 +326,18 @@ export const Admin = () => {
   const fetchFacturas = async () => {
     try {
       const { data: user, error: userError } = await supabase.auth.getUser();
-
       if (userError) {
         throw userError;
       }
       if (!user) {
-        throw new Error("No hay usuario autenticado.");
+        throw new Error("No hay usuario autenticado");
       }
-      const { data: facturasData, error } = await supabase
-        .from('invoices')
-        .select("*").eq("user_id", user.user.id);
-
-      if (error) throw error;
-
-      setFacturas(facturasData || []);
-      setFilteredFactura(facturasData || []);
+      const invoiceData = await getFacturasConsultasAgente(user.user.id);
+      console.log(invoiceData);
+      setFacturas(invoiceData || []);
+      setFilteredFactura(invoiceData || []);
     } catch (error) {
-      console.error('Error fetching facturas', error);
+      console.error("Error fetching invoices:", error);
     }
   };
 
@@ -487,6 +485,11 @@ export const Admin = () => {
     setIsModalOpen(true);
   };
 
+  const handleViewDetailsFactura = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setIsModalOpenFac(true);
+  };
+
   const handleViewDetailsPayment = (reservation: any) => {
     setSelectedReservation(reservation);
     setIsModalOpenPay(true);
@@ -570,7 +573,7 @@ export const Admin = () => {
             <CreditCard className="w-5 h-5" />
             <span>Pagos</span>
           </button>
-          {/* <button
+          <button
             onClick={() => setActiveView('facturas')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'facturas'
               ? 'bg-blue-600 text-white'
@@ -579,7 +582,7 @@ export const Admin = () => {
           >
             <WalletCards className="w-5 h-5" />
             <span>Facturas</span>
-          </button> */}
+          </button>
           {/* <button
             onClick={() => setActiveView('rewards')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'rewards'
@@ -816,7 +819,7 @@ export const Admin = () => {
                     />
                     <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   </div>
-                  <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
+                  {/* <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
                   <div className='flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap'>
                     <button
                       onClick={() => setActiveColCompUsers(!activeColCompUsers)}
@@ -868,8 +871,9 @@ export const Admin = () => {
                       <UserCircle className="w-5 h-5" />
                       <span>Genero</span>
                     </button>
-                  </div>
-                </>}
+                  </div> */}
+                </>
+              }
 
 
               {/* User list would go here */}
@@ -1001,7 +1005,7 @@ export const Admin = () => {
                     </select>
                   </div>
                   <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
-                  <div className='flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap'>
+                  {/* <div className='flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap'>
                     <button
                       onClick={() => setActiveColCodeBookings(!activeColCodeBookings)}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-slate-200 border-2 ${activeColCodeBookings
@@ -1062,7 +1066,7 @@ export const Admin = () => {
                       <Clock className="w-5 h-5" />
                       <span>Estado</span>
                     </button>
-                  </div>
+                  </div> */}
                 </div>}
 
               {/* Bookings Table */}
@@ -1132,7 +1136,7 @@ export const Admin = () => {
                             ) : (
                               <XCircle className="w-4 h-4 mr-1" />
                             )}
-                            {booking.status === "complete" ? "Completado" : booking.status === "pending" ? "Completado": "Cancelado"}
+                            {booking.status === "complete" ? "Completado" : booking.status === "pending" ? "Completado" : "Cancelado"}
                           </span>
                         </td>}
                         <td className="py-4">
@@ -1264,45 +1268,55 @@ export const Admin = () => {
                 <table className="w-full" id="bookings">
                   <thead>
                     <tr className="text-left border-b border-gray-200">
-                      <th className="pb-3 font-semibold text-gray-600">Monto</th>
-                      <th className="pb-3 font-semibold text-gray-600">Tipo</th>
-                      <th className="pb-3 font-semibold text-gray-600">Porcentaje de impuesto</th>
+                      <th className="pb-3 font-semibold text-gray-600">Folio</th>
+                      <th className="pb-3 font-semibold text-gray-600">RFC</th>
+                      <th className="pb-3 font-semibold text-gray-600">Razón social</th>
                       <th className="pb-3 font-semibold text-gray-600">Fecha Generado</th>
-                      <th className="pb-3 font-semibold text-gray-600">Estatus</th>
+                      <th className="pb-3 font-semibold text-gray-600">Monto</th>
+                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
+                      
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredFactura.map((factura) => (
-                      <tr key={factura.id} className="hover:bg-gray-50">
+                      <tr key={factura.id_facturama} className="hover:bg-gray-50">
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{factura.id_factura}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Notebook className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.rfc}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.razon_social}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.fecha_emision}</span>
+                          </div>
+                        </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
                             <DollarSign className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{factura.amount}</span>
+                            <span className="font-medium">{factura.total_factura}</span>
                           </div>
                         </td>
                         <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{factura.invoice_type}</span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{factura.tax_percentage}</span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{factura.created_at}</span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">{factura.status}</span>
-                          </div>
+                          <button
+                            onClick={() => handleViewDetailsFactura(factura)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
+                            aria-label="View Details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
                         </td>
                       </tr>
 
@@ -1311,7 +1325,8 @@ export const Admin = () => {
                 </table>
               </div>
             </div>
-          </div>)}
+          </div>)
+        }
         {/* Mia rewards View */}
         {activeView === 'rewards' && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -1418,6 +1433,12 @@ export const Admin = () => {
       <PaymentDeatailsModal
         isOpen={isModalOpenPay}
         onClose={() => setIsModalOpenPay(false)}
+        reservation={selectedReservation}
+      />
+
+      <FacturaDetailsModal
+        isOpen={isModalOpenFac}
+        onClose={() => setIsModalOpenFac(false)}
         reservation={selectedReservation}
       />
 
