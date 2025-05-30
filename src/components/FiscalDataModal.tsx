@@ -21,8 +21,6 @@ const AUTH = {
   "x-api-key": API_KEY,
 };
 
-
-
 export function FiscalDataModal({
   company,
   isOpen,
@@ -48,27 +46,33 @@ export function FiscalDataModal({
   const regimes = {
     "601": "Persona Moral - General de Ley Personas Morales",
     "603": "Persona Moral - Personas Morales con Fines no Lucrativos",
-    "605": "Persona Física - Sueldos y Salarios e Ingresos Asimilados a Salarios",
+    "605":
+      "Persona Física - Sueldos y Salarios e Ingresos Asimilados a Salarios",
     "606": "Persona Física - Arrendamiento",
     "607": "Persona Física - Régimen de Enajenación o Adquisición de Bienes",
     "608": "Persona Física - Demás ingresos",
     "609": "Persona Moral - Consolidación",
-    "610": "Persona Física - Residentes en el Extranjero sin Establecimiento Permanente en México",
+    "610":
+      "Persona Física - Residentes en el Extranjero sin Establecimiento Permanente en México",
     "611": "Persona Física - Ingresos por Dividendos (socios y accionistas)",
     "612": "Persona Física - Actividades Empresariales y Profesionales",
     "614": "Persona Física - Ingresos por intereses",
     "615": "Persona Física - Régimen de los ingresos por obtención de premios",
     "616": "Persona Física - Sin obligaciones fiscales",
-    "620": "Persona Moral - Sociedades Cooperativas de Producción que optan por diferir sus ingresos",
+    "620":
+      "Persona Moral - Sociedades Cooperativas de Producción que optan por diferir sus ingresos",
     "621": "Persona Física - Incorporación Fiscal",
-    "622": "Persona Física y Moral - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras",
+    "622":
+      "Persona Física y Moral - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras",
     "623": "Persona Moral - Opcional para Grupos de Sociedades",
     "624": "Persona Moral - Coordinados",
-    "625": "Persona Física - Actividades Empresariales a través de Plataformas Tecnológicas",
+    "625":
+      "Persona Física - Actividades Empresariales a través de Plataformas Tecnológicas",
     "626": "Persona Física - Régimen Simplificado de Confianza (RESICO)",
     "628": "Persona Moral - Hidrocarburos",
-    "629": "Persona Moral - Regímenes Fiscales Preferentes y Empresas Multinacionales",
-    "630": "Persona Física - Enajenación de acciones en bolsa de valores"
+    "629":
+      "Persona Moral - Regímenes Fiscales Preferentes y Empresas Multinacionales",
+    "630": "Persona Física - Enajenación de acciones en bolsa de valores",
   };
 
   useEffect(() => {
@@ -154,8 +158,7 @@ export function FiscalDataModal({
         if (!responseCompany.success) {
           throw new Error("No se pudo registrar los datos fiscales");
         }
-      }
-      else {
+      } else {
         responseCompany = await createNewDatosFiscales(formData);
         if (!responseCompany.success) {
           throw new Error("No se pudo registrar los datos fiscales");
@@ -196,6 +199,7 @@ export function FiscalDataModal({
                   Razón social
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.razon_social}
                   onChange={(e) =>
@@ -210,6 +214,7 @@ export function FiscalDataModal({
                   RFC
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.rfc}
                   onChange={(e) =>
@@ -228,6 +233,7 @@ export function FiscalDataModal({
                   Código Postal
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.codigo_postal_fiscal}
                   onChange={(e) =>
@@ -245,6 +251,7 @@ export function FiscalDataModal({
                   Calle y número
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.calle}
                   onChange={(e) =>
@@ -279,6 +286,7 @@ export function FiscalDataModal({
                   Municipio
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.municipio}
                   readOnly
@@ -290,6 +298,7 @@ export function FiscalDataModal({
                   Estado
                 </label>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   value={formData.estado}
                   readOnly
@@ -430,15 +439,22 @@ export function FiscalDataModal({
           ) : (
             <div className="space-y-4">
               <div className="col-span-2 grid grid-cols-2 gap-4">
-                {Object.entries(formData).map(([key, value]) => (
-                  key != "id_empresa" && key != "id_datos_fiscales" &&
-                  (<div key={key}>
-                    <p className="text-sm font-medium text-gray-700">
-                      {key.replace(/_/g, " ").toUpperCase()}
-                    </p>
-                    <p className="mt-1">{key === "regimen_fiscal" ? `${value} - ${regimes[value]}` : value || "N/A"}</p>
-                  </div>)
-                ))}
+                {Object.entries(formData).map(
+                  ([key, value]) =>
+                    key != "id_empresa" &&
+                    key != "id_datos_fiscales" && (
+                      <div key={key}>
+                        <p className="text-sm font-medium text-gray-700">
+                          {key.replace(/_/g, " ").toUpperCase()}
+                        </p>
+                        <p className="mt-1">
+                          {key === "regimen_fiscal"
+                            ? `${value} - ${regimes[value]}`
+                            : value || "N/A"}
+                        </p>
+                      </div>
+                    )
+                )}
               </div>
               <div className="flex justify-end mt-6">
                 <button

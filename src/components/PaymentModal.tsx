@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Payment, PaymentFormData, PaymentMethodd } from '../types';
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { Payment, PaymentFormData, PaymentMethodd } from "../types";
 //import { formatCurrency, validatePaymentAmount } from '../utils/formatters';
 
 /**
@@ -9,9 +9,9 @@ import { Payment, PaymentFormData, PaymentMethodd } from '../types';
  * @returns Formatted currency string
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -29,7 +29,7 @@ export const validatePaymentAmount = (
 ): { isValid: boolean; errorMessage: string } => {
   // Check if empty
   if (!amount.trim()) {
-    return { isValid: false, errorMessage: 'Se requiere una cantidad' };
+    return { isValid: false, errorMessage: "Se requiere una cantidad" };
   }
 
   // Check if it's a valid number
@@ -37,7 +37,7 @@ export const validatePaymentAmount = (
   if (!numberRegex.test(amount)) {
     return {
       isValid: false,
-      errorMessage: 'Ingresa una cantidad valida (hasta 2 decimales)'
+      errorMessage: "Ingresa una cantidad valida (hasta 2 decimales)",
     };
   }
 
@@ -47,7 +47,7 @@ export const validatePaymentAmount = (
   if (numericAmount <= 0) {
     return {
       isValid: false,
-      errorMessage: 'La cantidad debe ser mayor a cero'
+      errorMessage: "La cantidad debe ser mayor a cero",
     };
   }
 
@@ -55,11 +55,11 @@ export const validatePaymentAmount = (
   if (numericAmount > maxAmount) {
     return {
       isValid: false,
-      errorMessage: `La cantidad no puede exceder ${formatCurrency(maxAmount)}`
+      errorMessage: `La cantidad no puede exceder ${formatCurrency(maxAmount)}`,
     };
   }
 
-  return { isValid: true, errorMessage: '' };
+  return { isValid: true, errorMessage: "" };
 };
 
 interface PaymentModalProps {
@@ -77,12 +77,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<PaymentFormData>({
     amount: payment.pendiente_por_cobrar.toString(),
-    paymentMethod: 'Credit Card',
+    paymentMethod: "Credit Card",
   });
 
   const [validation, setValidation] = useState({
     isValid: true,
-    errorMessage: '',
+    errorMessage: "",
   });
 
   // Reset form when payment changes
@@ -90,9 +90,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (isOpen) {
       setFormData({
         amount: payment.pendiente_por_cobrar.toString(),
-        paymentMethod: 'Credit Card',
+        paymentMethod: "Credit Card",
       });
-      setValidation({ isValid: true, errorMessage: '' });
+      setValidation({ isValid: true, errorMessage: "" });
     }
   }, [isOpen, payment]);
 
@@ -107,7 +107,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     setValidation(validationResult);
   };
 
-  const handlePaymentMethodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handlePaymentMethodChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
       paymentMethod: e.target.value as PaymentMethodd,
@@ -140,9 +142,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Hacer pago
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">Hacer pago</h3>
           <button
             className="text-gray-400 hover:text-gray-500 focus:outline-none"
             onClick={onClose}
@@ -158,21 +158,30 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="bg-gray-50 p-4 rounded-md">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-500">Id pago con credito:</span>
-                <span className="font-medium font-mono">{payment.id_credito}</span>
+                <span className="font-medium font-mono">
+                  {payment.id_credito}
+                </span>
               </div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-500">Cantidad total:</span>
-                <span className="font-medium font-mono">{formatCurrency(payment.pago_por_credito)}</span>
+                <span className="font-medium font-mono">
+                  {formatCurrency(payment.pago_por_credito)}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Pendiente por pagar:</span>
-                <span className="font-medium font-mono text-blue-600">{formatCurrency(payment.pendiente_por_cobrar)}</span>
+                <span className="font-medium font-mono text-blue-600">
+                  {formatCurrency(payment.pendiente_por_cobrar)}
+                </span>
               </div>
             </div>
 
             {/* Amount Input */}
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="amount"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Cantidad de pago
               </label>
               <div className="relative rounded-md shadow-sm">
@@ -180,13 +189,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   <span className="text-gray-500 sm:text-sm">$</span>
                 </div>
                 <input
+                  pattern="^[^<>]*$"
                   type="text"
                   name="amount"
                   id="amount"
-                  className={`block w-full pl-7 pr-12 py-2 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 ${!validation.isValid
-                    ? 'border-red-300 text-red-900 placeholder-red-300'
-                    : 'border-gray-300'
-                    }`}
+                  className={`block w-full pl-7 pr-12 py-2 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                    !validation.isValid
+                      ? "border-red-300 text-red-900 placeholder-red-300"
+                      : "border-gray-300"
+                  }`}
                   placeholder="0.00"
                   value={formData.amount}
                   onChange={handleAmountChange}
@@ -196,13 +207,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
               </div>
               {!validation.isValid && (
-                <p className="mt-2 text-sm text-red-600">{validation.errorMessage}</p>
+                <p className="mt-2 text-sm text-red-600">
+                  {validation.errorMessage}
+                </p>
               )}
             </div>
 
             {/* Payment Method */}
             <div>
-              <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="paymentMethod"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Metodo de pago
               </label>
               <select
@@ -229,8 +245,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!validation.isValid ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+              className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                !validation.isValid ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               disabled={!validation.isValid}
             >
               Confirmar pago

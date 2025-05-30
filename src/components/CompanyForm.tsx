@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Company } from '../types';
-import { URL } from '../constants/apiConstant';
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { Company } from "../types";
+import { URL } from "../constants/apiConstant";
 
 interface CompanyFormProps {
   onSubmit: (data: Partial<Company>) => void;
@@ -15,15 +15,25 @@ const AUTH = {
   "x-api-key": API_KEY,
 };
 
-export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProps) {
-  const [tipoPersona, setTipoPersona] = useState(initialData?.tipo_persona || 'fisica');
+export function CompanyForm({
+  onSubmit,
+  onCancel,
+  initialData,
+}: CompanyFormProps) {
+  const [tipoPersona, setTipoPersona] = useState(
+    initialData?.tipo_persona || "fisica"
+  );
   const [colonias, setColonias] = useState<string[]>([]);
-  const [estado, setEstado] = useState(initialData?.empresa_estado || '');
-  const [municipio, setMunicipio] = useState(initialData?.empresa_municipio || '');
-  const [calle, setCalle] = useState(initialData?.empresa_direccion || '');
-  const [colonia, setColonia] = useState(initialData?.empresa_colonia || '');
-  const [codigoPostal, setCodigoPostal] = useState(initialData?.empresa_cp || '');
-  const [idEmpresa, setIdEmpresa] = useState(initialData?.id_empresa || '');
+  const [estado, setEstado] = useState(initialData?.empresa_estado || "");
+  const [municipio, setMunicipio] = useState(
+    initialData?.empresa_municipio || ""
+  );
+  const [calle, setCalle] = useState(initialData?.empresa_direccion || "");
+  const [colonia, setColonia] = useState(initialData?.empresa_colonia || "");
+  const [codigoPostal, setCodigoPostal] = useState(
+    initialData?.empresa_cp || ""
+  );
+  const [idEmpresa, setIdEmpresa] = useState(initialData?.id_empresa || "");
 
   useEffect(() => {
     if (codigoPostal.length > 4) {
@@ -32,7 +42,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         headers: {
           "Content-Type": "application/json",
           ...AUTH,
-        }
+        },
       })
         .then((res) => res.json())
         .then((data) => {
@@ -44,7 +54,9 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
             setColonias([]);
           }
         })
-        .catch((error) => console.error("Error obteniendo datos de código postal:", error));
+        .catch((error) =>
+          console.error("Error obteniendo datos de código postal:", error)
+        );
     }
   }, [codigoPostal]);
 
@@ -54,14 +66,14 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
     const formData = new FormData(form);
 
     const data: Partial<Company> = {
-      nombre_comercial: formData.get('nombre_comercial') as string,
-      razon_social: formData.get('nombre_comercial') as string,
-      tipo_persona: formData.get('tipo_persona') as string,
+      nombre_comercial: formData.get("nombre_comercial") as string,
+      razon_social: formData.get("nombre_comercial") as string,
+      tipo_persona: formData.get("tipo_persona") as string,
       empresa_direccion: calle,
       empresa_colonia: colonia,
       empresa_estado: estado,
       empresa_municipio: municipio,
-      empresa_cp: formData.get('codigo_postal') as string,
+      empresa_cp: formData.get("codigo_postal") as string,
       id_empresa: idEmpresa,
     };
 
@@ -72,7 +84,13 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? (tipoPersona === 'fisica' ? 'Editar Persona Física' : 'Editar Compañía') : (tipoPersona === 'fisica' ? 'Registrar Nueva Persona Física' : 'Registrar Nueva Compañía')}
+          {initialData
+            ? tipoPersona === "fisica"
+              ? "Editar Persona Física"
+              : "Editar Compañía"
+            : tipoPersona === "fisica"
+            ? "Registrar Nueva Persona Física"
+            : "Registrar Nueva Compañía"}
         </h2>
         <button
           type="button"
@@ -84,7 +102,9 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Tipo de Persona</label>
+        <label className="block text-sm font-medium text-gray-700">
+          Tipo de Persona
+        </label>
         <select
           name="tipo_persona"
           required
@@ -100,9 +120,12 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            {tipoPersona === 'fisica' ? 'Nombre de la Persona Física' : 'Nombre Comercial de la Empresa'}
+            {tipoPersona === "fisica"
+              ? "Nombre de la Persona Física"
+              : "Nombre Comercial de la Empresa"}
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="nombre_comercial"
             defaultValue={initialData?.nombre_comercial}
@@ -113,7 +136,7 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
 
         {/* {tipoPersona === "moral" && <div>
           <label className="block text-sm font-medium text-gray-700">Razón Social</label>
-          <input
+          <input pattern="^[^<>]*$"
             type="text"
             name="razon_social"
             defaultValue={initialData?.razon_social || ''}
@@ -122,11 +145,12 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           />
         </div>} */}
 
-
-
         <div>
-          <label className="block text-sm font-medium text-gray-700">Calle y número</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Calle y número
+          </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="calle"
             value={calle}
@@ -136,8 +160,11 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Código Postal</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Código Postal
+          </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="codigo_postal"
             value={codigoPostal}
@@ -147,7 +174,9 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Colonia</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Colonia
+          </label>
           <select
             name="colonia"
             value={colonia}
@@ -156,14 +185,19 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           >
             <option value="">Seleccione una colonia</option>
             {colonias.map((colonia, index) => (
-              <option key={index} value={colonia}>{colonia}</option>
+              <option key={index} value={colonia}>
+                {colonia}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Estado</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Estado
+          </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="estado"
             value={estado}
@@ -173,8 +207,11 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Municipio</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Municipio
+          </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="municipio"
             value={municipio}
@@ -196,7 +233,8 @@ export function CompanyForm({ onSubmit, onCancel, initialData }: CompanyFormProp
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Actualizar' : 'Guardar'} {tipoPersona === 'fisica' ? 'Persona Física' : 'Compañía'}
+          {initialData ? "Actualizar" : "Guardar"}{" "}
+          {tipoPersona === "fisica" ? "Persona Física" : "Compañía"}
         </button>
       </div>
     </form>

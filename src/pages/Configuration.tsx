@@ -74,7 +74,9 @@ export const Configuration = () => {
   const handleSaveFiscalData = (companyId: string, fiscalData: TaxInfo) => {
     setCompanies(
       companies.map((company) =>
-        company.id_empresa === companyId ? { ...company, taxInfo: fiscalData } : company
+        company.id_empresa === companyId
+          ? { ...company, taxInfo: fiscalData }
+          : company
       )
     );
     setShowModal(false);
@@ -99,17 +101,17 @@ export const Configuration = () => {
             tipo_persona: company.tipo_persona,
             taxInfo: company.id_datos_fiscales
               ? {
-                id_datos_fiscales: company.id_datos_fiscales,
-                id_empresa: company.id_empresa,
-                rfc: company.rfc,
-                calle: company.calle,
-                colonia: company.colonia,
-                municipio: company.municipio,
-                estado: company.estado,
-                codigo_postal_fiscal: company.codigo_postal_fiscal.toString(),
-                regimen_fiscal: company.regimen_fiscal || "",
-                razon_social: company.razon_social_df || "",
-              }
+                  id_datos_fiscales: company.id_datos_fiscales,
+                  id_empresa: company.id_empresa,
+                  rfc: company.rfc,
+                  calle: company.calle,
+                  colonia: company.colonia,
+                  municipio: company.municipio,
+                  estado: company.estado,
+                  codigo_postal_fiscal: company.codigo_postal_fiscal.toString(),
+                  regimen_fiscal: company.regimen_fiscal || "",
+                  razon_social: company.razon_social_df || "",
+                }
               : null,
           })
         );
@@ -155,19 +157,19 @@ export const Configuration = () => {
     type: "company" | "employee" | "assignment" | "tag" | "policy",
     id: string
   ) => {
-    console.log(id)
+    console.log(id);
     if (!confirm("Estas seguro que quieres eliminarlo?")) return;
 
     switch (type) {
       case "company":
-        const respondeDeleteCompany = await deleteCompany(id)
+        const respondeDeleteCompany = await deleteCompany(id);
         if (respondeDeleteCompany.success) {
           setCompanies(companies.filter((c) => c.id_empresa !== id));
         }
         //setAssignments(assignments.filter((a) => a.companyId !== id));
         break;
       case "employee":
-        const respondeDeleteEmployee = await deleteTraveler(id)
+        const respondeDeleteEmployee = await deleteTraveler(id);
         if (respondeDeleteEmployee.success) {
           setEmployees(employees.filter((e) => e.id_viajero !== id));
         }
@@ -418,21 +420,29 @@ export const Configuration = () => {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex flex-wrap">
               <button
-                onClick={() => { setActiveTab("companies"); setShowForm(false) }}
-                className={`${activeTab === "companies"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => {
+                  setActiveTab("companies");
+                  setShowForm(false);
+                }}
+                className={`${
+                  activeTab === "companies"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Building2 className="mr-2 h-5 w-5" />
                 Compañias
               </button>
               <button
-                onClick={() => { setActiveTab("employees"); setShowForm(false) }}
-                className={`${activeTab === "employees"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => {
+                  setActiveTab("employees");
+                  setShowForm(false);
+                }}
+                className={`${
+                  activeTab === "employees"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Users className="mr-2 h-5 w-5" />
                 Viajeros
@@ -479,11 +489,15 @@ export const Configuration = () => {
                 Politicas
               </button>*/}
               <button
-                onClick={() => { setActiveTab("notifications"); setShowForm(false) }}
-                className={`${activeTab === "notifications"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
+                onClick={() => {
+                  setActiveTab("notifications");
+                  setShowForm(false);
+                }}
+                className={`${
+                  activeTab === "notifications"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center w-1/5 py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 <Bell className="mr-2 h-5 w-5" />
                 Notificaciones
@@ -500,6 +514,7 @@ export const Configuration = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
+                      pattern="^[^<>]*$"
                       type="text"
                       placeholder="Buscar..."
                       value={searchTerm}
@@ -726,8 +741,8 @@ export const Configuration = () => {
                             <td className="px-6 py-4">
                               {employee.fecha_nacimiento
                                 ? new Date(
-                                  employee.fecha_nacimiento
-                                ).toLocaleDateString()
+                                    employee.fecha_nacimiento
+                                  ).toLocaleDateString()
                                 : ""}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -878,14 +893,15 @@ export const Configuration = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.type === "budget"
-                                  ? "bg-green-100 text-green-800"
-                                  : policy.type === "schedule"
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  policy.type === "budget"
+                                    ? "bg-green-100 text-green-800"
+                                    : policy.type === "schedule"
                                     ? "bg-blue-100 text-blue-800"
                                     : policy.type === "benefits"
-                                      ? "bg-purple-100 text-purple-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
                               >
                                 {policy.type.charAt(0).toUpperCase() +
                                   policy.type.slice(1)}
@@ -893,14 +909,15 @@ export const Configuration = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${policy.status === "active"
-                                  ? "bg-green-100 text-green-800"
-                                  : policy.status === "inactive"
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  policy.status === "active"
+                                    ? "bg-green-100 text-green-800"
+                                    : policy.status === "inactive"
                                     ? "bg-gray-100 text-gray-800"
                                     : policy.status === "draft"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                                  }`}
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
                               >
                                 {policy.status.charAt(0).toUpperCase() +
                                   policy.status.slice(1)}

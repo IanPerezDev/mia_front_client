@@ -420,6 +420,7 @@ const ResponsiveChat = () => {
 
                         <div className="relative">
                           <input
+                            pattern="^[^<>]*$"
                             type="text"
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
@@ -510,6 +511,7 @@ const ResponsiveChat = () => {
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 relative">
                         <input
+                          pattern="^[^<>]*$"
                           type="text"
                           value={inputMessage}
                           onChange={(e) => setInputMessage(e.target.value)}

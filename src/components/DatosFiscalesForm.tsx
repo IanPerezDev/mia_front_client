@@ -112,6 +112,7 @@ export function DatosFiscalesForm({
         <div>
           <label className="block text-sm font-medium text-gray-700">RFC</label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="rfc"
             defaultValue={initialData?.rfc}
@@ -125,6 +126,7 @@ export function DatosFiscalesForm({
             Calle
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="calle"
             defaultValue={initialData?.calle}
@@ -137,6 +139,7 @@ export function DatosFiscalesForm({
             Código Postal Fiscal
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="codigo_postal_fiscal"
             value={codigoPostal}
@@ -150,6 +153,7 @@ export function DatosFiscalesForm({
             Colonia
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="colonia"
             value={datosCodigo.colonia}
@@ -163,6 +167,7 @@ export function DatosFiscalesForm({
             Municipio
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="municipio"
             value={datosCodigo.municipio}
@@ -176,6 +181,7 @@ export function DatosFiscalesForm({
             Estado
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="estado"
             value={datosCodigo.estado}
@@ -189,6 +195,7 @@ export function DatosFiscalesForm({
             Regimen Fiscal
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="regimen_fiscal"
             defaultValue={initialData?.regimen_fiscal}
@@ -201,6 +208,7 @@ export function DatosFiscalesForm({
             Estado de Situación Fiscal
           </label>
           <input
+            pattern="^[^<>]*$"
             type="file"
             name="file_upload"
             accept=".jpg,.png,.pdf" // Puedes restringir los tipos de archivo

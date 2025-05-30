@@ -241,6 +241,7 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <input
+                pattern="^[^<>]*$"
                 type="text"
                 placeholder={`Buscar por ${
                   filterType === "hotel"
@@ -309,12 +310,14 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <input
+                          pattern="^[^<>]*$"
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
                         />
                         <input
+                          pattern="^[^<>]*$"
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
@@ -389,8 +392,11 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                               {booking.hotel_name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
-
-                              <span>ID Viajero: {booking.traveler_name?.toUpperCase() || booking.traveler_id}</span>
+                              <span>
+                                ID Viajero:{" "}
+                                {booking.traveler_name?.toUpperCase() ||
+                                  booking.traveler_id}
+                              </span>
                               {booking.confirmation_code && (
                                 <>
                                   <span>•</span>
