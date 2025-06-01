@@ -101,14 +101,14 @@ const FacturaDetails: React.FC<PaymentDetailsProps> = ({ reservation }) => {
                 <div>
                     <h3 className="text-lg font-medium mb-4 text-gray-900"> Detalles de Factura</h3>
                     <div className="space-y-3">
-                        <div className="flex flex-col">
+                        {/* <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-500">RFC</span>
                             {reservation.rfc}
                         </div>
                         <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-500">Razón Social</span>
                             {reservation.razon_social}
-                        </div>
+                        </div> */}
                         <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-500">Fecha Emisión</span>
                             <span className="text-gray-900">{reservation.fecha_emision}</span>

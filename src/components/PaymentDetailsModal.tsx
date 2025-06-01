@@ -27,7 +27,7 @@ export const PaymentDeatailsModal: React.FC<PaymentDeatailsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Pago: ${reservation.codigo_reservacion_hotel}`}
+      title={`Pago`}
       size="xl"
     >
       <div className="space-y-6">

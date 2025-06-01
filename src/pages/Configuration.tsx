@@ -481,7 +481,7 @@ export const Configuration = () => {
                 <BookOpenText className="mr-2 h-5 w-5" />
                 Datos fiscales
               </button> */}
-              <button
+              {/* <button
                 onClick={() => setActiveTab('tags')}
                 className={`${activeTab === 'tags'
                   ? 'border-blue-500 text-blue-600'
@@ -490,7 +490,7 @@ export const Configuration = () => {
               >
                 <Tags className="mr-2 h-5 w-5" />
                 Etiquetas
-              </button>
+              </button> */}
               {/*<button
                 onClick={() => setActiveTab('policies')}
                 className={`${activeTab === 'policies'
@@ -501,7 +501,7 @@ export const Configuration = () => {
                 <BookOpen className="mr-2 h-5 w-5" />
                 Politicas
               </button>*/}
-              <button
+              {/* <button
                 onClick={() => { setActiveTab("notifications"); setShowForm(false) }}
                 className={`${activeTab === "notifications"
                   ? "border-blue-500 text-blue-600"
@@ -510,7 +510,7 @@ export const Configuration = () => {
               >
                 <Bell className="mr-2 h-5 w-5" />
                 Notificaciones
-              </button>
+              </button> */}
             </nav>
           </div>
 

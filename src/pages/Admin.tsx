@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import html2pdf from "html2pdf.js";
 import ReservationDetailsModal from '../components/ReservationDetailsModal';
-import {PaymentDeatailsModal} from '../components/PaymentDetailsModal';
-import {FacturaDetailsModal} from '../components/PaymentDetailsModal';
+import { PaymentDeatailsModal } from '../components/PaymentDetailsModal';
+import { FacturaDetailsModal } from '../components/PaymentDetailsModal';
 import CsvDownload from 'react-csv-downloader';
 import {
   Users,
@@ -43,11 +43,13 @@ import {
   AlertTriangle,
   Eye,
   Notebook,
+  DownloadCloud,
 } from 'lucide-react';
 import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import { useSolicitud } from "../hooks/useSolicitud";
 import type { UserPreferences, PaymentHistory } from '../types';
 import { getReservasConsultasAgente, getPagosConsultasAgente, getFacturasConsultasAgente } from '../hooks/useDatabase';
+import useApi from '../hooks/useApi';
 
 interface DashboardStats {
   totalUsers: number;
@@ -60,6 +62,12 @@ interface DashboardStats {
   recentBookings: any[];
   recentPayments: any[];
   monthlyRevenue: any[];
+}
+interface InvoiceData {
+  ContentEncoding: string;
+  ContentType: string;
+  ContentLength: number;
+  Content: string;
 }
 
 interface Booking {
@@ -169,6 +177,8 @@ export const Admin = () => {
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [filteredPaymets, setFilteredPayments] = useState<Payment[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { mandarCorreo, descargarFactura } = useApi();
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   //columnas reservaciones
   const [activeColUsersBookings, setActiveColUsersBookings] = useState(true);
   const [activeColCodeBookings, setActiveColCodeBookings] = useState(true);
@@ -455,6 +465,24 @@ export const Admin = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+  const handleDownloadPDF = (obj:any) => {
+    if (!obj) return;
+
+    const linkSource = `data:application/pdf;base64,${obj.Content}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = "factura.pdf";
+    downloadLink.click();
+  };
+
+  const handleDescargarFactura = async (id: string) => {
+    try {
+      const obj = await descargarFactura(id);
+      handleDownloadPDF(obj);
+    } catch (error) {
+      alert("Ha ocurrido un error al descargar la factura");
+    }
   };
 
   const exportPDF = async () => {
@@ -793,10 +821,10 @@ export const Admin = () => {
                   </button>
                 </div>
                 <div className="relative flex items-center space-x-4">
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportUsers(!exportUsers)}>
+                  {/* <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportUsers(!exportUsers)}>
                     <Download className="w-5 h-5" />
                     <span>Exportar</span>
-                  </button>
+                  </button> */}
                   {exportUsers &&
                     <div className="absolute font-semibold top-full  mt-2 z-20 bg-slate-100 shadow-lg rounded-lg w-24 flex flex-col p-2">
                       <button className="w-full text-left px-2 py-1 border-b-2 hover:bg-gray-200" onClick={exportPDFUsers}>PDF</button>
@@ -945,10 +973,10 @@ export const Admin = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="relative flex items-center space-x-4">
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportBookings(!exportBookings)}>
+                    {/* <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportBookings(!exportBookings)}>
                       <Download className="w-5 h-5" />
                       <span>Exportar</span>
-                    </button>
+                    </button> */}
                     {exportBookings &&
                       <div className="absolute font-semibold top-full  mt-2 z-20 bg-slate-100 shadow-lg rounded-lg w-24 flex flex-col p-2">
                         <button className="w-full text-left px-2 py-1 border-b-2 hover:bg-gray-200" onClick={exportPDF}>PDF</button>
@@ -1080,7 +1108,7 @@ export const Admin = () => {
                       {activeColDateBookings && <th className="pb-3 font-semibold text-gray-600">Fechas</th>}
                       {activeColPriceBookings && <th className="pb-3 font-semibold text-gray-600">Precio</th>}
                       {activeColStatusBookings && <th className="pb-3 font-semibold text-gray-600">Estado</th>}
-                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1182,9 +1210,9 @@ export const Admin = () => {
                       <th className="pb-3 font-semibold text-gray-600">Monto</th>
                       <th className="pb-3 font-semibold text-gray-600">Fecha de creación</th>
                       <th className="pb-3 font-semibold text-gray-600">Metodo</th>
-                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles Pago</th>
                       <th className="pb-3 font-semibold text-gray-600">Referencia</th>
-                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1269,12 +1297,13 @@ export const Admin = () => {
                   <thead>
                     <tr className="text-left border-b border-gray-200">
                       <th className="pb-3 font-semibold text-gray-600">Folio</th>
-                      <th className="pb-3 font-semibold text-gray-600">RFC</th>
-                      <th className="pb-3 font-semibold text-gray-600">Razón social</th>
+                      {/* <th className="pb-3 font-semibold text-gray-600">RFC</th>
+                      <th className="pb-3 font-semibold text-gray-600">Razón social</th> */}
                       <th className="pb-3 font-semibold text-gray-600">Fecha Generado</th>
                       <th className="pb-3 font-semibold text-gray-600">Monto</th>
                       <th className="pb-3 font-semibold text-gray-600">Acciones</th>
-                      
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
+
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1282,10 +1311,10 @@ export const Admin = () => {
                       <tr key={factura.id_facturama} className="hover:bg-gray-50">
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{factura.id_factura}</span>
+                            <span className="font-medium">{factura.id_facturama}</span>
                           </div>
                         </td>
-                        <td className="py-4">
+                        {/* <td className="py-4">
                           <div className="flex items-center space-x-2">
                             <Notebook className="w-4 h-4 text-gray-400" />
                             <span className="font-medium">{factura.rfc}</span>
@@ -1296,7 +1325,7 @@ export const Admin = () => {
                             <Building2 className="w-4 h-4 text-gray-400" />
                             <span className="font-medium">{factura.razon_social}</span>
                           </div>
-                        </td>
+                        </td> */}
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
                             <Calendar className="w-4 h-4 text-gray-400" />
@@ -1308,6 +1337,17 @@ export const Admin = () => {
                             <DollarSign className="w-4 h-4 text-gray-400" />
                             <span className="font-medium">{factura.total_factura}</span>
                           </div>
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => {
+                              handleDescargarFactura(factura.id_facturama || "");
+                            }}
+                            className="flex border p-2 rounded-lg border-sky-200 items-center gap-1 bg-sky-600 text-blue-50 font-semibold hover:text-blue-700"
+                          >
+                            <DownloadCloud className="w-4 h-4" /> Descargar
+                            factura
+                          </button>
                         </td>
                         <td className="py-4">
                           <button

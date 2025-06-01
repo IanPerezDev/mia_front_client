@@ -70,12 +70,13 @@ export const HotelSearchPage: React.FC<HotelSearchPageProps> = ({ onBack }) => {
     try {
       setIsLoading(true);
 
-      const { data, error } = await fetchHoteles();
+      let { data, error } = await fetchHoteles();
       console.log("Hotels data:", data);
+      //data = data.filter(hotel => hotel.precio_sencillo >= 600);
       setHotels(data);
 
       if (error) throw error;
-
+      
       setHotels(data || []);
 
       // Initially show only 3 random hotels

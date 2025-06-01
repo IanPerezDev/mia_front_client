@@ -1,6 +1,6 @@
 import React from "react";
 import { Invoice } from "../types";
-import { formatCurrency } from "../utils/formatters";
+//import { formatCurrency } from "../utils/formatters";
 import EmptyState from "./EmptyState";
 import { FileText, Download } from "lucide-react";
 
@@ -18,10 +18,43 @@ const formatDate = (dateString: string) => {
   });
 };
 
+/**
+ * Format a date string to include time
+ */
+const formatDateTime = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("es-MX", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch (error) {
+    return "Invalid date";
+  }
+};
+
+/**
+ * Format a currency value with proper symbols
+ */
+const formatCurrency = (amount: number, currency: string): string => {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount);
+  } catch (error) {
+    return `${amount} ${currency}`;
+  }
+};
+
 const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => {
   if (!invoices || invoices.length === 0) {
     return <EmptyState message="No hay facturas disponibles" />;
   }
+  console.log(invoices)
 
   return (
     <div className="space-y-6">
@@ -33,19 +66,19 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                ID Factura
+                Folio
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                ID Facturama
+                Fecha generado
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Fecha de creación
+                Monto
               </th>
               {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Monto
@@ -58,14 +91,14 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <div className="flex items-center">
                     <FileText className="mr-2 h-4 w-4 text-gray-400" />
-                    {invoice.id_factura}
+                    {invoice.id_facturama}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {invoice.id_facturama}
+                  {formatDateTime(invoice.fecha_emision)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {formatDate(invoice.fecha_emision)}
+                  {formatCurrency(invoice.monto_factura, "mxn")}
                 </td>
                 {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {formatCurrency(invoice.amount)}

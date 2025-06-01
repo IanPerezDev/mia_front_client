@@ -66,10 +66,12 @@ export const TableForCard: React.FC<TableForCardProps> = ({
                         ? 'bg-green-100 text-green-700'
                         : row.estado === 'pending'
                         ? 'bg-green-100 text-green-700'
+                        : row.estado === 'complete'
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-600'
                     }`}
                   >
-                    {row.estado === "confirmed" ? "Confirmada" : row.estado === "pending" ? "Confirmada": "Cancelada"}
+                    {row.estado === "confirmed" ? "Confirmada" : row.estado === "pending" ? "Confirmada": row.estado === "complete" ? "Confirmada" : "Cancelada"}
                   </span>
                 </td>
               </tr>
