@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { HEADERS_API, URL } from "../constants/apiConstant";
 import { useUser } from "../context/authContext";
 import Donut from "../components/Donut";
+import { TableForCard } from "../components/TableForCard";
 
 // Componente de Tarjeta de Estadísticas
 const StatCard: React.FC<StatCardProps> = ({
@@ -13,8 +14,13 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   icon: Icon,
   subtitle,
+  onClick,
+
 }) => (
-  <div className="bg-white rounded-lg shadow-md p-4">
+  <div
+    onClick={onClick}
+    className={`bg-white rounded-lg shadow-md p-4 ${onClick ? 'cursor-pointer hover:bg-gray-50 transition' : ''}`}
+  >
     <div className="flex gap-4 items-center flex-row">
       <div className="p-2 bg-blue-100 rounded-lg">
         <Icon className="h-6 w-6 text-blue-600" />
@@ -26,6 +32,7 @@ const StatCard: React.FC<StatCardProps> = ({
       </div>
     </div>
   </div>
+
 );
 // Componente de Navegación
 const Navigation: React.FC<{
@@ -45,68 +52,67 @@ const Navigation: React.FC<{
   selectedYear,
   setSelectedYear,
 }) => (
-  <nav className="bg-white shadow-md p-4">
-    <div className="flex items-center gap-2">
-      <Link href="/">
-        <svg
-          className="h-8 w-auto"
-          viewBox="0 0 1152 539"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g>
-            <path
-              className="fill-blue-600"
-              d="M209.06,500.55s-.04.03-.06.02c-64.5-64.5-133.27-131.46-133.27-209.51,0-86.62,84.17-157.09,187.63-157.09s187.63,70.47,187.63,157.09c0,74.79-63.42,139.58-150.8,154.08-.02,0-.05-.01-.05-.04l-8.8-53.12c61.28-10.16,105.76-52.6,105.76-100.92,0-56.91-60-103.2-133.74-103.2s-133.74,46.3-133.74,103.2c0,49.8,48,93.56,111.66,101.79,0,0,.01,0,.01.02l-32.23,107.69Z"
-            />
-            <ellipse
-              className="fill-gray-800"
-              cx="215.01"
-              cy="277.85"
-              rx="28.37"
-              ry="37.7"
-            />
-            <ellipse
-              className="fill-gray-800"
-              cx="317.34"
-              cy="277.85"
-              rx="28.37"
-              ry="37.7"
-            />
-            <path
-              className="fill-blue-600"
-              d="M344.98,125.54c-2.9,0-5.84-.69-8.58-2.14-70.29-37.27-135.91-1.73-138.67-.2-8.84,4.91-20.01,1.76-24.95-7.07-4.94-8.82-1.84-19.96,6.96-24.93,3.45-1.95,85.44-47.12,173.85-.23,8.95,4.75,12.36,15.86,7.62,24.81-3.29,6.21-9.65,9.76-16.23,9.76Z"
-            />
-          </g>
-        </svg>
-      </Link>
-      {buttons.map((button) => (
-        <button
-          key={button.id}
-          onClick={() => onSelect(button.id)}
-          className={`px-4 pl-2 flex gap-2 py-2 rounded-lg transition-colors ${
-            selectedDashboard === button.id
+    <nav className="bg-white shadow-md p-4">
+      <div className="flex items-center gap-2">
+        <Link href="/">
+          <svg
+            className="h-8 w-auto"
+            viewBox="0 0 1152 539"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g>
+              <path
+                className="fill-blue-600"
+                d="M209.06,500.55s-.04.03-.06.02c-64.5-64.5-133.27-131.46-133.27-209.51,0-86.62,84.17-157.09,187.63-157.09s187.63,70.47,187.63,157.09c0,74.79-63.42,139.58-150.8,154.08-.02,0-.05-.01-.05-.04l-8.8-53.12c61.28-10.16,105.76-52.6,105.76-100.92,0-56.91-60-103.2-133.74-103.2s-133.74,46.3-133.74,103.2c0,49.8,48,93.56,111.66,101.79,0,0,.01,0,.01.02l-32.23,107.69Z"
+              />
+              <ellipse
+                className="fill-gray-800"
+                cx="215.01"
+                cy="277.85"
+                rx="28.37"
+                ry="37.7"
+              />
+              <ellipse
+                className="fill-gray-800"
+                cx="317.34"
+                cy="277.85"
+                rx="28.37"
+                ry="37.7"
+              />
+              <path
+                className="fill-blue-600"
+                d="M344.98,125.54c-2.9,0-5.84-.69-8.58-2.14-70.29-37.27-135.91-1.73-138.67-.2-8.84,4.91-20.01,1.76-24.95-7.07-4.94-8.82-1.84-19.96,6.96-24.93,3.45-1.95,85.44-47.12,173.85-.23,8.95,4.75,12.36,15.86,7.62,24.81-3.29,6.21-9.65,9.76-16.23,9.76Z"
+              />
+            </g>
+          </svg>
+        </Link>
+        {buttons.map((button) => (
+          <button
+            key={button.id}
+            onClick={() => onSelect(button.id)}
+            className={`px-4 pl-2 flex gap-2 py-2 rounded-lg transition-colors ${selectedDashboard === button.id
               ? "bg-blue-600 text-white"
               : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-          }`}
-        >
-          {button.icon ? <button.icon /> : <></>}
-          {button.label}
-        </button>
-      ))}
-      <div className="flex gap-3 w-full justify-end">
-        <MonthSelector
-          selectedMonth={selectedMonth}
-          onChange={(month) => setSelectedMonth(Number(month))}
-        />
-        <YearSelector
-          selectedYear={selectedYear}
-          onChange={(year) => setSelectedYear(year)}
-        />
+              }`}
+          >
+            {button.icon ? <button.icon /> : <></>}
+            {button.label}
+          </button>
+        ))}
+        <div className="flex gap-3 w-full justify-end">
+          <MonthSelector
+            selectedMonth={selectedMonth}
+            onChange={(month) => setSelectedMonth(Number(month))}
+          />
+          <YearSelector
+            selectedYear={selectedYear}
+            onChange={(year) => setSelectedYear(year)}
+          />
+        </div>
       </div>
-    </div>
-  </nav>
-);
+    </nav>
+  );
 // Componente Selector de Mes
 const MonthSelector: React.FC<{
   selectedMonth: number;
@@ -223,7 +229,7 @@ const GraphContainer = ({
     },
   ];
 
-  console.log(summary);
+  //console.log(summary);
 
   return (
     <div className="col-span-4 flex gap-4">
@@ -252,6 +258,8 @@ const DashboardGrid: React.FC<{
   selectedYear: number;
 }> = ({ id_user, selectedMonth, selectedYear }) => {
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
 
   const fechaHoy = new Date();
   fechaHoy.setHours(0, 0, 0, 0);
@@ -263,6 +271,7 @@ const DashboardGrid: React.FC<{
         monthlyStats.filter((obj) => new Date(obj.check_out) < fechaHoy)
           .length || "0",
       icon: Clock,
+      rows: monthlyStats.filter((obj) => new Date(obj.check_out) < fechaHoy)
     },
     {
       title: "Reservas Activas",
@@ -273,6 +282,11 @@ const DashboardGrid: React.FC<{
             new Date(obj.check_out) > fechaHoy
         ).length || "0",
       icon: Calendar,
+      rows: monthlyStats.filter(
+        (obj) =>
+          new Date(obj.check_in) <= fechaHoy &&
+          new Date(obj.check_out) > fechaHoy
+      ),
     },
     {
       title: "Proximas Reservas",
@@ -280,6 +294,7 @@ const DashboardGrid: React.FC<{
         monthlyStats.filter((obj) => new Date(obj.check_in) > fechaHoy)
           .length || "0",
       icon: Building,
+      rows: monthlyStats.filter((obj) => new Date(obj.check_in) > fechaHoy),
     },
     {
       title: "Gasto Mensual",
@@ -305,6 +320,7 @@ const DashboardGrid: React.FC<{
           }
         );
         const json = await response.json();
+        console.log(json.data)
         setMonthlyStats(json.data);
       } catch (error) {
         console.error("Error al obtener estadísticas mensuales:", error);
@@ -321,15 +337,33 @@ const DashboardGrid: React.FC<{
         {cards && (
           <SectionStats title="Resumen Mensual" subtitle="Estadísticas por mes">
             {cards.map((card) => (
-              <StatCard
-                key={card.title}
-                title={card.title}
-                value={card.value}
-                icon={card.icon}
-                subtitle="Este mes"
-              />
+              <>
+                <StatCard
+                  key={card.title}
+                  title={card.title}
+                  value={card.value}
+                  icon={card.icon}
+                  subtitle="Este mes"
+                  onClick={() =>
+                    setExpandedCard(card.title === expandedCard?.title ? null : card)
+                  }
+                />
+
+              </>
             ))}
+
           </SectionStats>
+
+
+
+        )}
+        {expandedCard && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2 text-gray-700">
+              Detalles: {expandedCard.title}
+            </h3>
+            <TableForCard card={expandedCard} />
+          </div>
         )}
         <SectionStats title="Resumen Anual" subtitle="Estadísticas por año">
           <GraphContainer
@@ -396,7 +430,7 @@ export function Dashboard() {
 
 export default Dashboard;
 
-interface MonthlyStats {
+export interface MonthlyStats {
   id_solicitud: string;
   id_servicio: string;
   confirmation_code: string;
@@ -408,7 +442,23 @@ interface MonthlyStats {
   total: number;
   status: string;
   id_usuario_generador: string;
+
+  // Campos para UI
+  nombre_viajero: string; // viene de solicitudes
+  nombre_hotel?: string; // viene de hospedajes, puede ser null
+  codigo_reservacion_hotel?: string; // también de hospedajes
+  fechas: string; // check_in - check_out en formato legible
+  precio: number; // total redondeado
+  estado: string; // alias de status
+
+  // Datos del viajero (opcionalmente pueden venir null)
+  primer_nombre?: string;
+  apellido_paterno?: string;
+  email?: string;
+  telefono?: string;
 }
+
+
 
 interface NavButton {
   id: number;
@@ -421,6 +471,7 @@ interface StatCardProps {
   value: string | number;
   icon: typeof Building;
   subtitle?: string;
+  onClick?: () => void;
 }
 
 // Constantes

@@ -8,6 +8,7 @@ import {
   getPagosAgente,
   getHoteles,
   getPendientesAgente,
+  getTagsAgente,
 } from "./useDatabase";
 
 export const fetchCompaniesAgent = async () => {
@@ -48,6 +49,20 @@ export const fetchEmpresasDatosFiscales = async () => {
     return employeesData.data || [];
   } catch (error) {
     console.error("Error fetching employees:", error);
+    return [];
+  }
+};
+
+export const fetchTagsAgente = async () => {
+  try {
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error("No hay usuario autenticado");
+
+    const tagsData = await getTagsAgente(user.user.id);
+    return tagsData.data || [];
+  } catch (error) {
+    console.error("Error fetching tags:", error);
     return [];
   }
 };

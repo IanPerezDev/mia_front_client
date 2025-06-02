@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -17,6 +17,8 @@ import {
   Book,
   CreditCard,
   Share2,
+  Tag,
+  Plus,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { useSolicitud } from "../hooks/useSolicitud";
@@ -24,6 +26,10 @@ import { Link } from "wouter";
 import { useUser } from "../context/authContext";
 import useApi from "../hooks/useApi";
 import ShareButton from "../components/ShareButton";
+
+import { fetchTagsAgente } from "../hooks/useFetch";
+import { supabase } from "../services/supabaseClient";
+import { createNewSolicitudEtiqueta } from "../hooks/useDatabase";
 
 interface Booking {
   id: string;
@@ -57,6 +63,124 @@ interface BookingsReportPageProps {
   onBack: () => void;
 }
 
+const TagDropdown = ({ booking, availableTags, onAddTag, loadingTagId }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState(booking.tags || []);
+  const dropdownRef = useRef(null);
+
+  // Cerrar dropdown cuando se hace click fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleAddTag = async (tag) => {
+    try {
+      await onAddTag(tag, booking.id);
+      setSelectedTags(prev => [...prev, tag]);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error adding tag:', error);
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setSelectedTags(prev => prev.filter(tag => tag.id !== tagToRemove.id));
+    // Aquí llamarías a una función para remover la etiqueta del backend
+    // onRemoveTag(tagToRemove);
+  };
+
+  // Filtrar etiquetas que ya están seleccionadas
+  const availableTagsToAdd = availableTags.filter(
+    tag => !selectedTags.some(selectedTag => selectedTag.id === tag.id)
+  );
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Etiquetas seleccionadas */}
+      {selectedTags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {selectedTags.map((tag) => (
+            <span
+              key={tag.id}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white`}
+              style={{ backgroundColor: tag.color }}
+            >
+              <span
+                className={`inline-block w-2 h-2 rounded-full bg-white opacity-75`}
+              ></span>
+              {tag.nombre_etiqueta}
+              <button
+                onClick={() => handleRemoveTag(tag)}
+                className="ml-1 hover:bg-white hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Botón principal del dropdown */}
+      {/* <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 border px-3 py-2 rounded-lg text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      >
+        <Tag className="w-4 h-4" />
+        <span>Añadir etiqueta</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button> */}
+
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg min-w-48 max-h-64 overflow-y-auto">
+          {availableTags.length > 0 ? (
+            <>
+              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b">
+                Etiquetas disponibles
+              </div>
+              {availableTags.map((tag) => (
+                <button
+                  key={tag.id_etiqueta}
+                  disabled={loadingTagId === tag.id_etiqueta}
+                  onClick={() => handleAddTag(tag)}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-3 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors ${loadingTagId === tag.id_etiqueta ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                >
+                  <span
+                    className={`inline-block w-3 h-3 rounded-full`}
+                    style={{ backgroundColor: tag.color }}
+                  ></span>
+                  <span className="flex-1">{tag.nombre_etiqueta}</span>
+                  {loadingTagId === tag.id && (
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                  )}
+                  {loadingTagId !== tag.id_etiqueta && (
+                    <Plus className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+              ))}
+            </>
+          ) : (
+            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+              No hay etiquetas disponibles
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
   onBack,
 }) => {
@@ -74,14 +198,47 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("all");
   const [selectedStage, setSelectedStage] = useState("all");
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loadingTagId, setLoadingTagId] = useState<string | null>(null);
 
   useEffect(() => {
     if (authState?.user) {
       obtenerSolicitudesWithViajero((json) => {
         setBookings([...json, ...bookings]);
       }, authState?.user?.id);
+      fetchEtiquetas();
     }
   }, []);
+
+  const fetchEtiquetas = async () => {
+    const data = await fetchTagsAgente();
+    console.log(data)
+    setAvailableTags(data);
+  }
+
+  const handleAddTag = async (tag, id_solicitud) => {
+    setLoadingTagId(tag.id_etiqueta);
+    // Simular llamada a API
+    try {
+      const { data: user, error: userError } =
+        await supabase.auth.getUser();
+      if (userError) {
+        throw userError;
+      }
+      if (!user) {
+        throw new Error("No hay usuario autenticado");
+      }
+      const responseCompany = await createNewSolicitudEtiqueta({ id_etiqueta: tag.id_etiqueta, id_solicitud: id_solicitud });
+      if (!responseCompany.success) {
+        throw new Error("No se pudo registrar a la empresa");
+      }
+      console.log(responseCompany);
+    } catch (error) {
+      console.error("Error creando nueva empresa", error);
+    }
+    setLoadingTagId(null);
+  };
 
   const formatDate = (dateString: string) => {
     const [year, month, day] = dateString.split("T")[0].split("-");
@@ -243,13 +400,12 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
               <input
                 pattern="^[^<>]*$"
                 type="text"
-                placeholder={`Buscar por ${
-                  filterType === "hotel"
-                    ? "nombre de hotel"
-                    : filterType === "traveler"
+                placeholder={`Buscar por ${filterType === "hotel"
+                  ? "nombre de hotel"
+                  : filterType === "traveler"
                     ? "nombre o ID de viajero"
                     : "fecha"
-                }...`}
+                  }...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-2 pl-10"
@@ -265,9 +421,8 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                 <Filter className="w-4 h-4" />
                 <span>Filtros</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    showFilters ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -281,22 +436,20 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setFilterType("hotel")}
-                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
-                            filterType === "hotel"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100"
-                          }`}
+                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${filterType === "hotel"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100"
+                            }`}
                         >
                           <Hotel className="w-4 h-4" />
                           <span>Hotel</span>
                         </button>
                         <button
                           onClick={() => setFilterType("traveler")}
-                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
-                            filterType === "traveler"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100"
-                          }`}
+                          className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${filterType === "traveler"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100"
+                            }`}
                         >
                           <User className="w-4 h-4" />
                           <span>Viajero</span>
@@ -470,6 +623,14 @@ export const BookingsReportPage: React.FC<BookingsReportPageProps> = ({
                         >
                           <Share2 className="w-4 h-4" /> Compartir
                         </ShareButton>
+
+                        <TagDropdown
+                          booking={booking}
+                          availableTags={availableTags}
+                          onAddTag={handleAddTag}
+                          loadingTagId={loadingTagId}
+                        />
+
                       </div>
                     </div>
                   </div>

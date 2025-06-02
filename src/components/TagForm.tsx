@@ -8,22 +8,25 @@ interface TagFormProps {
   initialData?: Tag;
 }
 
+
 export function TagForm({
   onSubmit,
   onCancel,
   initialData,
   employees,
 }: TagFormProps) {
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
     const data: Partial<Tag> = {
-      name: formData.get("name") as string,
-      color: formData.get("color") as string,
-      description: formData.get("description") as string,
-      employeeIds: Array.from(formData.getAll("employeeIds") as string[]),
+name: formData.get("name") as string,
+color: formData.get("color") as string,
+description: formData.get("description") as string,
+employeeIds: Array.from(formData.getAll("employeeIds") as string[]),
+tipoTag: formData.get("tipoTag") as string,
     };
 
     onSubmit(data);
@@ -91,20 +94,24 @@ export function TagForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Empleados especificos
+            Tipo de Etiqueta
           </label>
           <select
-            name="employeeIds"
+            name="tipoTag"
             multiple
-            defaultValue={initialData?.employeeIds || []}
+            required
+            defaultValue={initialData?.tipoTag || []}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             size={4}
           >
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.nombre} {emp.apellidoPaterno} {emp.apellidoMaterno}
-              </option>
-            ))}
+
+            <option>
+              Politica
+            </option>
+            <option>
+              Gastos y Administración
+            </option>
+
           </select>
         </div>
       </div>

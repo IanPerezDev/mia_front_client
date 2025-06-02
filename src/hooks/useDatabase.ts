@@ -214,6 +214,40 @@ export const createNewDatosFiscales = async (data: any) => {
     throw error;
   }
 };
+
+export const createNewEtiquetas = async (data: any, id_agente: string) => {
+  try {
+    const response = await fetch(`${URL}/v1/mia/etiquetas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_agente: id_agente,
+        nombre: data.name,
+        description: data.description || null,
+        color: data.color,
+        tipo_tag: data.tipoTag,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.message === "Etiqueta creada correctamente") {
+      return {
+        success: true,
+        id_datos_fiscales: json.data.id_datos_fiscales,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateNewDatosFiscales = async (data: any) => {
   console.log(data);
   try {
@@ -622,6 +656,29 @@ export const getEmpresasDatosFiscales = async (agent_id: string) => {
   }
 };
 
+export const getTagsAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener etiquetas");
+    const response = await fetch(
+      `${URL}/v1/mia/etiquetas/get-tags-agente?id_agente=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getPaymentMethods = async (agent_id: string) => {
   try {
     console.log("En proceso de obtener metodos de pago");
@@ -758,6 +815,29 @@ export const getPagosConsultasAgente = async (agent_id: string) => {
   }
 };
 
+export const getFacturasConsultasAgente = async (agent_id: string) => {
+  try {
+    console.log("En proceso de obtener facturas");
+    const response = await fetch(
+      `${URL}/v1/mia/factura/consultas?user_id=${encodeURIComponent(
+        agent_id
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...AUTH,
+        },
+      }
+    );
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getHoteles = async () => {
   try {
     console.log("En proceso de obtener hoteles");
@@ -837,5 +917,35 @@ export const deleteCompany = async (id_empresa: string) => {
       success: false,
       error: "Error de red o del servidor",
     };
+  }
+};
+
+export const createNewSolicitudEtiqueta = async (data: any) => {
+  console.log(data)
+  try {
+    const response = await fetch(`${URL}/v1/mia/etiquetas/solicitud-etiqueta`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...AUTH,
+      },
+      body: JSON.stringify({
+        id_etiqueta: data.id_etiqueta,
+        id_solicitud: data.id_solicitud,
+      }),
+    });
+
+    const json = await response.json();
+    if (json.message === "Relacion creada correctamente") {
+      return {
+        success: true,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
+  } catch (error) {
+    throw error;
   }
 };

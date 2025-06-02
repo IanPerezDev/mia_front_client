@@ -76,6 +76,7 @@ const getStatusColor = (status: string): string => {
 const ReservationDetails: React.FC<ReservationDetailsProps> = ({
   reservation,
 }) => {
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,6 +93,7 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({
               <span className="text-gray-900">
                 {reservation.codigo_reservacion_hotel}
               </span>
+
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-500">Hotel</span>
@@ -120,6 +122,7 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({
               <span className="text-gray-900">
                 {formatDateTime(reservation.check_out)}
               </span>
+
             </div>
           </div>
         </div>
@@ -157,6 +160,7 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({
               <span className="text-gray-900">
                 {formatDateTime(reservation.created_at)}
               </span>
+
             </div>
             {/* <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-500">Generado Por</span>

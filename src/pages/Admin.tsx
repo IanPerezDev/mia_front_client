@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../services/supabaseClient";
 import html2pdf from "html2pdf.js";
-import ReservationDetailsModal from "../components/ReservationDetailsModal";
-import PaymentDeatailsModal from "../components/PaymentDetailsModal";
-import CsvDownload from "react-csv-downloader";
+import ReservationDetailsModal from '../components/ReservationDetailsModal';
+import { PaymentDeatailsModal } from '../components/PaymentDetailsModal';
+import { FacturaDetailsModal } from '../components/PaymentDetailsModal';
+import CsvDownload from 'react-csv-downloader';
 import {
   Users,
   Hotel,
@@ -41,14 +42,23 @@ import {
   CheckCircle2,
   AlertTriangle,
   Eye,
-} from "lucide-react";
-import { fetchPagosAgent, fetchViajerosCompanies } from "../hooks/useFetch";
+import {
+  Notebook,
+  DownloadCloud,
+} from 'lucide-react';
+
+import { fetchPagosAgent, fetchViajerosCompanies } from '../hooks/useFetch';
 import { useSolicitud } from "../hooks/useSolicitud";
-import type { UserPreferences, PaymentHistory } from "../types";
+import useApi from '../hooks/useApi';
+
+import type { UserPreferences, PaymentHistory } from '../types';
+
 import {
   getReservasConsultasAgente,
   getPagosConsultasAgente,
-} from "../hooks/useDatabase";
+  getFacturasConsultasAgente,
+} from '../hooks/useDatabase';
+
 
 interface DashboardStats {
   totalUsers: number;
@@ -61,6 +71,12 @@ interface DashboardStats {
   recentBookings: any[];
   recentPayments: any[];
   monthlyRevenue: any[];
+}
+interface InvoiceData {
+  ContentEncoding: string;
+  ContentType: string;
+  ContentLength: number;
+  Content: string;
 }
 
 interface Booking {
@@ -171,7 +187,9 @@ export const Admin = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [filteredPaymets, setFilteredPayments] = useState<Payment[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { mandarCorreo, descargarFactura } = useApi();
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   //columnas reservaciones
   const [activeColUsersBookings, setActiveColUsersBookings] = useState(true);
   const [activeColCodeBookings, setActiveColCodeBookings] = useState(true);
@@ -198,6 +216,7 @@ export const Admin = () => {
     useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpenPay, setIsModalOpenPay] = useState(false);
+  const [isModalOpenFac, setIsModalOpenFac] = useState(false);
 
   const { obtenerSolicitudesWithViajero } = useSolicitud();
 
@@ -334,24 +353,19 @@ export const Admin = () => {
   const fetchFacturas = async () => {
     try {
       const { data: user, error: userError } = await supabase.auth.getUser();
-
       if (userError) {
         throw userError;
       }
       if (!user) {
-        throw new Error("No hay usuario autenticado.");
+        throw new Error("No hay usuario autenticado");
       }
-      const { data: facturasData, error } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("user_id", user.user.id);
 
-      if (error) throw error;
-
-      setFacturas(facturasData || []);
-      setFilteredFactura(facturasData || []);
+      const invoiceData = await getFacturasConsultasAgente(user.user.id);
+      console.log(invoiceData);
+      setFacturas(invoiceData || []);
+      setFilteredFactura(invoiceData || []);
     } catch (error) {
-      console.error("Error fetching facturas", error);
+      console.error("Error fetching invoices:", error);
     }
   };
 
@@ -477,6 +491,24 @@ export const Admin = () => {
       day: "numeric",
     });
   };
+  const handleDownloadPDF = (obj:any) => {
+    if (!obj) return;
+
+    const linkSource = `data:application/pdf;base64,${obj.Content}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = "factura.pdf";
+    downloadLink.click();
+  };
+
+  const handleDescargarFactura = async (id: string) => {
+    try {
+      const obj = await descargarFactura(id);
+      handleDownloadPDF(obj);
+    } catch (error) {
+      alert("Ha ocurrido un error al descargar la factura");
+    }
+  };
 
   const exportPDF = async () => {
     const element = document.querySelector("#bookings");
@@ -503,6 +535,11 @@ export const Admin = () => {
     setIsModalOpen(true);
   };
 
+  const handleViewDetailsFactura = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setIsModalOpenFac(true);
+  };
+
   const handleViewDetailsPayment = (reservation: any) => {
     setSelectedReservation(reservation);
     setIsModalOpenPay(true);
@@ -522,7 +559,7 @@ export const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 mt-14">
+    <div className="min-h-screen bg-gray-100 pt-14">
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -592,7 +629,7 @@ export const Admin = () => {
             <CreditCard className="w-5 h-5" />
             <span>Pagos</span>
           </button>
-          {/* <button
+          <button
             onClick={() => setActiveView('facturas')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'facturas'
               ? 'bg-blue-600 text-white'
@@ -601,7 +638,7 @@ export const Admin = () => {
           >
             <WalletCards className="w-5 h-5" />
             <span>Facturas</span>
-          </button> */}
+          </button>
           {/* <button
             onClick={() => setActiveView('rewards')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${activeView === 'rewards'
@@ -835,14 +872,11 @@ export const Admin = () => {
                   </button>
                 </div>
                 <div className="relative flex items-center space-x-4">
-                  <button
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    onClick={() => setExportUsers(!exportUsers)}
-                  >
+                  {/* <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportUsers(!exportUsers)}>
                     <Download className="w-5 h-5" />
                     <span>Exportar</span>
-                  </button>
-                  {exportUsers && (
+                  </button> */}
+                  {exportUsers &&
                     <div className="absolute font-semibold top-full  mt-2 z-20 bg-slate-100 shadow-lg rounded-lg w-24 flex flex-col p-2">
                       <button
                         className="w-full text-left px-2 py-1 border-b-2 hover:bg-gray-200"
@@ -876,10 +910,8 @@ export const Admin = () => {
                     />
                     <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   </div>
-                  <p className="text-xl leading-relaxed mb-4">
-                    Filtra por columnas
-                  </p>
-                  <div className="flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap">
+                  {/* <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
+                  <div className='flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap'>
                     <button
                       onClick={() => setActiveColCompUsers(!activeColCompUsers)}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-slate-200 border-2 ${
@@ -937,9 +969,9 @@ export const Admin = () => {
                       <UserCircle className="w-5 h-5" />
                       <span>Genero</span>
                     </button>
-                  </div>
+                  </div> */}
                 </>
-              )}
+              }
 
               {/* User list would go here */}
               <div className="overflow-x-auto">
@@ -1050,14 +1082,11 @@ export const Admin = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="relative flex items-center space-x-4">
-                    <button
-                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      onClick={() => setExportBookings(!exportBookings)}
-                    >
+                    {/* <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setExportBookings(!exportBookings)}>
                       <Download className="w-5 h-5" />
                       <span>Exportar</span>
-                    </button>
-                    {exportBookings && (
+                    </button> */}
+                    {exportBookings &&
                       <div className="absolute font-semibold top-full  mt-2 z-20 bg-slate-100 shadow-lg rounded-lg w-24 flex flex-col p-2">
                         <button
                           className="w-full text-left px-2 py-1 border-b-2 hover:bg-gray-200"
@@ -1126,10 +1155,8 @@ export const Admin = () => {
                       <option value="canceled">Canceladas</option>
                     </select>
                   </div>
-                  <p className="text-xl leading-relaxed mb-4">
-                    Filtra por columnas
-                  </p>
-                  <div className="flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap">
+                  <p className='text-xl leading-relaxed mb-4'>Filtra por columnas</p>
+                  {/* <div className='flex items-center justify-start gap-x-6 gap-y-3 mb-6 flex-wrap'>
                     <button
                       onClick={() =>
                         setActiveColCodeBookings(!activeColCodeBookings)
@@ -1208,142 +1235,90 @@ export const Admin = () => {
                       <Clock className="w-5 h-5" />
                       <span>Estado</span>
                     </button>
-                  </div>
-                </div>
-              )}
+                  </div> */}
+                </div>}
 
               {/* Bookings Table */}
               <div className="overflow-x-auto">
                 <table className="w-full" id="bookings">
                   <thead>
                     <tr className="text-left border-b border-gray-200">
-                      {activeColCodeBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Código
-                        </th>
-                      )}
-                      {activeColHotelBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Hotel
-                        </th>
-                      )}
-                      {activeColUsersBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Usuario
-                        </th>
-                      )}
-                      {activeColDateBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Fechas
-                        </th>
-                      )}
-                      {activeColPriceBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Precio
-                        </th>
-                      )}
-                      {activeColStatusBookings && (
-                        <th className="pb-3 font-semibold text-gray-600">
-                          Estado
-                        </th>
-                      )}
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Acciones
-                      </th>
+                      {activeColCodeBookings && <th className="pb-3 font-semibold text-gray-600">Código</th>}
+                      {activeColHotelBookings && <th className="pb-3 font-semibold text-gray-600">Hotel</th>}
+                      {activeColUsersBookings && <th className="pb-3 font-semibold text-gray-600">Usuario</th>}
+                      {activeColDateBookings && <th className="pb-3 font-semibold text-gray-600">Fechas</th>}
+                      {activeColPriceBookings && <th className="pb-3 font-semibold text-gray-600">Precio</th>}
+                      {activeColStatusBookings && <th className="pb-3 font-semibold text-gray-600">Estado</th>}
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredBookings.map(
-                      (booking) =>
-                        booking.pagos && (
-                          <tr key={booking.id} className="hover:bg-gray-50">
-                            {activeColCodeBookings && (
-                              <td className="py-4">
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium">
-                                    {booking.codigo_reservacion_hotel}
-                                  </span>
-                                </div>
-                              </td>
+                    {filteredBookings.map((booking) => (
+                      booking.pagos &&
+                      (<tr key={booking.id} className="hover:bg-gray-50">
+                        {activeColCodeBookings &&
+                          <td className="py-4">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{booking.codigo_reservacion_hotel}</span>
+                            </div>
+                          </td>}
+                        {activeColHotelBookings &&
+                          <td className="py-4">
+                            <div className="flex items-center space-x-2">
+                              <span>{booking.hotel}</span>
+                            </div>
+                          </td>}
+                        {activeColUsersBookings &&
+                          <td className="py-4">
+                            <div className="flex items-center space-x-2">
+                              <span>{booking.nombre_viajero ? booking.nombre_viajero : booking.primer_nombre + " " + booking.apellido_paterno}</span>
+                            </div>
+                          </td>}
+                        {activeColDateBookings &&
+                          <td className="py-4">
+                            <div className="flex items-center space-x-2">
+                              <span>
+                                {new Date(booking.check_in).toLocaleDateString()} -
+                                {new Date(booking.check_out).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </td>}
+                        {activeColPriceBookings &&
+                          <td className="py-4">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">
+                                ${booking.solicitud_total}
+                              </span>
+                            </div>
+                          </td>}
+                        {activeColStatusBookings && <td className="py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'complete'
+                            ? 'bg-green-100 text-green-800'
+                            : booking.status === 'pending'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                            }`}>
+                            {booking.status === 'complete' ? (
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                            ) : booking.status === 'pending' ? (
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                            ) : (
+                              <XCircle className="w-4 h-4 mr-1" />
                             )}
-                            {activeColHotelBookings && (
-                              <td className="py-4">
-                                <div className="flex items-center space-x-2">
-                                  <span>{booking.hotel}</span>
-                                </div>
-                              </td>
-                            )}
-                            {activeColUsersBookings && (
-                              <td className="py-4">
-                                <div className="flex items-center space-x-2">
-                                  <span>
-                                    {booking.nombre_viajero
-                                      ? booking.nombre_viajero
-                                      : booking.primer_nombre +
-                                        " " +
-                                        booking.apellido_paterno}
-                                  </span>
-                                </div>
-                              </td>
-                            )}
-                            {activeColDateBookings && (
-                              <td className="py-4">
-                                <div className="flex items-center space-x-2">
-                                  <span>
-                                    {new Date(
-                                      booking.check_in
-                                    ).toLocaleDateString()}{" "}
-                                    -
-                                    {new Date(
-                                      booking.check_out
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </td>
-                            )}
-                            {activeColPriceBookings && (
-                              <td className="py-4">
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium">
-                                    ${booking.solicitud_total}
-                                  </span>
-                                </div>
-                              </td>
-                            )}
-                            {activeColStatusBookings && (
-                              <td className="py-4">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    booking.status === "complete"
-                                      ? "bg-green-100 text-green-800"
-                                      : booking.status === "pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                                  }`}
-                                >
-                                  {booking.status === "complete" ? (
-                                    <CheckCircle className="w-4 h-4 mr-1" />
-                                  ) : booking.status === "pending" ? (
-                                    <Clock className="w-4 h-4 mr-1" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 mr-1" />
-                                  )}
-                                  {booking.status}
-                                </span>
-                              </td>
-                            )}
-                            <td className="py-4">
-                              <button
-                                onClick={() => handleViewDetails(booking)}
-                                className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
-                                aria-label="View Details"
-                              >
-                                <Eye className="h-5 w-5" />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                    )}
+                            {booking.status === "complete" ? "Completado" : booking.status === "pending" ? "Completado" : "Cancelado"}
+                          </span>
+                        </td>}
+                        <td className="py-4">
+                          <button
+                            onClick={() => handleViewDetails(booking)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
+                            aria-label="View Details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>)
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1376,24 +1351,13 @@ export const Admin = () => {
                 <table className="w-full" id="bookings">
                   <thead>
                     <tr className="text-left border-b border-gray-200">
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Monto
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Fecha de creación
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Metodo
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Detalles
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Referencia
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Acciones
-                      </th>
+
+                      <th className="pb-3 font-semibold text-gray-600">Monto</th>
+                      <th className="pb-3 font-semibold text-gray-600">Fecha de creación</th>
+                      <th className="pb-3 font-semibold text-gray-600">Metodo</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles Pago</th>
+                      <th className="pb-3 font-semibold text-gray-600">Referencia</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1486,63 +1450,66 @@ export const Admin = () => {
                 <table className="w-full" id="bookings">
                   <thead>
                     <tr className="text-left border-b border-gray-200">
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Monto
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">Tipo</th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Porcentaje de impuesto
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Fecha Generado
-                      </th>
-                      <th className="pb-3 font-semibold text-gray-600">
-                        Estatus
-                      </th>
+                      <th className="pb-3 font-semibold text-gray-600">Folio</th>
+                      {/* <th className="pb-3 font-semibold text-gray-600">RFC</th>
+                      <th className="pb-3 font-semibold text-gray-600">Razón social</th> */}
+                      <th className="pb-3 font-semibold text-gray-600">Fecha Generado</th>
+                      <th className="pb-3 font-semibold text-gray-600">Monto</th>
+                      <th className="pb-3 font-semibold text-gray-600">Acciones</th>
+                      <th className="pb-3 font-semibold text-gray-600">Detalles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredFactura.map((factura) => (
-                      <tr key={factura.id} className="hover:bg-gray-50">
+                      <tr key={factura.id_facturama} className="hover:bg-gray-50">
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{factura.id_facturama}</span>
+                          </div>
+                        </td>
+                        {/* <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Notebook className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.rfc}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.razon_social}</span>
+                          </div>
+                        </td> */}
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{factura.fecha_emision}</span>
+                          </div>
+                        </td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
                             <DollarSign className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">
-                              {factura.amount}
-                            </span>
+                            <span className="font-medium">{factura.total_factura}</span>
                           </div>
                         </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">
-                              {factura.invoice_type}
-                            </span>
-                          </div>
+                        <td>
+                          <button
+                            onClick={() => {
+                              handleDescargarFactura(factura.id_facturama || "");
+                            }}
+                            className="flex border p-2 rounded-lg border-sky-200 items-center gap-1 bg-sky-600 text-blue-50 font-semibold hover:text-blue-700"
+                          >
+                            <DownloadCloud className="w-4 h-4" /> Descargar
+                            factura
+                          </button>
                         </td>
                         <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">
-                              {factura.tax_percentage}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">
-                              {factura.created_at}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Hotel className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium">
-                              {factura.status}
-                            </span>
-                          </div>
+                          <button
+                            onClick={() => handleViewDetailsFactura(factura)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 rounded-md p-1"
+                            aria-label="View Details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1550,8 +1517,8 @@ export const Admin = () => {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          </div>)
+        }
         {/* Mia rewards View */}
         {activeView === "rewards" && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -1679,6 +1646,12 @@ export const Admin = () => {
       <PaymentDeatailsModal
         isOpen={isModalOpenPay}
         onClose={() => setIsModalOpenPay(false)}
+        reservation={selectedReservation}
+      />
+
+      <FacturaDetailsModal
+        isOpen={isModalOpenFac}
+        onClose={() => setIsModalOpenFac(false)}
         reservation={selectedReservation}
       />
     </div>
