@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { KeyRound, EyeOff, Eye, Check, X, AlertCircle } from 'lucide-react';
-import { supabase } from '../services/supabaseClient';
+import React, { useEffect, useState } from "react";
+import { KeyRound, EyeOff, Eye, Check, X, AlertCircle } from "lucide-react";
+import { supabase } from "../services/supabaseClient";
 
 function PasswordStrengthIndicator({ password }: { password: string }) {
   const getStrength = () => {
@@ -14,14 +14,16 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
   };
 
   const strength = getStrength();
-  const strengthText = ['Muy Debil', 'Debil', 'Medio', 'Segura', 'Muy Segura'][strength - 1] || '';
-  const strengthColor = [
-    'bg-red-500',
-    'bg-orange-500',
-    'bg-yellow-500',
-    'bg-green-500',
-    'bg-emerald-500',
-  ][strength - 1] || 'bg-gray-200';
+  const strengthText =
+    ["Muy Debil", "Debil", "Medio", "Segura", "Muy Segura"][strength - 1] || "";
+  const strengthColor =
+    [
+      "bg-red-500",
+      "bg-orange-500",
+      "bg-yellow-500",
+      "bg-green-500",
+      "bg-emerald-500",
+    ][strength - 1] || "bg-gray-200";
 
   return (
     <div className="mt-2">
@@ -29,8 +31,9 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className={`h-full w-full rounded-full transition-colors ${i < strength ? strengthColor : 'bg-gray-200'
-              }`}
+            className={`h-full w-full rounded-full transition-colors ${
+              i < strength ? strengthColor : "bg-gray-200"
+            }`}
           />
         ))}
       </div>
@@ -41,8 +44,8 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
 
 export const ResetPassword = () => {
   const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
+    password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -51,10 +54,12 @@ export const ResetPassword = () => {
 
   useEffect(() => {
     // Extrae los parámetros de la URL (después del #)
-    const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
-    const error = hashParams.get('error');
-    const errorCode = hashParams.get('error_code');
-    const errorDescription = hashParams.get('error_description');
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace("#", "?")
+    );
+    const error = hashParams.get("error");
+    const errorCode = hashParams.get("error_code");
+    const errorDescription = hashParams.get("error_description");
 
     // Si hay un error, actualiza el estado con el mensaje de error
     if (error && errorDescription) {
@@ -66,10 +71,10 @@ export const ResetPassword = () => {
     const newErrors: string[] = [];
 
     if (formData.password.length < 8) {
-      newErrors.push('La contraseña debe tener por lo menos 8 caracteres');
+      newErrors.push("La contraseña debe tener por lo menos 8 caracteres");
     }
     if (formData.password !== formData.confirmPassword) {
-      newErrors.push('Las contraseñas no coinciden');
+      newErrors.push("Las contraseñas no coinciden");
     }
 
     setErrors(newErrors);
@@ -82,9 +87,9 @@ export const ResetPassword = () => {
     if (validatePassword()) {
       try {
         // Actualiza la contraseña utilizando el token de recuperación
-        const { data, error } = await supabase.auth.updateUser(
-          { password: formData.password }
-        );
+        const { data, error } = await supabase.auth.updateUser({
+          password: formData.password,
+        });
         if (error) {
           console.log(error);
           throw new Error("Ocurrió un error");
@@ -93,10 +98,10 @@ export const ResetPassword = () => {
 
         // Redirige después de un corto retraso
         setTimeout(() => {
-          window.location.href = '/'; // Redirige al login o página principal
+          window.location.href = "/"; // Redirige al login o página principal
         }, 2000);
       } catch (error) {
-        setErrors(['Ocurrio un error, intenta nuevamente']);
+        setErrors(["Ocurrio un error, intenta nuevamente"]);
       }
     }
   };
@@ -108,7 +113,9 @@ export const ResetPassword = () => {
           <div className="mx-auto h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
             <KeyRound className="h-6 w-6 text-blue-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Restablece tu contraseña</h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Restablece tu contraseña
+          </h2>
           <p className="mt-2 text-sm text-gray-600">
             Ingresa tu nueva contraseña
           </p>
@@ -118,7 +125,9 @@ export const ResetPassword = () => {
             <div className="flex">
               <AlertCircle className="h-5 w-5 text-red-400" />
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{errorMessage}</h3>
+                <h3 className="text-sm font-medium text-red-800">
+                  {errorMessage}
+                </h3>
               </div>
             </div>
           </div>
@@ -137,18 +146,24 @@ export const ResetPassword = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Nueva contraseña
                 </label>
                 <div className="mt-1 relative">
                   <input
+                    pattern="^[^<>]*$"
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                   />
                   <button
                     type="button"
@@ -166,18 +181,27 @@ export const ResetPassword = () => {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Confirma la Contraseña
                 </label>
                 <div className="mt-1 relative">
                   <input
+                    pattern="^[^<>]*$"
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -214,4 +238,4 @@ export const ResetPassword = () => {
       </div>
     </div>
   );
-}
+};

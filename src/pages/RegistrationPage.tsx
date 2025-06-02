@@ -1,6 +1,20 @@
-import React, { useState } from 'react';
-import { Building2, Phone, Mail, User, Briefcase, MapPin, Lock, CheckCircle2, ArrowRight, Hotel, Calendar, MapPinOff, ArrowLeft } from 'lucide-react';
-import { registerUser } from '../services/authService';
+import React, { useState } from "react";
+import {
+  Building2,
+  Phone,
+  Mail,
+  User,
+  Briefcase,
+  MapPin,
+  Lock,
+  CheckCircle2,
+  ArrowRight,
+  Hotel,
+  Calendar,
+  MapPinOff,
+  ArrowLeft,
+} from "lucide-react";
+import { registerUser } from "../services/authService";
 
 interface RegistrationFormData {
   companyName: string;
@@ -17,7 +31,7 @@ interface RegistrationFormData {
 
 interface QuestionnaireData {
   preferredHotel: string;
-  frequentChanges: 'yes' | 'no' | '';
+  frequentChanges: "yes" | "no" | "";
   avoidLocations: string;
 }
 
@@ -25,46 +39,54 @@ interface RegistrationPageProps {
   onComplete: () => void;
 }
 
-export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'company' | 'personal' | 'questionnaire'>('company');
+export const RegistrationPage: React.FC<RegistrationPageProps> = ({
+  onComplete,
+}) => {
+  const [step, setStep] = useState<"company" | "personal" | "questionnaire">(
+    "company"
+  );
   const [questionStep, setQuestionStep] = useState(0);
-  const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right');
+  const [slideDirection, setSlideDirection] = useState<"right" | "left">(
+    "right"
+  );
   const [formData, setFormData] = useState<RegistrationFormData>({
-    companyName: '',
-    rfc: '',
-    industry: '',
-    city: '',
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    companyName: "",
+    rfc: "",
+    industry: "",
+    city: "",
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({
-    preferredHotel: '',
-    frequentChanges: '',
-    avoidLocations: ''
-  });
+  const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>(
+    {
+      preferredHotel: "",
+      frequentChanges: "",
+      avoidLocations: "",
+    }
+  );
 
-  const [passwordError, setPasswordError] = useState('');
-  const [registrationError, setRegistrationError] = useState('');
+  const [passwordError, setPasswordError] = useState("");
+  const [registrationError, setRegistrationError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
   const handleRegistrationComplete = async () => {
     try {
       if (isRegistering) return;
       setIsRegistering(true);
-      setRegistrationError('');
-      
+      setRegistrationError("");
+
       const result = await registerUser(formData, questionnaireData);
       if (result.success) {
         onComplete();
       }
     } catch (error: any) {
-      console.error('Error during registration:', error);
+      console.error("Error during registration:", error);
       setRegistrationError(
-        error.message || 'Error al registrar. Por favor intenta de nuevo.'
+        error.message || "Error al registrar. Por favor intenta de nuevo."
       );
     } finally {
       setIsRegistering(false);
@@ -73,34 +95,34 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
 
   const handleCompanySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('personal');
+    setStep("personal");
   };
 
   const handlePersonalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password.length < 8) {
-      setPasswordError('La contraseña debe tener al menos 8 caracteres');
+      setPasswordError("La contraseña debe tener al menos 8 caracteres");
       return;
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden');
+      setPasswordError("Las contraseñas no coinciden");
       return;
     }
-    
-    setPasswordError('');
-    setStep('questionnaire');
+
+    setPasswordError("");
+    setStep("questionnaire");
   };
 
   const handleNextQuestion = () => {
-    setSlideDirection('right');
-    setQuestionStep(prev => prev + 1);
+    setSlideDirection("right");
+    setQuestionStep((prev) => prev + 1);
   };
 
   const handlePrevQuestion = () => {
-    setSlideDirection('left');
-    setQuestionStep(prev => prev - 1);
+    setSlideDirection("left");
+    setQuestionStep((prev) => prev - 1);
   };
 
   const questions = [
@@ -112,16 +134,22 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
           <div className="bg-white/5 backdrop-blur-lg rounded-xl p-8 transform hover:scale-105 transition-all duration-300">
             <textarea
               value={questionnaireData.preferredHotel}
-              onChange={(e) => setQuestionnaireData({ ...questionnaireData, preferredHotel: e.target.value })}
+              onChange={(e) =>
+                setQuestionnaireData({
+                  ...questionnaireData,
+                  preferredHotel: e.target.value,
+                })
+              }
               className="w-full h-32 bg-white/10 backdrop-blur rounded-lg border-2 border-white/20 text-white placeholder-white/60 p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               placeholder="Ej: Marriott, Hilton, etc."
             />
           </div>
           <p className="text-blue-200 text-sm">
-            Conocer tus preferencias nos ayuda a ofrecerte mejores recomendaciones
+            Conocer tus preferencias nos ayuda a ofrecerte mejores
+            recomendaciones
           </p>
         </div>
-      )
+      ),
     },
     {
       title: "¿Realizas cambios frecuentemente?",
@@ -131,13 +159,16 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
           <button
             type="button"
             onClick={() => {
-              setQuestionnaireData({ ...questionnaireData, frequentChanges: 'yes' });
+              setQuestionnaireData({
+                ...questionnaireData,
+                frequentChanges: "yes",
+              });
               setTimeout(handleNextQuestion, 500);
             }}
             className={`group relative overflow-hidden rounded-xl p-8 transition-all duration-300 ${
-              questionnaireData.frequentChanges === 'yes'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white/10 hover:bg-white/20 text-white'
+              questionnaireData.frequentChanges === "yes"
+                ? "bg-blue-600 text-white"
+                : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
             <div className="relative z-10 flex flex-col items-center space-y-4">
@@ -149,13 +180,16 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
           <button
             type="button"
             onClick={() => {
-              setQuestionnaireData({ ...questionnaireData, frequentChanges: 'no' });
+              setQuestionnaireData({
+                ...questionnaireData,
+                frequentChanges: "no",
+              });
               setTimeout(handleNextQuestion, 500);
             }}
             className={`group relative overflow-hidden rounded-xl p-8 transition-all duration-300 ${
-              questionnaireData.frequentChanges === 'no'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white/10 hover:bg-white/20 text-white'
+              questionnaireData.frequentChanges === "no"
+                ? "bg-blue-600 text-white"
+                : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
             <div className="relative z-10 flex flex-col items-center space-y-4">
@@ -165,7 +199,7 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </button>
         </div>
-      )
+      ),
     },
     {
       title: "¿Hay lugares que prefieres evitar?",
@@ -175,7 +209,12 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
           <div className="bg-white/5 backdrop-blur-lg rounded-xl p-8 transform hover:scale-105 transition-all duration-300">
             <textarea
               value={questionnaireData.avoidLocations}
-              onChange={(e) => setQuestionnaireData({ ...questionnaireData, avoidLocations: e.target.value })}
+              onChange={(e) =>
+                setQuestionnaireData({
+                  ...questionnaireData,
+                  avoidLocations: e.target.value,
+                })
+              }
               className="w-full h-32 bg-white/10 backdrop-blur rounded-lg border-2 border-white/20 text-white placeholder-white/60 p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               placeholder="Menciona lugares o tipos de alojamiento que prefieres evitar"
             />
@@ -184,14 +223,14 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
             Esta información nos ayuda a filtrar opciones que no te interesan
           </p>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const renderQuestionnaire = () => (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-blue-800/20 to-transparent" />
-      
+
       <div className="relative w-full max-w-4xl mx-auto px-4">
         {/* Progress Indicator */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-full max-w-md">
@@ -201,10 +240,10 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
                 key={index}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === questionStep
-                    ? 'bg-blue-500 scale-125'
+                    ? "bg-blue-500 scale-125"
                     : index < questionStep
-                    ? 'bg-blue-400'
-                    : 'bg-blue-300/30'
+                    ? "bg-blue-400"
+                    : "bg-blue-300/30"
                 }`}
               />
             ))}
@@ -215,16 +254,16 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
         <div className="relative overflow-hidden">
           <div
             className={`transform transition-all duration-500 ease-in-out ${
-              slideDirection === 'right'
-                ? 'translate-x-0 opacity-100'
-                : '-translate-x-full opacity-0'
+              slideDirection === "right"
+                ? "translate-x-0 opacity-100"
+                : "-translate-x-full opacity-0"
             }`}
           >
             <div className="text-center space-y-8">
               {/* Icon */}
               <div className="flex justify-center">
                 {React.createElement(questions[questionStep].icon, {
-                  className: "w-24 h-24 text-blue-500"
+                  className: "w-24 h-24 text-blue-500",
                 })}
               </div>
 
@@ -234,9 +273,7 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               </h2>
 
               {/* Content */}
-              <div className="mt-12">
-                {questions[questionStep].content}
-              </div>
+              <div className="mt-12">{questions[questionStep].content}</div>
 
               {/* Navigation Buttons */}
               <div className="flex justify-between items-center mt-12 max-w-md mx-auto">
@@ -265,7 +302,7 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
                     onClick={handleRegistrationComplete}
                     disabled={isRegistering}
                     className={`flex items-center space-x-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors ${
-                      isRegistering ? 'opacity-50 cursor-not-allowed' : ''
+                      isRegistering ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
                     {isRegistering ? (
@@ -299,20 +336,26 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
     <div className="mb-8">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium text-blue-600">
-          {step === 'company' ? 'Información de la Empresa' : 
-           step === 'personal' ? 'Información Personal' : 
-           'Preferencias'}
+          {step === "company"
+            ? "Información de la Empresa"
+            : step === "personal"
+            ? "Información Personal"
+            : "Preferencias"}
         </span>
         <span className="text-sm font-medium text-gray-500">
-          Paso {step === 'company' ? '1' : step === 'personal' ? '2' : '3'} de 3
+          Paso {step === "company" ? "1" : step === "personal" ? "2" : "3"} de 3
         </span>
       </div>
       <div className="h-2 bg-gray-200 rounded-full">
-        <div 
+        <div
           className="h-full bg-blue-600 rounded-full transition-all duration-500"
-          style={{ 
-            width: step === 'company' ? '33.33%' : 
-                   step === 'personal' ? '66.66%' : '100%' 
+          style={{
+            width:
+              step === "company"
+                ? "33.33%"
+                : step === "personal"
+                ? "66.66%"
+                : "100%",
           }}
         />
       </div>
@@ -332,10 +375,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <Building2 className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="text"
               required
               value={formData.companyName}
-              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, companyName: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -347,6 +393,7 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
             RFC (Opcional)
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             value={formData.rfc}
             onChange={(e) => setFormData({ ...formData, rfc: e.target.value })}
@@ -366,7 +413,9 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
             <select
               required
               value={formData.industry}
-              onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, industry: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">Selecciona una industria</option>
@@ -379,16 +428,19 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
           </div>
         </div>
 
-        {formData.industry === 'otros' && (
+        {formData.industry === "otros" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Especifica tu industria <span className="text-red-500">*</span>
             </label>
             <input
+              pattern="^[^<>]*$"
               type="text"
               required
               value={formData.customIndustry}
-              onChange={(e) => setFormData({ ...formData, customIndustry: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, customIndustry: e.target.value })
+              }
               className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -397,17 +449,21 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
         {/* Ciudad Principal de Operaciones */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ciudad Principal de Operaciones <span className="text-red-500">*</span>
+            Ciudad Principal de Operaciones{" "}
+            <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MapPin className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="text"
               required
               value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, city: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -437,10 +493,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <User className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="text"
               required
               value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -456,10 +515,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <Mail className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="email"
               required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -475,10 +537,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <Phone className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="tel"
               required
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -494,10 +559,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <Lock className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="password"
               required
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
               placeholder="Mínimo 8 caracteres"
             />
@@ -514,10 +582,13 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
               <Lock className="h-5 w-5 text-gray-400" />
             </div>
             <input
+              pattern="^[^<>]*$"
               type="password"
               required
               value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
               className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
@@ -533,7 +604,7 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
       <div className="flex space-x-4">
         <button
           type="button"
-          onClick={() => setStep('company')}
+          onClick={() => setStep("company")}
           className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           Regresar
@@ -551,32 +622,38 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
 
   const renderContent = () => {
     switch (step) {
-      case 'company':
+      case "company":
         return (
           <>
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">Información de la Empresa</h2>
-              <p className="mt-2 text-gray-600">Cuéntanos sobre tu organización</p>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Información de la Empresa
+              </h2>
+              <p className="mt-2 text-gray-600">
+                Cuéntanos sobre tu organización
+              </p>
             </div>
             {renderCompanyForm()}
           </>
         );
-      case 'personal':
+      case "personal":
         return (
           <>
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">Información Personal</h2>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Información Personal
+              </h2>
               <p className="mt-2 text-gray-600">Datos de acceso a tu cuenta</p>
             </div>
             {renderPersonalForm()}
           </>
         );
-      case 'questionnaire':
+      case "questionnaire":
         return renderQuestionnaire();
     }
   };
 
-  if (step === 'questionnaire') {
+  if (step === "questionnaire") {
     return renderQuestionnaire();
   }
 
@@ -593,7 +670,8 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({ onComplete }
                   Únete a la Experiencia de Viaje
                 </h2>
                 <p className="text-blue-100 mb-8 leading-relaxed">
-                  Descubre un mundo de posibilidades con nuestro asistente inteligente de viajes.
+                  Descubre un mundo de posibilidades con nuestro asistente
+                  inteligente de viajes.
                 </p>
                 <div className="space-y-6">
                   <div className="flex items-center space-x-3 text-white">

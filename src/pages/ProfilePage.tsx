@@ -81,7 +81,7 @@ const cardStyle = {
   hidePostalCode: true, // Oculta el campo de código postal
   hideIcon: false, // Oculta el ícono de Stripe (opcional)
   disabled: false, // Si quieres deshabilitar la edición
-  disableLink: true, 
+  disableLink: true,
 };
 
 const CheckOutForm = ({ setSuccess, setTrigger }: any) => {
@@ -671,6 +671,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                         </div>
                         {isEditingPreferences ? (
                           <input
+                            pattern="^[^<>]*$"
                             type="text"
                             value={editedPreferences.preferred_hotel || ""}
                             onChange={(e) =>

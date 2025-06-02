@@ -197,6 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Mail className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    pattern="^[^<>]*$"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -220,6 +221,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    pattern="^[^<>]*$"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -248,6 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
                   <input
+                    pattern="^[^<>]*$"
                     id="remember-me"
                     type="checkbox"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -340,6 +343,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
+                  pattern="^[^<>]*$"
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
@@ -364,7 +368,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Barcode className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input
+                  <input pattern="^[^<>]*$"
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
@@ -467,6 +471,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Barcode className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    pattern="^[^<>]*$"
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
@@ -536,6 +541,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    pattern="^[^<>]*$"
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -570,6 +576,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    pattern="^[^<>]*$"
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

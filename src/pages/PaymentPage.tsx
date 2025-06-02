@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { ArrowLeft, CreditCard, Receipt, Building2, FileText } from 'lucide-react';
-import type { BookingData } from '../types';
+import React, { useState } from "react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Receipt,
+  Building2,
+  FileText,
+} from "lucide-react";
+import type { BookingData } from "../types";
 
 interface PaymentPageProps {
   bookingData?: BookingData;
   onBack?: () => void;
 }
 
-export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBookingData, onBack }) => {
+export const PaymentPage: React.FC<PaymentPageProps> = ({
+  bookingData: propBookingData,
+  onBack,
+}) => {
   const [bookingData] = useState<BookingData | null>(() => {
-    const pendingBookingData = sessionStorage.getItem('pendingBookingData');
-    return pendingBookingData ? JSON.parse(pendingBookingData) : propBookingData || null;
+    const pendingBookingData = sessionStorage.getItem("pendingBookingData");
+    return pendingBookingData
+      ? JSON.parse(pendingBookingData)
+      : propBookingData || null;
   });
 
   const [showBillingOptions, setShowBillingOptions] = useState(false);
@@ -48,7 +59,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
           <div className="text-right">
             <p className="text-sm text-gray-500">Total a Pagar</p>
             <p className="text-xl font-bold text-gray-900">
-              ${bookingData.room?.totalPrice?.toLocaleString('es-MX')} MXN
+              ${bookingData.room?.totalPrice?.toLocaleString("es-MX")} MXN
             </p>
           </div>
         </div>
@@ -62,15 +73,19 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
                   <Receipt className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Opciones de Facturación</h3>
-                  <p className="text-sm text-gray-500">Configura tus datos de facturación</p>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Opciones de Facturación
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Configura tus datos de facturación
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowBillingOptions(!showBillingOptions)}
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
-                {showBillingOptions ? 'Ocultar opciones' : 'Mostrar opciones'}
+                {showBillingOptions ? "Ocultar opciones" : "Mostrar opciones"}
               </button>
             </div>
 
@@ -86,6 +101,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
                         <Building2 className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
+                        pattern="^[^<>]*$"
                         type="text"
                         className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nombre o razón social"
@@ -102,6 +118,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
                         <FileText className="h-5 w-5 text-gray-400" />
                       </div>
                       <input
+                        pattern="^[^<>]*$"
                         type="text"
                         className="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         placeholder="RFC para facturación"
@@ -115,6 +132,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
                     Correo para Facturación
                   </label>
                   <input
+                    pattern="^[^<>]*$"
                     type="email"
                     className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="correo@ejemplo.com"
@@ -123,7 +141,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
 
                 <div className="bg-blue-50 rounded-lg p-4">
                   <p className="text-sm text-blue-700">
-                    La factura será enviada al correo proporcionado una vez que se procese el pago.
+                    La factura será enviada al correo proporcionado una vez que
+                    se procese el pago.
                   </p>
                 </div>
               </div>
@@ -136,7 +155,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Página de Pago</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Página de Pago
+              </h2>
               <p className="text-gray-600 mt-2">
                 La integración de pagos está temporalmente deshabilitada
               </p>
@@ -145,33 +166,49 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ bookingData: propBooki
             <div className="space-y-6">
               <div className="bg-blue-50 rounded-lg p-4 text-blue-700">
                 <p>
-                  Para completar tu reservación, por favor contacta a nuestro equipo de soporte.
+                  Para completar tu reservación, por favor contacta a nuestro
+                  equipo de soporte.
                 </p>
               </div>
 
               <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalles de la Reservación</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Detalles de la Reservación
+                </h3>
                 <dl className="grid grid-cols-1 gap-4">
                   <div className="bg-gray-50 px-4 py-3 rounded-lg">
                     <dt className="text-sm text-gray-500">Hotel</dt>
-                    <dd className="text-gray-900 font-medium">{bookingData.hotel.name}</dd>
+                    <dd className="text-gray-900 font-medium">
+                      {bookingData.hotel.name}
+                    </dd>
                   </div>
                   <div className="bg-gray-50 px-4 py-3 rounded-lg">
                     <dt className="text-sm text-gray-500">Fechas</dt>
                     <dd className="text-gray-900 font-medium">
-                      {new Date(bookingData.dates.checkIn!).toLocaleDateString()} - {new Date(bookingData.dates.checkOut!).toLocaleDateString()}
+                      {new Date(
+                        bookingData.dates.checkIn!
+                      ).toLocaleDateString()}{" "}
+                      -{" "}
+                      {new Date(
+                        bookingData.dates.checkOut!
+                      ).toLocaleDateString()}
                     </dd>
                   </div>
                   <div className="bg-gray-50 px-4 py-3 rounded-lg">
-                    <dt className="text-sm text-gray-500">Tipo de Habitación</dt>
+                    <dt className="text-sm text-gray-500">
+                      Tipo de Habitación
+                    </dt>
                     <dd className="text-gray-900 font-medium">
-                      {bookingData.room.type === 'single' ? 'Sencilla' : 'Doble'}
+                      {bookingData.room.type === "single"
+                        ? "Sencilla"
+                        : "Doble"}
                     </dd>
                   </div>
                   <div className="bg-gray-50 px-4 py-3 rounded-lg">
                     <dt className="text-sm text-gray-500">Total</dt>
                     <dd className="text-gray-900 font-medium">
-                      ${bookingData.room.totalPrice?.toLocaleString('es-MX')} MXN
+                      ${bookingData.room.totalPrice?.toLocaleString("es-MX")}{" "}
+                      MXN
                     </dd>
                   </div>
                 </dl>

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Company, Employee, Assignment } from '../types';
-import { X } from 'lucide-react';
+import React from "react";
+import { Company, Employee, Assignment } from "../types";
+import { X } from "lucide-react";
 
 interface AssignmentFormProps {
   companies: Company[];
@@ -21,14 +21,14 @@ export function AssignmentForm({
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    
+
     const data: Partial<Assignment> = {
-      companyId: formData.get('companyId') as string,
-      employeeId: formData.get('employeeId') as string,
-      startDate: formData.get('startDate') as string,
-      role: formData.get('role') as 'admin' | 'user' | 'manager',
+      companyId: formData.get("companyId") as string,
+      employeeId: formData.get("employeeId") as string,
+      startDate: formData.get("startDate") as string,
+      role: formData.get("role") as "admin" | "user" | "manager",
     };
-    
+
     onSubmit(data);
   };
 
@@ -36,7 +36,7 @@ export function AssignmentForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? 'Edit Assignment' : 'New Company-Employee Assignment'}
+          {initialData ? "Edit Assignment" : "New Company-Employee Assignment"}
         </h2>
         <button
           type="button"
@@ -91,6 +91,7 @@ export function AssignmentForm({
             Start Date
           </label>
           <input
+            pattern="^[^<>]*$"
             type="date"
             name="startDate"
             defaultValue={initialData?.startDate}
@@ -129,7 +130,7 @@ export function AssignmentForm({
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Update Assignment' : 'Create Assignment'}
+          {initialData ? "Update Assignment" : "Create Assignment"}
         </button>
       </div>
     </form>

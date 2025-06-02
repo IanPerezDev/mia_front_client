@@ -1,6 +1,6 @@
-import React from 'react';
-import { Tag } from '../types';
-import { X } from 'lucide-react';
+import React from "react";
+import { Tag } from "../types";
+import { X } from "lucide-react";
 
 interface TagFormProps {
   onSubmit: (data: Partial<Tag>) => void;
@@ -8,17 +8,25 @@ interface TagFormProps {
   initialData?: Tag;
 }
 
-export function TagForm({ onSubmit, onCancel, initialData }: TagFormProps) {
+
+export function TagForm({
+  onSubmit,
+  onCancel,
+  initialData,
+  employees,
+}: TagFormProps) {
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
     const data: Partial<Tag> = {
-      name: formData.get('name') as string,
-      color: formData.get('color') as string,
-      description: formData.get('description') as string,
-      tipoTag: formData.get('tipoTag') as string,
+name: formData.get("name") as string,
+color: formData.get("color") as string,
+description: formData.get("description") as string,
+employeeIds: Array.from(formData.getAll("employeeIds") as string[]),
+tipoTag: formData.get("tipoTag") as string,
     };
 
     onSubmit(data);
@@ -28,7 +36,7 @@ export function TagForm({ onSubmit, onCancel, initialData }: TagFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">
-          {initialData ? 'Editar Etiqueta' : 'Crear Nueva Etiqueta'}
+          {initialData ? "Editar Etiqueta" : "Crear Nueva Etiqueta"}
         </h2>
         <button
           type="button"
@@ -45,6 +53,7 @@ export function TagForm({ onSubmit, onCancel, initialData }: TagFormProps) {
             Nombre de la etiqueta
           </label>
           <input
+            pattern="^[^<>]*$"
             type="text"
             name="name"
             defaultValue={initialData?.name}
@@ -59,9 +68,10 @@ export function TagForm({ onSubmit, onCancel, initialData }: TagFormProps) {
           </label>
           <div className="mt-1 flex items-center space-x-2">
             <input
+              pattern="^[^<>]*$"
               type="color"
               name="color"
-              defaultValue={initialData?.color || '#3B82F6'}
+              defaultValue={initialData?.color || "#3B82F6"}
               required
               className="h-10 w-20 rounded-md border-gray-300"
             />
@@ -118,7 +128,7 @@ export function TagForm({ onSubmit, onCancel, initialData }: TagFormProps) {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
         >
-          {initialData ? 'Actualizar etiqueta' : 'Crear etiqueta'}
+          {initialData ? "Actualizar etiqueta" : "Crear etiqueta"}
         </button>
       </div>
     </form>

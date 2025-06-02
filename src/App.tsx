@@ -273,7 +273,7 @@ const ResponsiveChat = () => {
             ...prev,
             {
               component_type: "error",
-              content: "Lo siento, no puedo ayudarte con eso.",
+              content: "Lo siento, ocurrio un error al buscar la información.",
             },
           ]);
         } finally {
@@ -423,6 +423,7 @@ const ResponsiveChat = () => {
 
                         <div className="relative">
                           <input
+                            pattern="^[^<>]*$"
                             type="text"
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
@@ -513,6 +514,7 @@ const ResponsiveChat = () => {
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 relative">
                         <input
+                          pattern="^[^<>]*$"
                           type="text"
                           value={inputMessage}
                           onChange={(e) => setInputMessage(e.target.value)}
@@ -547,6 +549,10 @@ const ResponsiveChat = () => {
                         <ArrowRight className="w-5 h-5" />
                       </button>
                     </div>
+                    <p className="w-full text-center text-xs mt-2 text-gray-200/80">
+                      MIA puede cometer errores. Considera verificar la
+                      información importante.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -559,7 +565,7 @@ const ResponsiveChat = () => {
               <div className="w-1/3 ml-[66%] min-h-[calc(100vh-4rem)] p-6 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300">
                 <ReservationPanel booking={bookingData || null} />
               </div>
-              <a
+              {/* <a
                 href="https://wa.me/5510445254"
                 target="_blank"
                 className="fixed bottom-10 right-10 group"
@@ -574,7 +580,7 @@ const ResponsiveChat = () => {
                 <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   ¡Chatea con MIA en WhatsApp!
                 </div>
-              </a>
+              </a> */}
             </>
           )}
         </div>

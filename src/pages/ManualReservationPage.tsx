@@ -62,7 +62,7 @@ const cardStyle = {
   hidePostalCode: true, // Oculta el campo de código postal
   hideIcon: false, // Oculta el ícono de Stripe (opcional)
   disabled: false, // Si quieres deshabilitar la edición
-  disableLink: true, 
+  disableLink: true,
 };
 
 const stripePromise = loadStripe(
@@ -740,6 +740,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
                   <div className="relative">
                     <Calendar className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     <input
+                      pattern="^[^<>]*$"
                       type="date"
                       value={reservationData.checkIn}
                       onChange={(e) =>
@@ -758,6 +759,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
                   <div className="relative">
                     <Calendar className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     <input
+                      pattern="^[^<>]*$"
                       type="date"
                       value={reservationData.checkOut}
                       onChange={(e) =>
@@ -840,6 +842,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
                   <div className="relative">
                     <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     <input
+                      pattern="^[^<>]*$"
                       type="number"
                       min="1"
                       max={reservationData.roomType === "single" ? 2 : 4}
@@ -910,6 +913,7 @@ export const ManualReservationPage: React.FC<ManualReservationPageProps> = ({
                     <div key={index} className="relative">
                       <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                       <input
+                        pattern="^[^<>]*$"
                         type="text"
                         value={reservationData.additionalGuests[index] || ""}
                         onChange={(e) => {
